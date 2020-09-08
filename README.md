@@ -29,3 +29,7 @@ terminal or command prompt. This will create a new folder called
 You do not need to run `leanproject get ...` after the first time. To
 get updated versions of all the files in this repository, you can run
 standard git commands like `git pull` as often as you want.
+
+## Files
+All working code can be found in the `src` folder. No changes will be
+made to files outside the `src` folder.
