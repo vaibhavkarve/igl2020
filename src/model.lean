@@ -88,7 +88,8 @@ def ring_lang : lang := sorry
 /- We now define an L-structure to be interpretations of functions,
  relations and constants. -/
 structure struc (L : lang) :=
-(M : Type)                                -- universe/domain
-(F (f : L.F) : vector M (L.n_f f) → M)   -- interpretation of each function
-(R (r : L.R) : set (vector M (L.n_r r)))  -- interpretation of each relation
-(C : L.C → M)                            -- interpretation of each constant
+(univ : Type)                                  -- universe/domain
+(F (f : L.F) : vector univ (L.n_f f) → univ)  -- interpretation of each function
+(R (r : L.R) : set (vector univ (L.n_r r)))    -- interpretation of each relation
+(C : L.C → univ)                              -- interpretation of each constant
+
