@@ -1,4 +1,6 @@
 import tactic
+import data.real.basic
+import set_theory.cardinal
 /- This is an attempt to define Languages and Structures on these
    Languages.-/
 
@@ -93,3 +95,37 @@ structure struc (L : lang) :=
 (R (r : L.R) : set (vector univ (L.n_r r)))    -- interpretation of each relation
 (C : L.C → univ)                              -- interpretation of each constant
 
+
+
+/-An L-embedding is a map between two L-structures that is injective
+  on the domain and preserves the interpretation of all the symbols of
+  L.-/
+structure embedding {L : lang} (M N : struc L) : Type :=
+(η : M.univ → N.univ)                           -- map of underlying domains
+(η_inj : function.injective η)                   -- should be one-to-one
+(η_F : ∀ f v,                                    -- preserves action of each function
+     η (M.F f v) = N.F f (vector.map η v))
+(η_R : ∀ r v,                                    -- preserves each relation
+     v ∈ (M.R r) ↔ (vector.map η v) ∈ (N.R r))
+(η_C : ∀ c,                                      -- preserves each constant
+     η (M.C c) = N.C c)
+
+
+
+
+/-A bijective L-embedding is called an L-isomorphism.-/
+structure isomorphism {L: lang} (M N : struc L) extends (embedding M N) : Type :=
+(η_bij : function.bijective η)
+
+
+/-The cardinality of a struc is the cardinality of its domain.-/
+def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
+
+/-If η: M → N is an embedding, then the cardinality of N is at least
+  the cardinality of M.-/
+lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
+  card M ≤ card N :=
+begin
+  sorry  -- Look for a theorem in mathlib that guarantees the result
+         -- using injectivity of η.
+end
