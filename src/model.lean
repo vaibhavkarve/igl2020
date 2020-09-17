@@ -122,3 +122,17 @@ begin
   sorry  -- Look for a theorem in mathlib that guarantees the result
          -- using injectivity of η.
 end
+
+
+/-We need a type to represent variables.-/
+constant var : Type
+
+/- We define terms in a language to be constants, variables or
+   functions acting on terms.-/
+inductive term (L : lang) : Type
+| const : L.C → term
+| var : var → term
+| func (f : L.F) : list term → term
+
+
+variables (A : Type) (B : Type)
