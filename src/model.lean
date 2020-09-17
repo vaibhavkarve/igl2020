@@ -7,37 +7,27 @@ import set_theory.cardinal
 
 /-A language is given by specifying functions, relations and constants
 along with the arity of each function and each relation.-/
-structure lang :=
+structure lang : Type 1 :=
 (F : Type)      -- functions
 (n_f : F → ℕ)  -- arity of each function
 (R : Type)      -- relations
 (n_r : R → ℕ)  -- arity of each relation
 (C : Type)      -- constants
 
+
 /-We now define some example languages. We start with the simplest
 possible language, the language of pure sets. This language has no
 functions, relations or constants.-/
-def set_lang : lang :=
-begin
-  fconstructor, -- we will construct the lang by specifying its fields.
-  use empty,    -- empty is the name of the empty type (0 elements)
-  use (λ_, 0),  -- doesn't matter. Vacuous definition.
-  use empty,    -- empty type because no relations.
-  use (λ _, 0), -- doesn't matter. Vacuous definition.
-  use empty,    -- empty type because no constants.
-end
+def set_lang: lang := ⟨empty, (λ_, 1000), empty, (λ_, 0), empty⟩
 
 /-A magma is a {×}-structure. So this has 1 function, 0 relations and
 0 constants.-/
-def magma_lang : lang :=
-begin
-  fconstructor,
-  use unit,     -- unit is the name of the type with only 1 member.
-  use (λ _, 2), -- this member is a binary operation
-  use empty,    -- no relations.
-  use (λ _, 0), -- vacuous definition.
-  use empty     -- no constants
-end
+def magma_lang : lang := {F := unit,
+                          n_f := (λ star, 2), ..set_lang} 
+
+
+def crazy_arity : fin 3 → ℕ := sorry
+
 
 /-A semigroup is a {×}-structure which satisfies the identity
   u × (v × w) = (u × v) × w-/
@@ -89,11 +79,12 @@ def ring_lang : lang := sorry
 
 /- We now define an L-structure to be interpretations of functions,
  relations and constants. -/
-structure struc (L : lang) :=
+structure struc (L : lang) : Type 1 :=
 (univ : Type)                                  -- universe/domain
 (F (f : L.F) : vector univ (L.n_f f) → univ)  -- interpretation of each function
 (R (r : L.R) : set (vector univ (L.n_r r)))    -- interpretation of each relation
 (C : L.C → univ)                              -- interpretation of each constant
+
 
 
 
@@ -113,6 +104,7 @@ structure embedding {L : lang} (M N : struc L) : Type :=
 
 
 
+
 /-A bijective L-embedding is called an L-isomorphism.-/
 structure isomorphism {L: lang} (M N : struc L) extends (embedding M N) : Type :=
 (η_bij : function.bijective η)
@@ -120,6 +112,7 @@ structure isomorphism {L: lang} (M N : struc L) extends (embedding M N) : Type :
 
 /-The cardinality of a struc is the cardinality of its domain.-/
 def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
+
 
 /-If η: M → N is an embedding, then the cardinality of N is at least
   the cardinality of M.-/
