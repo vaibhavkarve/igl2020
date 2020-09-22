@@ -5,6 +5,11 @@ import set_theory.cardinal
    Languages.-/
 
 
+
+-- -----------------------------------------------------------------
+-- 1. Languages and Examples
+-- -----------------------------------------------------------------
+
 /-A language is given by specifying functions, relations and constants
 along with the arity of each function and each relation.-/
 structure lang : Type 1 :=
@@ -77,6 +82,11 @@ def semiring_lang : lang := sorry
 def ring_lang : lang := sorry
 
 
+-- -----------------------------------------------------------------
+-- 2. Structures and Examples
+-- -----------------------------------------------------------------
+
+
 /- We now define an L-structure to be interpretations of functions,
  relations and constants. -/
 structure struc (L : lang) : Type 1 :=
@@ -86,6 +96,11 @@ structure struc (L : lang) : Type 1 :=
 (C : L.C → univ)                              -- interpretation of each constant
 
 
+
+
+-- -----------------------------------------------------------------
+-- 3. Embeddings between Structures
+-- -----------------------------------------------------------------
 
 
 /-An L-embedding is a map between two L-structures that is injective
@@ -100,9 +115,6 @@ structure embedding {L : lang} (M N : struc L) : Type :=
      v ∈ (M.R r) ↔ (vector.map η v) ∈ (N.R r))
 (η_C : ∀ c,                                      -- preserves each constant
      η (M.C c) = N.C c)
-
-
-
 
 
 /-A bijective L-embedding is called an L-isomorphism.-/
@@ -123,6 +135,10 @@ begin
          -- using injectivity of η.
 end
 
+
+-- -----------------------------------------------------------------
+-- 4. Terms
+-- -----------------------------------------------------------------
 
 /-We need a type to represent variables.-/
 constant var : Type
