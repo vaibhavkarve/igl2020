@@ -13,36 +13,29 @@ import set_theory.cardinal
 /-A language is given by specifying functions, relations and constants
 along with the arity of each function and each relation.-/
 structure lang : Type 1 :=
-(F : Type)      -- functions
-(n_f : F → ℕ)  -- arity of each function
-(R : Type)      -- relations
-(n_r : R → ℕ)  -- arity of each relation
-(C : Type)      -- constants
+(F : ℕ → Type)    -- functions
+(R : ℕ → Type)    -- relations
+(C : Type)          -- constants
 
 
 /-We now define some example languages. We start with the simplest
 possible language, the language of pure sets. This language has no
 functions, relations or constants.-/
-def set_lang: lang := ⟨empty, (λ_, 1000), empty, (λ_, 0), empty⟩
+def set_lang: lang := ⟨(λ _ , empty), (λ _, empty),  empty⟩
+
+def magma_functions : ℕ → Type
+| 2 := unit   -- one binary operation
+| _ := empty  -- and nothing else
 
 /-A magma is a {×}-structure. So this has 1 function, 0 relations and
 0 constants.-/
-def magma_lang : lang := {F := unit,
-                          n_f := (λ star, 2), ..set_lang} 
-
+def magma_lang : lang := {F := magma_functions, ..set_lang}
 
 
 /-A semigroup is a {×}-structure which satisfies the identity
   u × (v × w) = (u × v) × w-/
-def semigroup_lang : lang :=
-begin
-  fconstructor,
-  exact unit,                -- one function, therefore we use unit
-  exact function.const _ 2,  -- the function is a binary operation 
-  exact unit,                -- one relation, therefore we use unit
-  exact function.const _ 3,  -- the relation is ternary (uses u, v, w) 
-  exact empty,               -- no constants.
-end
+def semigroup_lang : lang := {R := (λ n, if n=3 then unit else empty),
+                              ..magma_lang}
 
 /- A monoid is a {×, 1}-structure which satisfies the identities
    1. u × (v × w) = (u × v) × w
@@ -88,10 +81,10 @@ def ring_lang : lang := sorry
 /- We now define an L-structure to be interpretations of functions,
  relations and constants. -/
 structure struc (L : lang) : Type 1 :=
-(univ : Type)                                  -- universe/domain
-(F (f : L.F) : vector univ (L.n_f f) → univ)  -- interpretation of each function
-(R (r : L.R) : set (vector univ (L.n_r r)))    -- interpretation of each relation
-(C : L.C → univ)                              -- interpretation of each constant
+(univ : Type)                                    -- universe/domain
+(F (n : ℕ) (f : L.F n) : vector univ n → univ)  -- interpretation of each function
+(R (n : ℕ) (r : L.R n) : set (vector univ n))    -- interpretation of each relation
+(C : L.C → univ)                                 -- interpretation of each constant
 
 
 
@@ -101,9 +94,9 @@ lemma type_is_struc_of_set_lang {A : Type} : struc (set_lang) :=
 begin
   fconstructor,
    { exact A},
-   { intros f,
+   { intros _ f,
      cases f},
-   { intros r,
+   { intros _ r,
      cases r},
    { intros c,
      cases c},
@@ -120,12 +113,15 @@ lemma free_magma_is_struc_of_magma_lang {A : Type} [magma A] :
 begin
   fconstructor,
     { exact A},
-    { intros _ v,
-      change magma_lang.n_f f with 2 at v,
-      exact magma.mul (v.nth 0) (v.nth 1)},
+    { intros n f v,
+      cases n,
+      { cases f},                             -- if n = 0
+      { exact magma.mul (v.nth 0) (v.nth 1)}, -- if n = 1
+    },
     { sorry},
     { sorry},
 end
+
 
 
 lemma semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
@@ -133,8 +129,9 @@ lemma semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
 begin
   fconstructor,
     { exact A},
-    { intros f v,
-      change semigroup_lang.n_f f with 2 at v,
+    { intros n f v,
+      cases n,
+      cases f,
       exact semigroup.mul (v.nth 0) (v.nth 1)},
     { sorry},
     { sorry}
@@ -160,13 +157,13 @@ lemma ring_is_struc_of_ring_lang {A : Type} [ring A] :
   on the domain and preserves the interpretation of all the symbols of
   L.-/
 structure embedding {L : lang} (M N : struc L) : Type :=
-(η : M.univ → N.univ)                           -- map of underlying domains
-(η_inj : function.injective η)                   -- should be one-to-one
-(η_F : ∀ f v,                                    -- preserves action of each function
-     η (M.F f v) = N.F f (vector.map η v))
-(η_R : ∀ r v,                                    -- preserves each relation
-     v ∈ (M.R r) ↔ (vector.map η v) ∈ (N.R r))
-(η_C : ∀ c,                                      -- preserves each constant
+(η : M.univ → N.univ)                             -- map of underlying domains
+(η_inj : function.injective η)                     -- should be one-to-one
+(η_F : ∀ n f v,                                    -- preserves action of each function
+     η (M.F n f v) = N.F n f (vector.map η v))
+(η_R : ∀ n r v,                                    -- preserves each relation
+     v ∈ (M.R n r) ↔ (vector.map η v) ∈ (N.R n r))
+(η_C : ∀ c,                                        -- preserves each constant
      η (M.C c) = N.C c)
 
 
@@ -196,12 +193,11 @@ end
 /-We need a type to represent variables.-/
 constant var : Type
 
+#exit
+
 /- We define terms in a language to be constants, variables or
    functions acting on terms.-/
 inductive term (L : lang) : Type
 | const : L.C → term
 | var : var → term
-| func (f : L.F) : list term → term
-
-
-variables (A : Type) (B : Type)
+| func (n : ℕ) (f : L.F n) (v : vector term n) : term
