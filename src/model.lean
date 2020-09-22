@@ -31,8 +31,6 @@ def magma_lang : lang := {F := unit,
                           n_f := (λ star, 2), ..set_lang} 
 
 
-def crazy_arity : fin 3 → ℕ := sorry
-
 
 /-A semigroup is a {×}-structure which satisfies the identity
   u × (v × w) = (u × v) × w-/
