@@ -37,11 +37,11 @@ def magma_lang : lang := {F := unit,
 def semigroup_lang : lang :=
 begin
   fconstructor,
-  use unit,     -- one function, therefore we use unit
-  use (λ _, 2), -- the function is a binary operation 
-  use unit,     -- one relation, therefore we use unit
-  use (λ _, 3), -- the relation is ternary (uses u, v, w)
-  use empty,    -- no constants.
+  exact unit,                -- one function, therefore we use unit
+  exact function.const _ 2,  -- the function is a binary operation 
+  exact unit,                -- one relation, therefore we use unit
+  exact function.const _ 3,  -- the relation is ternary (uses u, v, w) 
+  exact empty,               -- no constants.
 end
 
 /- A monoid is a {×, 1}-structure which satisfies the identities
@@ -93,6 +93,61 @@ structure struc (L : lang) : Type 1 :=
 (R (r : L.R) : set (vector univ (L.n_r r)))    -- interpretation of each relation
 (C : L.C → univ)                              -- interpretation of each constant
 
+
+
+/-We can show that Mathlib's group structure is a struc on group_lang.-/
+
+lemma type_is_struc_of_set_lang {A : Type} : struc (set_lang) :=
+begin
+  fconstructor,
+   { exact A},
+   { intros f,
+     cases f},
+   { intros r,
+     cases r},
+   { intros c,
+     cases c},
+ end
+
+/-We need to define a magma, because it looks like it is not defined
+  in Mathlib.-/
+class magma (α : Type) :=
+(mul : α → α → α)
+
+
+lemma free_magma_is_struc_of_magma_lang {A : Type} [magma A] :
+  struc (magma_lang) :=
+begin
+  fconstructor,
+    { exact A},
+    { intros _ v,
+      change magma_lang.n_f f with 2 at v,
+      exact magma.mul (v.nth 0) (v.nth 1)},
+    { sorry},
+    { sorry},
+end
+
+
+lemma semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
+  struc (semigroup_lang) :=
+begin
+  fconstructor,
+    { exact A},
+    { intros f v,
+      change semigroup_lang.n_f f with 2 at v,
+      exact semigroup.mul (v.nth 0) (v.nth 1)},
+    { sorry},
+    { sorry}
+end
+
+lemma monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
+  struc (monoid_lang) := sorry
+lemma group_is_struc_of_group_lang {A : Type} [group A] :
+  struc (group_lang) := sorry
+lemma semiring_is_struc_of_semiring_lang {A : Type} [semiring A] :
+  struc (semiring_lang) := sorry
+lemma ring_is_struc_of_ring_lang {A : Type} [ring A] :
+  struc (ring_lang) := sorry
 
 
 
