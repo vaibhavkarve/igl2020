@@ -26,8 +26,6 @@ def magma_lang : lang := {F := unit,
                           n_f := (λ star, 2), ..set_lang} 
 
 
-def crazy_arity : fin 3 → ℕ := sorry
-
 
 /-A semigroup is a {×}-structure which satisfies the identity
   u × (v × w) = (u × v) × w-/
@@ -41,11 +39,33 @@ begin
   use empty,    -- no constants.
 end
 
+def monoid_rel_arity : fin 3 → ℕ
+| ⟨0, _⟩ := 3
+| ⟨1, _⟩ := 2
+| ⟨2, _⟩ := 2
+| _     := 1000
+
 /- A monoid is a {×, 1}-structure which satisfies the identities
    1. u × (v × w) = (u × v) × w
    2. u × 1 = u
    3. 1 × u = u. -/
-def monoid_lang : lang := sorry
+def monoid_lang : lang :=
+begin
+  fconstructor,
+  use unit,
+  use (λ _, 2),
+  use fin 3,
+  use monoid_rel_arity,
+  use unit,
+end
+
+def group_rel_arity : fin 5 → ℕ
+| ⟨0, _⟩ := 3
+| ⟨1, _⟩ := 2
+| ⟨2, _⟩ := 2
+| ⟨3, _⟩ := 2
+| ⟨4, _⟩ := 2
+| _     := 1000
 
 /- A group is a {×, ⁻¹, 1}-structure which satisfies the identities
  1. u × (v × w) = (u × v) × w
@@ -53,17 +73,56 @@ def monoid_lang : lang := sorry
  3. 1 × u = u
  4. u × u−1 = 1
  5. u−1 × u = 1 -/
-def group_lang : lang := sorry
+def group_lang : lang :=
+begin
+  fconstructor,
+  use fin 2,
+  use (λ _, 2),
+  use fin 5,
+  use group_rel_arity,
+  use unit,
+end
+
+def semiring_rel_arity : fin 8 → ℕ
+| ⟨0, _⟩ := 3
+| ⟨1, _⟩ := 2
+| ⟨2, _⟩ := 2
+| ⟨3, _⟩ := 3
+| ⟨4, _⟩ := 2
+| ⟨5, _⟩ := 2
+| ⟨6, _⟩ := 3
+| ⟨7, _⟩ := 3
+| _     := 1000
 
 /- A semiring is a {×, +, 0, 1}-structure which satisfies the identities
   1. u + (v + w) = (u + v) + w
   2. u + v = v + u
   3. u + 0 = u
-  5. u × (v × w) = (u × v) × w
-  6. u × 1 = u, 1 × u = u
+  4. u × (v × w) = (u × v) × w
+  5. u × 1 = u
+  6. 1 × u = u
   7. u × (v + w) = (u × v) + (u × w)
   8. (v + w) × u = (v × u) + (w × u)-/
-def semiring_lang : lang := sorry
+def semiring_lang : lang :=
+begin
+  fconstructor,
+  use fin 2,
+  use (λ _, 2),
+  use fin 8,
+  use semiring_rel_arity,
+  use fin 2,
+end
+
+def ring_rel_arity : fin 8 → ℕ
+| ⟨0, _⟩ := 3
+| ⟨1, _⟩ := 2
+| ⟨2, _⟩ := 2
+| ⟨3, _⟩ := 2
+| ⟨4, _⟩ := 3
+| ⟨5, _⟩ := 2
+| ⟨6, _⟩ := 3
+| ⟨7, _⟩ := 3
+| _     := 1000
 
 /- A ring is a {×,+,−,0,1}-structure which satisfies the identities
    1. u + (v + w) = (u + v) + w
@@ -74,7 +133,15 @@ def semiring_lang : lang := sorry
    6. u × 1 = u, 1 × u = u
    7. u × (v + w) = (u × v) + (u × w)
    8. (v + w) × u = (v × u) + (w × u)-/
-def ring_lang : lang := sorry
+def ring_lang : lang :=
+begin
+  fconstructor,
+  use fin 3,
+  use (λ _, 2),
+  use fin 8,
+  use ring_rel_arity,
+  use fin 2,
+end
 
 
 /- We now define an L-structure to be interpretations of functions,
