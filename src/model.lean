@@ -23,12 +23,15 @@ possible language, the language of pure sets. This language has no
 functions, relations or constants.-/
 def set_lang: lang := ⟨(λ _ , empty), (λ _, empty),  empty⟩
 
+/-A magma is a {×}-structure. So this has 1 function, 0 relations and
+0 constants.-/
+
+-- relations for magma language
 def magma_functions : ℕ → Type
 | 2 := unit   -- one binary operation
 | _ := empty  -- and nothing else
 
-/-A magma is a {×}-structure. So this has 1 function, 0 relations and
-0 constants.-/
+-- Definition of the magma language
 def magma_lang : lang := {F := magma_functions, ..set_lang}
 
 
@@ -37,34 +40,12 @@ def magma_lang : lang := {F := magma_functions, ..set_lang}
 def semigroup_lang : lang := {R := (λ n, if n=3 then unit else empty),
                               ..magma_lang}
 
-def monoid_rel_arity : fin 3 → ℕ
-| ⟨0, _⟩ := 3
-| ⟨1, _⟩ := 2
-| ⟨2, _⟩ := 2
-| _     := 1000
-
 /- A monoid is a {×, 1}-structure which satisfies the identities
    1. u × (v × w) = (u × v) × w
    2. u × 1 = u
    3. 1 × u = u. -/
 def monoid_lang : lang := {R := (λ n, if n = 3 then unit else if n = 2 then fin 2 else empty),
                             C := unit, ..magma_lang}
--- begin
---   fconstructor,
---   use unit,
---   use (λ _, 2),
---   use fin 3,
---   use monoid_rel_arity,
---   use unit,
--- end
-
--- def group_rel_arity : fin 5 → ℕ
--- | ⟨0, _⟩ := 3
--- | ⟨1, _⟩ := 2
--- | ⟨2, _⟩ := 2
--- | ⟨3, _⟩ := 2
--- | ⟨4, _⟩ := 2
--- | _     := 1000
 
 -- /- A group is a {×, ⁻¹, 1}-structure which satisfies the identities
 --  1. u × (v × w) = (u × v) × w
@@ -75,25 +56,6 @@ def monoid_lang : lang := {R := (λ n, if n = 3 then unit else if n = 2 then fin
 def group_lang : lang := {F := (λ n, if n = 2 then fin 2 else empty),
                           R := (λ n, if n = 3 then unit else if n = 2 then fin 4 else empty),
                           C := unit}
--- begin
---   fconstructor,
---   use fin 2,
---   use (λ _, 2),
---   use fin 5,
---   use group_rel_arity,
---   use unit,
--- end
-
--- def semiring_rel_arity : fin 8 → ℕ
--- | ⟨0, _⟩ := 3
--- | ⟨1, _⟩ := 2
--- | ⟨2, _⟩ := 2
--- | ⟨3, _⟩ := 3
--- | ⟨4, _⟩ := 2
--- | ⟨5, _⟩ := 2
--- | ⟨6, _⟩ := 3
--- | ⟨7, _⟩ := 3
--- | _     := 1000
 
 -- /- A semiring is a {×, +, 0, 1}-structure which satisfies the identities
 --   1. u + (v + w) = (u + v) + w
@@ -107,25 +69,6 @@ def group_lang : lang := {F := (λ n, if n = 2 then fin 2 else empty),
 def semiring_lang : lang := {F := (λ n, if n = 2 then fin 2 else empty),
                               R := (λ n, if n = 3 then fin 4 else if n = 2 then fin 4 else empty),
                               C:= fin 2}
--- begin
---   fconstructor,
---   use fin 2,
---   use (λ _, 2),
---   use fin 8,
---   use semiring_rel_arity,
---   use fin 2,
--- end
-
--- def ring_rel_arity : fin 8 → ℕ
--- | ⟨0, _⟩ := 3
--- | ⟨1, _⟩ := 2
--- | ⟨2, _⟩ := 2
--- | ⟨3, _⟩ := 2
--- | ⟨4, _⟩ := 3
--- | ⟨5, _⟩ := 2
--- | ⟨6, _⟩ := 3
--- | ⟨7, _⟩ := 3
--- | _     := 1000
 
 -- /- A ring is a {×,+,−,0,1}-structure which satisfies the identities
 --    1. u + (v + w) = (u + v) + w
@@ -133,18 +76,21 @@ def semiring_lang : lang := {F := (λ n, if n = 2 then fin 2 else empty),
 --    3. u + 0 = u
 --    4. u + (−u) = 0
 --    5. u × (v × w) = (u × v) × w
---    6. u × 1 = u, 1 × u = u
---    7. u × (v + w) = (u × v) + (u × w)
---    8. (v + w) × u = (v × u) + (w × u)-/
--- def ring_lang : lang := {}
--- begin
---   fconstructor,
---   use fin 3,
---   use (λ _, 2),
---   use fin 8,
---   use ring_rel_arity,
---   use fin 2,
--- end
+--    6. u × 1 = u (TODO: should 6 and 7 be considered same/different?)
+--    7. 1 × u = u
+--    8. u × (v + w) = (u × v) + (u × w)
+--    9. (v + w) × u = (v × u) + (w × u)-/
+
+-- relations for ring language
+def ring_relations : ℕ → Type
+| 2 := fin 5   -- 5 binary relations
+| 3 := fin 4  -- 4 ternary relations
+| _ := empty  -- and nothing else
+
+-- definition of the ring language
+def ring_lang : lang := {F := (λ n, if n = 2 then fin 3 else empty),
+                          R:= ring_relations,
+                          C := fin 2}
 
 
 -- -- -----------------------------------------------------------------
