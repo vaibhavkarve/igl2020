@@ -41,7 +41,11 @@ def semigroup_lang : lang := {R := (λ n, if n=3 then unit else empty),
    1. u × (v × w) = (u × v) × w
    2. u × 1 = u
    3. 1 × u = u. -/
-def monoid_lang : lang := sorry
+def monoid_relations : ℕ → Type
+| 2 := bool -- two binary relations
+| 3 := unit -- one ternary relation
+| _ := empty
+def monoid_lang : lang := {R := monoid_relations, C := unit, ..magma_lang}
 
 /- A group is a {×, ⁻¹, 1}-structure which satisfies the identities
  1. u × (v × w) = (u × v) × w
@@ -49,17 +53,32 @@ def monoid_lang : lang := sorry
  3. 1 × u = u
  4. u × u−1 = 1
  5. u−1 × u = 1 -/
-def group_lang : lang := sorry
+def group_functions : ℕ → Type
+| 1 := unit -- one unary function
+| 2 := unit -- one binary function
+| _ := empty
+def group_relations : ℕ → Type
+| 2 := fin 4 -- four binary relations
+| 3 := unit  -- one ternary relation
+| _ := empty 
+def group_lang : lang := {F := group_functions, R := group_relations, ..monoid_lang}
 
 /- A semiring is a {×, +, 0, 1}-structure which satisfies the identities
   1. u + (v + w) = (u + v) + w
   2. u + v = v + u
   3. u + 0 = u
-  5. u × (v × w) = (u × v) × w
-  6. u × 1 = u, 1 × u = u
-  7. u × (v + w) = (u × v) + (u × w)
-  8. (v + w) × u = (v × u) + (w × u)-/
-def semiring_lang : lang := sorry
+  4. u × (v × w) = (u × v) × w
+  5. u × 1 = u, 1 × u = u
+  6. u × (v + w) = (u × v) + (u × w)
+  7. (v + w) × u = (v × u) + (w × u)-/
+def semiring_functions : ℕ → Type
+| 2 := bool -- two binary functions
+| _ := empty
+def semiring_relations : ℕ → Type
+| 2 := fin 4 -- four binary relations 
+| 3 := fin 4 -- four ternary relations
+| _ := empty
+def semiring_lang : lang := {F := semiring_functions, R := semiring_relations, C := bool}
 
 /- A ring is a {×,+,−,0,1}-structure which satisfies the identities
    1. u + (v + w) = (u + v) + w
@@ -70,7 +89,15 @@ def semiring_lang : lang := sorry
    6. u × 1 = u, 1 × u = u
    7. u × (v + w) = (u × v) + (u × w)
    8. (v + w) × u = (v × u) + (w × u)-/
-def ring_lang : lang := sorry
+def ring_functions : ℕ → Type
+| 2 := fin 3 -- three binary functions
+| _ := empty
+def ring_relations : ℕ → Type
+| 2 := fin 5 --five binary relations
+| 3 := fin 4 --four ternary relations
+| _ := empty
+def ring_lang : lang := {F := ring_functions, R := ring_relations, ..semiring_lang}
+
 
 
 -- -----------------------------------------------------------------
