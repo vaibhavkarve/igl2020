@@ -5,39 +5,37 @@ import set_theory.cardinal
    Languages.-/
 
 
+
+-- -----------------------------------------------------------------
+-- 1. Languages and Examples
+-- -----------------------------------------------------------------
+
 /-A language is given by specifying functions, relations and constants
 along with the arity of each function and each relation.-/
 structure lang : Type 1 :=
-(F : Type)      -- functions
-(n_f : F → ℕ)  -- arity of each function
-(R : Type)      -- relations
-(n_r : R → ℕ)  -- arity of each relation
-(C : Type)      -- constants
+(F : ℕ → Type)    -- functions
+(R : ℕ → Type)    -- relations
+(C : Type)          -- constants
 
 
 /-We now define some example languages. We start with the simplest
 possible language, the language of pure sets. This language has no
 functions, relations or constants.-/
-def set_lang: lang := ⟨empty, (λ_, 1000), empty, (λ_, 0), empty⟩
+def set_lang: lang := ⟨(λ _ , empty), (λ _, empty),  empty⟩
+
+def magma_functions : ℕ → Type
+| 2 := unit   -- one binary operation
+| _ := empty  -- and nothing else
 
 /-A magma is a {×}-structure. So this has 1 function, 0 relations and
 0 constants.-/
-def magma_lang : lang := {F := unit,
-                          n_f := (λ star, 2), ..set_lang} 
-
+def magma_lang : lang := {F := magma_functions, ..set_lang}
 
 
 /-A semigroup is a {×}-structure which satisfies the identity
   u × (v × w) = (u × v) × w-/
-def semigroup_lang : lang :=
-begin
-  fconstructor,
-  use unit,     -- one function, therefore we use unit
-  use (λ _, 2), -- the function is a binary operation 
-  use unit,     -- one relation, therefore we use unit
-  use (λ _, 3), -- the relation is ternary (uses u, v, w)
-  use empty,    -- no constants.
-end
+def semigroup_lang : lang := {R := (λ n, if n=3 then unit else empty),
+                              ..magma_lang}
 
 def monoid_rel_arity : fin 3 → ℕ
 | ⟨0, _⟩ := 3
@@ -144,32 +142,98 @@ begin
 end
 
 
+-- -----------------------------------------------------------------
+-- 2. Structures and Examples
+-- -----------------------------------------------------------------
+
+
 /- We now define an L-structure to be interpretations of functions,
  relations and constants. -/
 structure struc (L : lang) : Type 1 :=
-(univ : Type)                                  -- universe/domain
-(F (f : L.F) : vector univ (L.n_f f) → univ)  -- interpretation of each function
-(R (r : L.R) : set (vector univ (L.n_r r)))    -- interpretation of each relation
-(C : L.C → univ)                              -- interpretation of each constant
+(univ : Type)                                    -- universe/domain
+(F (n : ℕ) (f : L.F n) : vector univ n → univ)  -- interpretation of each function
+(R (n : ℕ) (r : L.R n) : set (vector univ n))    -- interpretation of each relation
+(C : L.C → univ)                                 -- interpretation of each constant
 
 
+
+/-We can show that Mathlib's group structure is a struc on group_lang.-/
+
+lemma type_is_struc_of_set_lang {A : Type} : struc (set_lang) :=
+begin
+  fconstructor,
+   { exact A},
+   { intros _ f,
+     cases f},
+   { intros _ r,
+     cases r},
+   { intros c,
+     cases c},
+ end
+
+/-We need to define a magma, because it looks like it is not defined
+  in Mathlib.-/
+class magma (α : Type) :=
+(mul : α → α → α)
+
+
+lemma free_magma_is_struc_of_magma_lang {A : Type} [magma A] :
+  struc (magma_lang) :=
+begin
+  fconstructor,
+    { exact A},
+    { intros n f v,
+      cases n,
+      { cases f},                             -- if n = 0
+      { exact magma.mul (v.nth 0) (v.nth 1)}, -- if n = 1
+    },
+    { sorry},
+    { sorry},
+end
+
+
+
+lemma semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
+  struc (semigroup_lang) :=
+begin
+  fconstructor,
+    { exact A},
+    { intros n f v,
+      cases n,
+      cases f,
+      exact semigroup.mul (v.nth 0) (v.nth 1)},
+    { sorry},
+    { sorry}
+end
+
+lemma monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
+  struc (monoid_lang) := sorry
+lemma group_is_struc_of_group_lang {A : Type} [group A] :
+  struc (group_lang) := sorry
+lemma semiring_is_struc_of_semiring_lang {A : Type} [semiring A] :
+  struc (semiring_lang) := sorry
+lemma ring_is_struc_of_ring_lang {A : Type} [ring A] :
+  struc (ring_lang) := sorry
+
+
+
+-- -----------------------------------------------------------------
+-- 3. Embeddings between Structures
+-- -----------------------------------------------------------------
 
 
 /-An L-embedding is a map between two L-structures that is injective
   on the domain and preserves the interpretation of all the symbols of
   L.-/
 structure embedding {L : lang} (M N : struc L) : Type :=
-(η : M.univ → N.univ)                           -- map of underlying domains
-(η_inj : function.injective η)                   -- should be one-to-one
-(η_F : ∀ f v,                                    -- preserves action of each function
-     η (M.F f v) = N.F f (vector.map η v))
-(η_R : ∀ r v,                                    -- preserves each relation
-     v ∈ (M.R r) ↔ (vector.map η v) ∈ (N.R r))
-(η_C : ∀ c,                                      -- preserves each constant
+(η : M.univ → N.univ)                             -- map of underlying domains
+(η_inj : function.injective η)                     -- should be one-to-one
+(η_F : ∀ n f v,                                    -- preserves action of each function
+     η (M.F n f v) = N.F n f (vector.map η v))
+(η_R : ∀ n r v,                                    -- preserves each relation
+     v ∈ (M.R n r) ↔ (vector.map η v) ∈ (N.R n r))
+(η_C : ∀ c,                                        -- preserves each constant
      η (M.C c) = N.C c)
-
-
-
 
 
 /-A bijective L-embedding is called an L-isomorphism.-/
@@ -191,15 +255,18 @@ begin
 end
 
 
+-- -----------------------------------------------------------------
+-- 4. Terms
+-- -----------------------------------------------------------------
+
 /-We need a type to represent variables.-/
 constant var : Type
+
+#exit
 
 /- We define terms in a language to be constants, variables or
    functions acting on terms.-/
 inductive term (L : lang) : Type
 | const : L.C → term
 | var : var → term
-| func (f : L.F) : list term → term
-
-
-variables (A : Type) (B : Type)
+| func (n : ℕ) (f : L.F n) (v : vector term n) : term
