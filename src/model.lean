@@ -42,8 +42,8 @@ def semigroup_lang : lang := {R := (λ n, if n=3 then unit else empty),
    2. u × 1 = u
    3. 1 × u = u. -/
 def monoid_relations : ℕ → Type
-| 2 := bool -- two binary relations
-| 3 := unit -- one ternary relation
+| 2 := bool   -- two binary relations
+| 3 := unit   -- one ternary relation
 | _ := empty
 def monoid_lang : lang := {R := monoid_relations, C := unit, ..magma_lang}
 
@@ -54,12 +54,12 @@ def monoid_lang : lang := {R := monoid_relations, C := unit, ..magma_lang}
  4. u × u−1 = 1
  5. u−1 × u = 1 -/
 def group_functions : ℕ → Type
-| 1 := unit -- one unary function
-| 2 := unit -- one binary function
+| 1 := unit   -- one unary function
+| 2 := unit   -- one binary function
 | _ := empty
 def group_relations : ℕ → Type
-| 2 := fin 4 -- four binary relations
-| 3 := unit  -- one ternary relation
+| 2 := fin 4  -- four binary relations
+| 3 := unit   -- one ternary relation
 | _ := empty 
 def group_lang : lang := {F := group_functions, R := group_relations, ..monoid_lang}
 
@@ -72,11 +72,11 @@ def group_lang : lang := {F := group_functions, R := group_relations, ..monoid_l
   6. u × (v + w) = (u × v) + (u × w)
   7. (v + w) × u = (v × u) + (w × u)-/
 def semiring_functions : ℕ → Type
-| 2 := bool -- two binary functions
+| 2 := bool   -- two binary functions
 | _ := empty
 def semiring_relations : ℕ → Type
-| 2 := fin 4 -- four binary relations 
-| 3 := fin 4 -- four ternary relations
+| 2 := fin 4  -- four binary relations 
+| 3 := fin 4  -- four ternary relations
 | _ := empty
 def semiring_lang : lang := {F := semiring_functions, R := semiring_relations, C := bool}
 
@@ -90,11 +90,12 @@ def semiring_lang : lang := {F := semiring_functions, R := semiring_relations, C
    7. u × (v + w) = (u × v) + (u × w)
    8. (v + w) × u = (v × u) + (w × u)-/
 def ring_functions : ℕ → Type
-| 2 := fin 3 -- three binary functions
+| 1 := unit   -- one unary function
+| 2 := bool   -- two binary functions
 | _ := empty
 def ring_relations : ℕ → Type
-| 2 := fin 5 --five binary relations
-| 3 := fin 4 --four ternary relations
+| 2 := fin 5  -- five binary relations
+| 3 := fin 4  -- four ternary relations
 | _ := empty
 def ring_lang : lang := {F := ring_functions, R := ring_relations, ..semiring_lang}
 
@@ -139,41 +140,55 @@ lemma free_magma_is_struc_of_magma_lang {A : Type} [magma A] :
   struc (magma_lang) :=
 begin
   fconstructor,
-    { exact A},
+  { exact A},
+  { 
+    intros n f v,
+    cases n,
+    { cases f},                                      -- n=0 → f n = empty
     { 
-      intros n f v,
       cases n,
-      { cases f},                             -- if n = 0
-      { exact magma.mul (v.nth 0) (v.nth 1)} -- if n = 1
-    },
-    { intros n r,
-      cases r
-    },
-    { intro c,
-      cases c}
+      { cases f},                                    -- n=1 → f n = empty
+      { 
+        cases n,
+        { exact magma.mul (v.nth 0) (v.nth 1)},      -- n=2 → f n = {×}
+        { cases f}                                   -- n>2 → f n = empty
+      }
+    }, 
+  },
+  { intros n r,
+    cases r      -- ∀n, r = empty
+  },
+  { intro c, 
+    cases c      -- C = empty
+  }
 end
-
-#check set (vector Type (_:ℕ))
-#check vector
-#check semigroup.mul
-
+#print semigroup
 lemma semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
   struc (semigroup_lang) :=
 begin
   fconstructor,
-    { exact A},
+  { exact A},
+  { 
+    intros n f v,
+    cases n,
+    { cases f},                                      -- n=0 → f n = empty
     { 
-      intros n f v,
       cases n,
-      { cases f},
-      { exact semigroup.mul (v.nth 0) (v.nth 1)}
-    },
-    { 
-      intros n r ,
-      sorry
-    },
-    { intro c,
-      cases c}
+      { cases f},                                    -- n=1 → f n = empty
+      { 
+        cases n,
+        { exact semigroup.mul (v.nth 0) (v.nth 1)},  -- n=2 → f n = {×}
+        { cases f}                                   -- n>2 → f n empty
+      }
+    }, 
+  },
+  { 
+    intros n r ,
+    sorry
+  },
+  { intro c,     -- C = empty
+    cases c
+  }
 end
 
 lemma monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
@@ -184,18 +199,27 @@ begin
   { 
     intros n f v,
     cases n,
-    { cases f},
-    { exact semigroup.mul (v.nth 0) (v.nth 1)}
+    { cases f},                                      -- n=0 → f n = empty
+    { 
+      cases n,
+      { cases f},                                    -- n=1 → f n = empty
+      { 
+        cases n,
+        { exact monoid.mul (v.nth 0) (v.nth 1)},     -- n=2 → f n = {×}
+        { cases f}                                   -- n>2 → f n = empty
+      }
+    }, 
   },
   {
     intros n r,
     sorry
   },
   {
-    intro c,
-    exact 1,
+    intro c, 
+    exact 1,     -- C = {1}
   }
 end
+
 lemma group_is_struc_of_group_lang {A : Type} [group A] :
   struc (group_lang) := 
 begin
@@ -204,16 +228,94 @@ begin
   { 
     intros n f v,
     cases n,
-    { cases f},
+    { cases f},                                      -- n=0 → f n = empty
     {
-      
+      cases n,
+      { exact group.inv (v.nth 0)},                  -- n=1 → f n = {⁻¹}
+      { cases n,
+        { exact group.mul (v.nth 0) (v.nth 1)},      -- n=2 → f n = {×}
+        { cases f}                                   -- n>2 → f n = empty
+      }
     }
+  },
+  {
+    intros n r,
+    sorry
+  },
+  { 
+    intro c,
+    exact 1,     -- C = {1}
   }
 end
+
 lemma semiring_is_struc_of_semiring_lang {A : Type} [semiring A] :
-  struc (semiring_lang) := sorry
+  struc (semiring_lang) := 
+begin
+  fconstructor,
+  { exact A},
+  { 
+    intros n f v,
+    cases n,
+    { cases f},                                      -- n=0: f n = empty
+    { 
+      cases n,
+      { cases f},                                    -- n=1: f n = empty
+      { 
+        cases n,
+        { 
+          cases f,                                   -- n=2: f n = {×, +}
+          { exact semiring.mul (v.nth 0) (v.nth 1)}, -- × 
+          { exact semiring.add (v.nth 0) (v.nth 1)}  -- +
+        },
+        { cases f},                                  -- n>2: f n = empty
+      }
+    }
+  },
+  {
+    intros n r,
+    sorry
+  },
+  {
+    intro c,
+    cases c,     -- C = {0, 1}
+    { exact 0},
+    { exact 1}
+  }
+end
+#print ring
 lemma ring_is_struc_of_ring_lang {A : Type} [ring A] :
-  struc (ring_lang) := sorry
+  struc (ring_lang) := 
+begin
+  fconstructor,
+  { exact A},
+  { 
+    intros n f v,
+    cases n,
+    { cases f},                                      -- n=0: f n = empty
+    { 
+      cases n,
+      { exact ring.neg (v.nth 0)},                   -- n=1: f n = {-}
+      { 
+        cases n,
+        { 
+          cases f,                                   -- n=2: f n = {×, +}
+          { exact ring.mul (v.nth 0) (v.nth 1)},     -- × 
+          { exact ring.add (v.nth 0) (v.nth 1)}      -- +
+        },
+        { cases f},                                  -- n>2: f n = empty
+      }
+    }
+  },
+  {
+    sorry
+  },
+  {
+    intro c,
+    cases c,     --C = {0, 1}
+    { exact 0},
+    { exact 1}
+  }
+end
 
 
 
