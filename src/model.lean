@@ -140,34 +140,76 @@ lemma free_magma_is_struc_of_magma_lang {A : Type} [magma A] :
 begin
   fconstructor,
     { exact A},
-    { intros n f v,
+    { 
+      intros n f v,
       cases n,
       { cases f},                             -- if n = 0
-      { exact magma.mul (v.nth 0) (v.nth 1)}, -- if n = 1
+      { exact magma.mul (v.nth 0) (v.nth 1)} -- if n = 1
     },
-    { sorry},
-    { sorry},
+    { intros n r,
+      cases r
+    },
+    { intro c,
+      cases c}
 end
 
-
+#check set (vector Type (_:ℕ))
+#check vector
+#check semigroup.mul
 
 lemma semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
   struc (semigroup_lang) :=
 begin
   fconstructor,
     { exact A},
-    { intros n f v,
+    { 
+      intros n f v,
       cases n,
-      cases f,
-      exact semigroup.mul (v.nth 0) (v.nth 1)},
-    { sorry},
-    { sorry}
+      { cases f},
+      { exact semigroup.mul (v.nth 0) (v.nth 1)}
+    },
+    { 
+      intros n r ,
+      sorry
+    },
+    { intro c,
+      cases c}
 end
 
 lemma monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
-  struc (monoid_lang) := sorry
+  struc (monoid_lang) :=
+begin
+  fconstructor,
+  { exact A},
+  { 
+    intros n f v,
+    cases n,
+    { cases f},
+    { exact semigroup.mul (v.nth 0) (v.nth 1)}
+  },
+  {
+    intros n r,
+    sorry
+  },
+  {
+    intro c,
+    exact 1,
+  }
+end
 lemma group_is_struc_of_group_lang {A : Type} [group A] :
-  struc (group_lang) := sorry
+  struc (group_lang) := 
+begin
+  fconstructor,
+  { exact A},
+  { 
+    intros n f v,
+    cases n,
+    { cases f},
+    {
+      
+    }
+  }
+end
 lemma semiring_is_struc_of_semiring_lang {A : Type} [semiring A] :
   struc (semiring_lang) := sorry
 lemma ring_is_struc_of_ring_lang {A : Type} [ring A] :
