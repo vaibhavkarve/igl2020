@@ -48,11 +48,11 @@ def monoid_relations : ℕ → Type
 def monoid_lang : lang := {R := monoid_relations, C := unit, ..magma_lang}
 
 /- A group is a {×, ⁻¹, 1}-structure which satisfies the identities
- 1. u × (v × w) = (u × v) × w
- 2. u × 1 = u
- 3. 1 × u = u
- 4. u × u−1 = 1
- 5. u−1 × u = 1 -/
+   1. u × (v × w) = (u × v) × w
+   2. u × 1 = u
+   3. 1 × u = u
+   4. u × u−1 = 1
+   5. u−1 × u = 1 -/
 def group_functions : ℕ → Type
 | 1 := unit   -- one unary function
 | 2 := unit   -- one binary function
@@ -64,13 +64,13 @@ def group_relations : ℕ → Type
 def group_lang : lang := {F := group_functions, R := group_relations, ..monoid_lang}
 
 /- A semiring is a {×, +, 0, 1}-structure which satisfies the identities
-  1. u + (v + w) = (u + v) + w
-  2. u + v = v + u
-  3. u + 0 = u
-  4. u × (v × w) = (u × v) × w
-  5. u × 1 = u, 1 × u = u
-  6. u × (v + w) = (u × v) + (u × w)
-  7. (v + w) × u = (v × u) + (w × u)-/
+   1. u + (v + w) = (u + v) + w
+   2. u + v = v + u
+   3. u + 0 = u
+   4. u × (v × w) = (u × v) × w
+   5. u × 1 = u, 1 × u = u
+   6. u × (v + w) = (u × v) + (u × w)
+   7. (v + w) × u = (v × u) + (w × u)-/
 def semiring_functions : ℕ → Type
 | 2 := bool   -- two binary functions
 | _ := empty
@@ -110,7 +110,7 @@ def ring_lang : lang := {F := ring_functions, R := ring_relations, ..semiring_la
  relations and constants. -/
 structure struc (L : lang) : Type 1 :=
 (univ : Type)                                    -- universe/domain
-(F (n : ℕ) (f : L.F n) : vector univ n → univ)  -- interpretation of each function
+(F (n : ℕ) (f : L.F n) : vector univ n → univ)   -- interpretation of each function
 (R (n : ℕ) (r : L.R n) : set (vector univ n))    -- interpretation of each relation
 (C : L.C → univ)                                 -- interpretation of each constant
 
@@ -135,7 +135,6 @@ begin
 class magma (α : Type) :=
 (mul : α → α → α)
 
-
 lemma free_magma_is_struc_of_magma_lang {A : Type} [magma A] :
   struc (magma_lang) :=
 begin
@@ -144,25 +143,23 @@ begin
   { 
     intros n f v,
     cases n,
-    { cases f},                                      -- n=0 → f n = empty
-    { 
-      cases n,
-      { cases f},                                    -- n=1 → f n = empty
-      { 
-        cases n,
-        { exact magma.mul (v.nth 0) (v.nth 1)},      -- n=2 → f n = {×}
-        { cases f}                                   -- n>2 → f n = empty
-      }
-    }, 
+     cases f,                                              -- n=0 → f n = empty
+    cases n,
+     cases f,                                              -- n=1 → f n = empty
+    cases n,
+     exact magma.mul (v.nth 0) (v.nth 1),                  -- n=2 → f n = {×}
+     cases f,                                              -- n>2 → f n = empty
   },
-  { intros n r,
+  { 
+    intros n r,
     cases r      -- ∀n, r = empty
   },
-  { intro c, 
+  { 
+    intro c, 
     cases c      -- C = empty
   }
 end
-#print semigroup
+
 lemma semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
   struc (semigroup_lang) :=
 begin
@@ -171,22 +168,28 @@ begin
   { 
     intros n f v,
     cases n,
-    { cases f},                                      -- n=0 → f n = empty
-    { 
-      cases n,
-      { cases f},                                    -- n=1 → f n = empty
-      { 
-        cases n,
-        { exact semigroup.mul (v.nth 0) (v.nth 1)},  -- n=2 → f n = {×}
-        { cases f}                                   -- n>2 → f n empty
-      }
-    }, 
+     cases f,                                              -- n=0 → f n = empty
+    cases n,
+     cases f,                                              -- n=1 → f n = empty
+    cases n,
+    { exact semigroup.mul (v.nth 0) (v.nth 1)},            -- n=2 → f n = {×}
+    { cases f},                                            -- n>2 → f n empty
   },
   { 
-    intros n r ,
-    sorry
+    intros n r v,
+    cases n,
+     cases r,                                              -- n=0 → r n = empty
+    cases n,         
+     cases r,                                              -- n=1 → r n = empty
+    cases n,
+     cases r,                                              -- n=2 → r n = empty
+    cases n,                                               -- n=3 → r n = {1.}
+    { exact semigroup.mul (semigroup.mul (v.nth 0) (v.nth 1)) (v.nth 2)
+         = semigroup.mul (v.nth 0) (semigroup.mul (v.nth 1) (v.nth 2))},                                   
+    { cases r},                                            -- n>3 → r n = empty
   },
-  { intro c,     -- C = empty
+  { 
+    intro c,     -- C = empty
     cases c
   }
 end
@@ -199,20 +202,27 @@ begin
   { 
     intros n f v,
     cases n,
-    { cases f},                                      -- n=0 → f n = empty
-    { 
-      cases n,
-      { cases f},                                    -- n=1 → f n = empty
-      { 
-        cases n,
-        { exact monoid.mul (v.nth 0) (v.nth 1)},     -- n=2 → f n = {×}
-        { cases f}                                   -- n>2 → f n = empty
-      }
-    }, 
+     cases f,                                              -- n=0 → f n = empty
+    cases n,
+     cases f,                                              -- n=1 → f n = empty
+    cases n,
+    { exact monoid.mul (v.nth 0) (v.nth 1)},               -- n=2 → f n = {×}
+    { cases f},                                            -- n>2 → f n = empty
   },
-  {
-    intros n r,
-    sorry
+  { 
+    intros n r v,
+    cases n,
+     cases r,                                              -- n=0 → r n = empty
+    cases n,         
+     cases r,                                              -- n=1 → r n = empty
+    cases n,
+     cases r,                                              -- n=2 → r n = {2., 3.}
+     { exact monoid.mul (v.nth 0) (v.nth 1) = (v.nth 0)},  -- 2.
+     { exact monoid.mul (v.nth 0) (v.nth 1) = (v.nth 1)},  -- 3.
+    cases n,                                               -- n=3 → r n = {1.}
+    { exact monoid.mul (monoid.mul (v.nth 0) (v.nth 1)) (v.nth 2)
+          = monoid.mul (v.nth 0) (monoid.mul (v.nth 1) (v.nth 2))},                                  
+    { cases r},                                            -- n>3 → r n = empty
   },
   {
     intro c, 
@@ -228,19 +238,36 @@ begin
   { 
     intros n f v,
     cases n,
-    { cases f},                                      -- n=0 → f n = empty
-    {
-      cases n,
-      { exact group.inv (v.nth 0)},                  -- n=1 → f n = {⁻¹}
-      { cases n,
-        { exact group.mul (v.nth 0) (v.nth 1)},      -- n=2 → f n = {×}
-        { cases f}                                   -- n>2 → f n = empty
-      }
-    }
+     cases f,                                              -- n=0 → f n = empty
+    cases n,
+    { exact group.inv (v.nth 0)},                          -- n=1 → f n = {⁻¹}
+    cases n,
+    { exact group.mul (v.nth 0) (v.nth 1)},                -- n=2 → f n = {×}
+    { cases f},                                            -- n>2 → f n = empty
   },
   {
-    intros n r,
-    sorry
+    intros n r v,
+    cases n,
+     cases r,                                              -- n=0 → r n = empty
+    cases n,
+     cases r,                                              -- n=1 → r n = empty
+    cases n,
+     cases r,                                              -- n=2 → r n = {2., 3., 4., 5.}
+      cases r_val,
+       exact group.mul (v.nth 0) (v.nth 1) = (v.nth 0),              -- 2.
+      cases r_val,
+       exact group.mul (v.nth 0) (v.nth 1) = (v.nth 1),              -- 3.
+      cases r_val,
+       exact group.mul (v.nth 0) (group.inv (v.nth 0)) = (v.nth 1),  -- 4.
+      cases r_val,
+       exact group.mul (group.inv (v.nth 0)) (v.nth 0) = (v.nth 1),  -- 5.
+      exfalso,
+      repeat {rw nat.succ_eq_add_one at r_property},
+      sorry, -- a lot of redundant commands to show that r_val + 4 < 4 is false. there has to be a better way to do this
+    cases n,                                               -- n=3 → r n = {1.}
+    { exact group.mul (group.mul (v.nth 0) (v.nth 1)) (v.nth 2)
+          = group.mul (v.nth 0) (group.mul (v.nth 1) (v.nth 2))},
+    { cases r},                                            -- n>3 → r n = empty
   },
   { 
     intro c,
@@ -256,23 +283,17 @@ begin
   { 
     intros n f v,
     cases n,
-    { cases f},                                      -- n=0: f n = empty
-    { 
-      cases n,
-      { cases f},                                    -- n=1: f n = empty
-      { 
-        cases n,
-        { 
-          cases f,                                   -- n=2: f n = {×, +}
-          { exact semiring.mul (v.nth 0) (v.nth 1)}, -- × 
-          { exact semiring.add (v.nth 0) (v.nth 1)}  -- +
-        },
-        { cases f},                                  -- n>2: f n = empty
-      }
-    }
+     cases f,                                              -- n=0: f n = empty
+    cases n,
+     cases f,                                              -- n=1: f n = empty
+    cases n, 
+     cases f,                                              -- n=2: f n = {×, +}
+     { exact semiring.mul (v.nth 0) (v.nth 1)},            -- × 
+     { exact semiring.add (v.nth 0) (v.nth 1)},            -- +
+     cases f,                                              -- n>2: f n = empty
   },
   {
-    intros n r,
+    intros n r v,
     sorry
   },
   {
@@ -291,22 +312,17 @@ begin
   { 
     intros n f v,
     cases n,
-    { cases f},                                      -- n=0: f n = empty
-    { 
-      cases n,
-      { exact ring.neg (v.nth 0)},                   -- n=1: f n = {-}
-      { 
-        cases n,
-        { 
-          cases f,                                   -- n=2: f n = {×, +}
-          { exact ring.mul (v.nth 0) (v.nth 1)},     -- × 
-          { exact ring.add (v.nth 0) (v.nth 1)}      -- +
-        },
-        { cases f},                                  -- n>2: f n = empty
-      }
-    }
+     cases f,                                              -- n=0: f n = empty
+    cases n,
+     exact ring.neg (v.nth 0),                             -- n=1: f n = {-}
+    cases n, 
+     cases f,                                              -- n=2: f n = {×, +}
+     { exact ring.mul (v.nth 0) (v.nth 1)},                -- × 
+     { exact ring.add (v.nth 0) (v.nth 1)},                -- +
+     cases f,                                              -- n>2: f n = empty
   },
   {
+    intros n r v,
     sorry
   },
   {
