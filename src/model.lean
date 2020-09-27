@@ -42,7 +42,7 @@ def semigroup_lang : lang := {R := (λ n, if n=3 then unit else empty),
    2. u × 1 = u
    3. 1 × u = u. -/
 def monoid_relations : ℕ → Type
-| 2 := bool   -- two binary relations
+| 1 := bool   -- two unary relations
 | 3 := unit   -- one ternary relation
 | _ := empty
 def monoid_lang : lang := {R := monoid_relations, C := unit, ..magma_lang}
@@ -58,7 +58,7 @@ def group_functions : ℕ → Type
 | 2 := unit   -- one binary function
 | _ := empty
 def group_relations : ℕ → Type
-| 2 := fin 4  -- four binary relations
+| 1 := fin 4  -- four unary relations
 | 3 := unit   -- one ternary relation
 | _ := empty 
 def group_lang : lang := {F := group_functions, R := group_relations, ..monoid_lang}
@@ -75,7 +75,8 @@ def semiring_functions : ℕ → Type
 | 2 := bool   -- two binary functions
 | _ := empty
 def semiring_relations : ℕ → Type
-| 2 := fin 4  -- four binary relations 
+| 1 := fin 3  -- three unary relations 
+| 2 := unit   -- one binary relation
 | 3 := fin 4  -- four ternary relations
 | _ := empty
 def semiring_lang : lang := {F := semiring_functions, R := semiring_relations, C := bool}
@@ -94,7 +95,8 @@ def ring_functions : ℕ → Type
 | 2 := bool   -- two binary functions
 | _ := empty
 def ring_relations : ℕ → Type
-| 2 := fin 5  -- five binary relations
+| 1 := fin 4  -- four unary relations
+| 2 := unit   -- one binary relation
 | 3 := fin 4  -- four ternary relations
 | _ := empty
 def ring_lang : lang := {F := ring_functions, R := ring_relations, ..semiring_lang}
@@ -142,10 +144,7 @@ begin
   { exact A},
   { 
     intros n f v,
-    cases n,
-     cases f,                                              -- n=0 → f n = empty
-    cases n,
-     cases f,                                              -- n=1 → f n = empty
+    iterate 2 {cases n, cases f},                          -- n<2 → f n = empty
     cases n,
      exact magma.mul (v.nth 0) (v.nth 1),                  -- n=2 → f n = {×}
      cases f,                                              -- n>2 → f n = empty
@@ -167,22 +166,14 @@ begin
   { exact A},
   { 
     intros n f v,
-    cases n,
-     cases f,                                              -- n=0 → f n = empty
-    cases n,
-     cases f,                                              -- n=1 → f n = empty
+    iterate 2 {cases n, cases f},                          -- n<2 → f n = empty
     cases n,
     { exact semigroup.mul (v.nth 0) (v.nth 1)},            -- n=2 → f n = {×}
     { cases f},                                            -- n>2 → f n empty
   },
   { 
     intros n r v,
-    cases n,
-     cases r,                                              -- n=0 → r n = empty
-    cases n,         
-     cases r,                                              -- n=1 → r n = empty
-    cases n,
-     cases r,                                              -- n=2 → r n = empty
+    iterate 3 {cases n, cases r},                          -- n<3 → r n = empty
     cases n,                                               -- n=3 → r n = {1.}
     { exact semigroup.mul (semigroup.mul (v.nth 0) (v.nth 1)) (v.nth 2)
          = semigroup.mul (v.nth 0) (semigroup.mul (v.nth 1) (v.nth 2))},                                   
@@ -201,10 +192,7 @@ begin
   { exact A},
   { 
     intros n f v,
-    cases n,
-     cases f,                                              -- n=0 → f n = empty
-    cases n,
-     cases f,                                              -- n=1 → f n = empty
+    iterate 2 {cases n, cases f},                          -- n<2 → f n = empty
     cases n,
     { exact monoid.mul (v.nth 0) (v.nth 1)},               -- n=2 → f n = {×}
     { cases f},                                            -- n>2 → f n = empty
@@ -214,11 +202,11 @@ begin
     cases n,
      cases r,                                              -- n=0 → r n = empty
     cases n,         
-     cases r,                                              -- n=1 → r n = empty
+     cases r,                                              -- n=1 → r n = {2., 3.}
+     { exact monoid.mul (v.nth 0) 1 = (v.nth 0)},          -- 2.
+     { exact monoid.mul 1 (v.nth 0) = (v.nth 0)},          -- 3.
     cases n,
-     cases r,                                              -- n=2 → r n = {2., 3.}
-     { exact monoid.mul (v.nth 0) (v.nth 1) = (v.nth 0)},  -- 2.
-     { exact monoid.mul (v.nth 0) (v.nth 1) = (v.nth 1)},  -- 3.
+     cases r,                                              -- n=2 → r n = empty
     cases n,                                               -- n=3 → r n = {1.}
     { exact monoid.mul (monoid.mul (v.nth 0) (v.nth 1)) (v.nth 2)
           = monoid.mul (v.nth 0) (monoid.mul (v.nth 1) (v.nth 2))},                                  
@@ -250,20 +238,20 @@ begin
     cases n,
      cases r,                                              -- n=0 → r n = empty
     cases n,
-     cases r,                                              -- n=1 → r n = empty
-    cases n,
-     cases r,                                              -- n=2 → r n = {2., 3., 4., 5.}
+     cases r,                                              -- n=1 → r n = {2., 3., 4., 5.}
       cases r_val,
-       exact group.mul (v.nth 0) (v.nth 1) = (v.nth 0),              -- 2.
+       exact group.mul (v.nth 0) 1 = (v.nth 0),              -- 2.
       cases r_val,
-       exact group.mul (v.nth 0) (v.nth 1) = (v.nth 1),              -- 3.
+       exact group.mul 1 (v.nth 0) = (v.nth 0),              -- 3.
       cases r_val,
-       exact group.mul (v.nth 0) (group.inv (v.nth 0)) = (v.nth 1),  -- 4.
+       exact group.mul (v.nth 0) (group.inv (v.nth 0)) = 1,  -- 4.
       cases r_val,
-       exact group.mul (group.inv (v.nth 0)) (v.nth 0) = (v.nth 1),  -- 5.
+       exact group.mul (group.inv (v.nth 0)) (v.nth 0) = 1,  -- 5.
       exfalso,
       repeat {rw nat.succ_eq_add_one at r_property},
       sorry, -- a lot of redundant commands to show that r_val + 4 < 4 is false. there has to be a better way to do this
+    cases n,                                               -- n=2 → r n = empty
+      cases r,
     cases n,                                               -- n=3 → r n = {1.}
     { exact group.mul (group.mul (v.nth 0) (v.nth 1)) (v.nth 2)
           = group.mul (v.nth 0) (group.mul (v.nth 1) (v.nth 2))},
@@ -282,10 +270,7 @@ begin
   { exact A},
   { 
     intros n f v,
-    cases n,
-     cases f,                                              -- n=0: f n = empty
-    cases n,
-     cases f,                                              -- n=1: f n = empty
+    iterate 2 {cases n, cases f},                          -- n<2: f n = empty
     cases n, 
      cases f,                                              -- n=2: f n = {×, +}
      { exact semiring.mul (v.nth 0) (v.nth 1)},            -- × 
