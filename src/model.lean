@@ -83,9 +83,15 @@ def ring_lang : lang := sorry
 structure struc (L : lang) : Type 1 :=
 (univ : Type)                                    -- universe/domain
 (F (n : ℕ) (f : L.F n) : vector univ n → univ)  -- interpretation of each function
-(R (n : ℕ) (r : L.R n) : set (vector univ n))    -- interpretation of each relation
+-- (R (n : ℕ) (r : L.R n) : set (vector univ n)) -- interpretation of each relation
 (C : L.C → univ)                                 -- interpretation of each constant
 
+/- Important note:
+   --------------
+   We do not include interpretation of relations in the definition for a `struc`
+   because `struc` is purely syntactic data while the interpretation of relations
+   end up being semantic.
+-/
 
 
 /-We can show that Mathlib's group structure is a struc on group_lang.-/
@@ -96,8 +102,6 @@ begin
    { exact A},
    { intros _ f,
      cases f},
-   { intros _ r,
-     cases r},
    { intros c,
      cases c},
  end
@@ -118,8 +122,8 @@ begin
       { cases f},                             -- if n = 0
       { exact magma.mul (v.nth 0) (v.nth 1)}, -- if n = 1
     },
-    { sorry},
-    { sorry},
+    { intros c,
+      cases c},
 end
 
 
@@ -133,7 +137,6 @@ begin
       cases n,
       cases f,
       exact semigroup.mul (v.nth 0) (v.nth 1)},
-    { sorry},
     { sorry}
 end
 
@@ -161,8 +164,8 @@ structure embedding {L : lang} (M N : struc L) : Type :=
 (η_inj : function.injective η)                     -- should be one-to-one
 (η_F : ∀ n f v,                                    -- preserves action of each function
      η (M.F n f v) = N.F n f (vector.map η v))
-(η_R : ∀ n r v,                                    -- preserves each relation
-     v ∈ (M.R n r) ↔ (vector.map η v) ∈ (N.R n r))
+-- (η_R : ∀ n r v,                                    -- preserves each relation
+--     v ∈ (M.R n r) ↔ (vector.map η v) ∈ (N.R n r))
 (η_C : ∀ c,                                        -- preserves each constant
      η (M.C c) = N.C c)
 
