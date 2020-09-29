@@ -1,16 +1,20 @@
 import tactic
 import data.real.basic
 import set_theory.cardinal
-/- This is an attempt to define Languages and Structures on these
-   Languages.-/
+/-!
+1. We define languages and give examples.
+2. We define structures and give examples.
+3. We define embedding between two structures on the same language.
+4. (WIP) We define variables, terms, and formulas.
+-/
 
 
 
--- -----------------------------------------------------------------
+/-! -----------------------------------------------------------------
 -- 1. Languages and Examples
--- -----------------------------------------------------------------
+-- ----------------------------------------------------------------/
 
-/-A language is given by specifying functions, relations and constants
+/-- A language is given by specifying functions, relations and constants
 along with the arity of each function and each relation.-/
 structure lang : Type 1 :=
 (F : ℕ → Type)    -- functions
@@ -18,36 +22,35 @@ structure lang : Type 1 :=
 (C : Type)          -- constants
 
 
-/-We now define some example languages. We start with the simplest
+/-- We now define some example languages. We start with the simplest
 possible language, the language of pure sets. This language has no
 functions, relations or constants.-/
 def set_lang: lang := ⟨function.const ℕ empty,
                        function.const ℕ empty,
                        empty⟩
 
-/-The language of ordered sets is the language or sets with a binary
-  ordering relation {<}.
--/
+/-- The language of ordered sets is the language or sets with a binary
+  ordering relation {<}.-/
 def ordered_set_lang: lang := {R := λ n : ℕ, if n=2 then unit else empty,
                                ..set_lang}
 
-/-A magma is a {×}-structure. So this has 1 function, 0 relations and
+/-- A magma is a {×}-structure. So this has 1 function, 0 relations and
 0 constants.-/
 def magma_lang : lang := {F := λ n : ℕ, if n=2 then unit else empty,
                           ..set_lang}
 
 
-/-A semigroup is a {×}-structure which satisfies the identity
+/-- A semigroup is a {×}-structure which satisfies the identity
   u × (v × w) = (u × v) × w.  Note that identities are note relations!-/
 def semigroup_lang : lang := magma_lang
 
-/- A monoid is a {×, 1}-structure which satisfies the identities
+/-- A monoid is a {×, 1}-structure which satisfies the identities
    1. u × (v × w) = (u × v) × w
    2. u × 1 = u
    3. 1 × u = u. -/
 def monoid_lang : lang := sorry
 
-/- A group is a {×, ⁻¹, 1}-structure which satisfies the identities
+/-- A group is a {×, ⁻¹, 1}-structure which satisfies the identities
  1. u × (v × w) = (u × v) × w
  2. u × 1 = u
  3. 1 × u = u
@@ -55,7 +58,7 @@ def monoid_lang : lang := sorry
  5. u−1 × u = 1 -/
 def group_lang : lang := sorry
 
-/- A semiring is a {×, +, 0, 1}-structure which satisfies the identities
+/-- A semiring is a {×, +, 0, 1}-structure which satisfies the identities
   1. u + (v + w) = (u + v) + w
   2. u + v = v + u
   3. u + 0 = u
@@ -65,7 +68,7 @@ def group_lang : lang := sorry
   8. (v + w) × u = (v × u) + (w × u)-/
 def semiring_lang : lang := sorry
 
-/- A ring is a {×,+,−,0,1}-structure which satisfies the identities
+/-- A ring is a {×,+,−,0,1}-structure which satisfies the identities
    1. u + (v + w) = (u + v) + w
    2. u + v = v + u
    3. u + 0 = u
@@ -77,16 +80,16 @@ def semiring_lang : lang := sorry
 def ring_lang : lang := sorry
 
 
-/-An ordered ring is a ring along with a binary ordering relation {<}.-/
+/-- An ordered ring is a ring along with a binary ordering relation {<}.-/
 def ordered_ring_lang : lang := sorry
 
 
--- -----------------------------------------------------------------
+/-! -----------------------------------------------------------------
 -- 2. Structures and Examples
--- -----------------------------------------------------------------
+-- ----------------------------------------------------------------/
 
 
-/- We now define an L-structure to be interpretations of functions,
+/-- We now define an L-structure to be interpretations of functions,
  relations and constants. -/
 structure struc (L : lang) : Type 1 :=
 (univ : Type)                                    -- universe/domain
@@ -106,6 +109,7 @@ begin
    { intros c,
      cases c},
  end
+
 
 lemma type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
   struc (ordered_set_lang) :=
@@ -128,7 +132,7 @@ begin
 end
 
 
-/-We need to define a magma, because it looks like it is not defined
+/-- We need to define a magma, because it looks like it is not defined
   in Mathlib.-/
 class magma (α : Type) :=
 (mul : α → α → α)
@@ -178,14 +182,13 @@ lemma ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
 
 
 
--- -----------------------------------------------------------------
+/-! -----------------------------------------------------------------
 -- 3. Embeddings between Structures
--- -----------------------------------------------------------------
+-- ----------------------------------------------------------------/
 
 
-/-An L-embedding is a map between two L-structures that is injective
-  on the domain and preserves the interpretation of all the symbols of
-  L.-/
+/-- An L-embedding is a map between two L-structures that is injective
+on the domain and preserves the interpretation of all the symbols of L.-/
 structure embedding {L : lang} (M N : struc L) : Type :=
 (η : M.univ → N.univ)                         -- map of underlying domains
 (η_inj : function.injective η)                 -- should be one-to-one
@@ -197,16 +200,16 @@ structure embedding {L : lang} (M N : struc L) : Type :=
      η (M.C c) = N.C c)
 
 
-/-A bijective L-embedding is called an L-isomorphism.-/
+/-- A bijective L-embedding is called an L-isomorphism.-/
 structure isomorphism {L: lang} (M N : struc L) extends (embedding M N) : Type :=
 (η_bij : function.bijective η)
 
 
-/-The cardinality of a struc is the cardinality of its domain.-/
+/-- The cardinality of a struc is the cardinality of its domain.-/
 def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 
 
-/-If η: M → N is an embedding, then the cardinality of N is at least
+/-- If η: M → N is an embedding, then the cardinality of N is at least
   the cardinality of M.-/
 lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
   card M ≤ card N :=
@@ -216,9 +219,11 @@ begin
 end
 
 
--- -----------------------------------------------------------------
+/-! -----------------------------------------------------------------
 -- 4. Terms
--- -----------------------------------------------------------------
+-- ----------------------------------------------------------------/
 
-/-We need a type to represent variables.-/
+/-- We need a type to represent variables.-/
 constant var : Type
+
+#lint
