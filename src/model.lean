@@ -113,7 +113,6 @@ def ring_lang : lang := {F := ring_functions, R := ring_relations, ..semiring_la
 structure struc (L : lang) : Type 1 :=
 (univ : Type)                                    -- universe/domain
 (F (n : ℕ) (f : L.F n) : vector univ n → univ)   -- interpretation of each function
-(R (n : ℕ) (r : L.R n) : set (vector univ n))    -- interpretation of each relation
 (C : L.C → univ)                                 -- interpretation of each constant
 
 
@@ -126,8 +125,6 @@ begin
    { exact A},
    { intros _ f,
      cases f},
-   { intros _ r,
-     cases r},
    { intros c,
      cases c},
  end
@@ -150,10 +147,6 @@ begin
      cases f,                                              -- n>2 → f n = empty
   },
   { 
-    intros n r,
-    cases r      -- ∀n, r = empty
-  },
-  { 
     intro c, 
     cases c      -- C = empty
   }
@@ -172,14 +165,6 @@ begin
     { cases f},                                            -- n>2 → f n empty
   },
   { 
-    intros n r v,
-    iterate 3 {cases n, cases r},                          -- n<3 → r n = empty
-    cases n,                                               -- n=3 → r n = {1.}
-    { exact semigroup.mul (semigroup.mul (v.nth 0) (v.nth 1)) (v.nth 2)
-         = semigroup.mul (v.nth 0) (semigroup.mul (v.nth 1) (v.nth 2))},                                   
-    { cases r},                                            -- n>3 → r n = empty
-  },
-  { 
     intro c,     -- C = empty
     cases c
   }
@@ -196,21 +181,6 @@ begin
     cases n,
     { exact monoid.mul (v.nth 0) (v.nth 1)},               -- n=2 → f n = {×}
     { cases f},                                            -- n>2 → f n = empty
-  },
-  { 
-    intros n r v,
-    cases n,
-     cases r,                                              -- n=0 → r n = empty
-    cases n,         
-     cases r,                                              -- n=1 → r n = {2., 3.}
-     { exact monoid.mul (v.nth 0) 1 = (v.nth 0)},          -- 2.
-     { exact monoid.mul 1 (v.nth 0) = (v.nth 0)},          -- 3.
-    cases n,
-     cases r,                                              -- n=2 → r n = empty
-    cases n,                                               -- n=3 → r n = {1.}
-    { exact monoid.mul (monoid.mul (v.nth 0) (v.nth 1)) (v.nth 2)
-          = monoid.mul (v.nth 0) (monoid.mul (v.nth 1) (v.nth 2))},                                  
-    { cases r},                                            -- n>3 → r n = empty
   },
   {
     intro c, 
@@ -233,30 +203,6 @@ begin
     { exact group.mul (v.nth 0) (v.nth 1)},                -- n=2 → f n = {×}
     { cases f},                                            -- n>2 → f n = empty
   },
-  {
-    intros n r v,
-    cases n,
-     cases r,                                              -- n=0 → r n = empty
-    cases n,
-     cases r,                                              -- n=1 → r n = {2., 3., 4., 5.}
-      cases r_val,
-       exact group.mul (v.nth 0) 1 = (v.nth 0),              -- 2.
-      cases r_val,
-       exact group.mul 1 (v.nth 0) = (v.nth 0),              -- 3.
-      cases r_val,
-       exact group.mul (v.nth 0) (group.inv (v.nth 0)) = 1,  -- 4.
-      cases r_val,
-       exact group.mul (group.inv (v.nth 0)) (v.nth 0) = 1,  -- 5.
-      exfalso,
-      repeat {rw nat.succ_eq_add_one at r_property},
-      sorry, -- a lot of redundant commands to show that r_val + 4 < 4 is false. there has to be a better way to do this
-    cases n,                                               -- n=2 → r n = empty
-      cases r,
-    cases n,                                               -- n=3 → r n = {1.}
-    { exact group.mul (group.mul (v.nth 0) (v.nth 1)) (v.nth 2)
-          = group.mul (v.nth 0) (group.mul (v.nth 1) (v.nth 2))},
-    { cases r},                                            -- n>3 → r n = empty
-  },
   { 
     intro c,
     exact 1,     -- C = {1}
@@ -278,17 +224,13 @@ begin
      cases f,                                              -- n>2: f n = empty
   },
   {
-    intros n r v,
-    sorry
-  },
-  {
     intro c,
     cases c,     -- C = {0, 1}
     { exact 0},
     { exact 1}
   }
 end
-#print ring
+
 lemma ring_is_struc_of_ring_lang {A : Type} [ring A] :
   struc (ring_lang) := 
 begin
@@ -305,10 +247,6 @@ begin
      { exact ring.mul (v.nth 0) (v.nth 1)},                -- × 
      { exact ring.add (v.nth 0) (v.nth 1)},                -- +
      cases f,                                              -- n>2: f n = empty
-  },
-  {
-    intros n r v,
-    sorry
   },
   {
     intro c,
