@@ -208,32 +208,27 @@ inductive term (L : lang) : Type
 -- two types are isomorphic but `vector term n` gives us a nested
 -- inductive type error.
 
+
 def vars_in_term {L : lang} : term L → list var
 | (term.const c)      := []
 | (term.var v)        := [v]
-| (term.func n f vec) := vars_in_term vec
+| (term.func n f vec) := list.bind (list.of_fn vec) vars_in_term
 
 
-inductive term' (L : lang) : term L × list var :=
-| 
+#exit
+-- All lines beyond this point are error prone.
 
 /-We define an interpretation for L-terms in an L-structure.-/
 def term_interpretation {L : lang} (M : struc L) {m : ℕ} [decidable_eq var]
   (t : term L) (v : list var := vars_in_term t) (a : fin m → M.univ) : M.univ :=
   match t with
   | (term.const c) := M.C c
-  | (term.var v_i) := a i
-  end
-
-#exit
-
-| (term.var v_index) a := match fin.find (λ n, v n = v_index) with
+  | (term.var v_index) a := match fin.find (λ n, v n = v_index) with
                           | none       := sorry
                           | some index := a index
                           end
-| (term.func n f t) a := begin
-
-have t_map_fin : fin n → M.univ,
+  | (term.func n f t) a := begin
+  have t_map_fin : fin n → M.univ,
 apply fin.map,
 sorry,
 have t_map_vec : vector M.univ n := vector.of_fn t_map_fin,
