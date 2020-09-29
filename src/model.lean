@@ -323,11 +323,9 @@ end
 /-We need a type to represent variables.-/
 constant var : Type
 
-#exit
-
 /- We define terms in a language to be constants, variables or
    functions acting on terms.-/
 inductive term (L : lang) : Type
 | const : L.C → term
 | var : var → term
-| func (n : ℕ) (f : L.F n) (v : vector term n) : term
+| func (n : ℕ) (f : L.F n) (v : fin n → term) : term
