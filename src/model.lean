@@ -79,6 +79,12 @@ structure struc (L : lang) : Type 1 :=
 (R (n : ℕ) (r : L.R n) : set (vector univ n))    -- interpretation of each relation
 (C : L.C → univ)                                 -- interpretation of each constant
 
+/- Important note:
+   --------------
+   We do not include interpretation of relations in the definition for a `struc`
+   because `struc` is purely syntactic data while the interpretation of relations
+   end up being semantic.
+-/
 
 
 /-We can show that Mathlib's group structure is a struc on group_lang.-/
@@ -291,8 +297,8 @@ structure embedding {L : lang} (M N : struc L) : Type :=
 (η_inj : function.injective η)                     -- should be one-to-one
 (η_F : ∀ n f v,                                    -- preserves action of each function
      η (M.F n f v) = N.F n f (vector.map η v))
-(η_R : ∀ n r v,                                    -- preserves each relation
-     v ∈ (M.R n r) ↔ (vector.map η v) ∈ (N.R n r))
+-- (η_R : ∀ n r v,                                    -- preserves each relation
+--     v ∈ (M.R n r) ↔ (vector.map η v) ∈ (N.R n r))
 (η_C : ∀ c,                                        -- preserves each constant
      η (M.C c) = N.C c)
 
