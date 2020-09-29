@@ -41,7 +41,7 @@ def semigroup_lang : lang := {R := (λ n, if n=3 then unit else empty),
    1. u × (v × w) = (u × v) × w
    2. u × 1 = u
    3. 1 × u = u. -/
-def monoid_lang : lang := sorry
+def monoid_lang : lang := {R := (λ n, if n=3 then unit else empty), ..semigroup_lang}
 
 /- A group is a {×, ⁻¹, 1}-structure which satisfies the identities
  1. u × (v × w) = (u × v) × w
