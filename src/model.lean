@@ -60,7 +60,7 @@ def ring_lang : lang := {F := ring_functions, ..semiring_lang}
 
 -- An ordered ring is a {×,+,−,<,0,1}-structure
 def ordered_ring_relations : ℕ → Type
-| 2 := unit
+| 2 := unit   -- one binary relation
 | _ := empty
 def ordered_ring_lang : lang := {R := ordered_ring_relations, ..ring_lang}
 
@@ -259,16 +259,16 @@ begin
      exact ordered_ring.neg (v.nth 0),                     -- n=1: f n = {-}
     cases n, 
      cases f,                                              -- n=2: f n = {×, +}
-     { exact ordered_ring.mul (v.nth 0) (v.nth 1)},         -- × 
-     { exact ordered_ring.add (v.nth 0) (v.nth 1)},         -- +
+     { exact ordered_ring.mul (v.nth 0) (v.nth 1)},        -- × 
+     { exact ordered_ring.add (v.nth 0) (v.nth 1)},        -- +
      cases f,                                              -- n>2: f n = empty
   },
   {
     intros n r v,
-    iterate 2 {cases n, cases r},
+    iterate 2 {cases n, cases r},                          -- n<2: r n = empty
     cases n,
-    { exact ordered_ring.lt (v.nth 0) (v.nth 1)},
-    { cases r}
+     exact ordered_ring.lt (v.nth 0) (v.nth 1),            -- n=2: r n = {<}
+     cases r,                                              -- n>2: r n = empty
   },
   {
     intro c,
@@ -287,7 +287,7 @@ end
   on the domain and preserves the interpretation of all the symbols of
   L.-/
 structure embedding {L : lang} (M N : struc L) : Type :=
-(η : M.univ → N.univ)                             -- map of underlying domains
+(η : M.univ → N.univ)                              -- map of underlying domains
 (η_inj : function.injective η)                     -- should be one-to-one
 (η_F : ∀ n f v,                                    -- preserves action of each function
      η (M.F n f v) = N.F n f (vector.map η v))
@@ -311,8 +311,8 @@ def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
   card M ≤ card N :=
 begin
-  sorry  -- Look for a theorem in mathlib that guarantees the result
-         -- using injectivity of η.
+  apply cardinal.mk_le_of_injective,
+  exact η.η_inj,
 end
 
 
