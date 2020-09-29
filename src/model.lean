@@ -32,74 +32,37 @@ def magma_functions : ℕ → Type
 def magma_lang : lang := {F := magma_functions, ..set_lang}
 
 
-/-A semigroup is a {×}-structure which satisfies the identity
-  u × (v × w) = (u × v) × w-/
-def semigroup_lang : lang := {R := (λ n, if n=3 then unit else empty),
-                              ..magma_lang}
+--A semigroup is a {×}-structure
+def semigroup_lang : lang := { ..magma_lang}
 
-/- A monoid is a {×, 1}-structure which satisfies the identities
-   1. u × (v × w) = (u × v) × w
-   2. u × 1 = u
-   3. 1 × u = u. -/
-def monoid_relations : ℕ → Type
-| 1 := bool   -- two unary relations
-| 3 := unit   -- one ternary relation
-| _ := empty
-def monoid_lang : lang := {R := monoid_relations, C := unit, ..magma_lang}
+-- A monoid is a {×, 1}-structure 
+def monoid_lang : lang := { C := unit, ..semigroup_lang}
 
-/- A group is a {×, ⁻¹, 1}-structure which satisfies the identities
-   1. u × (v × w) = (u × v) × w
-   2. u × 1 = u
-   3. 1 × u = u
-   4. u × u−1 = 1
-   5. u−1 × u = 1 -/
+-- A group is a {×, ⁻¹, 1}-structure 
 def group_functions : ℕ → Type
 | 1 := unit   -- one unary function
 | 2 := unit   -- one binary function
 | _ := empty
-def group_relations : ℕ → Type
-| 1 := fin 4  -- four unary relations
-| 3 := unit   -- one ternary relation
-| _ := empty 
-def group_lang : lang := {F := group_functions, R := group_relations, ..monoid_lang}
+def group_lang : lang := {F := group_functions, ..monoid_lang}
 
-/- A semiring is a {×, +, 0, 1}-structure which satisfies the identities
-   1. u + (v + w) = (u + v) + w
-   2. u + v = v + u
-   3. u + 0 = u
-   4. u × (v × w) = (u × v) × w
-   5. u × 1 = u, 1 × u = u
-   6. u × (v + w) = (u × v) + (u × w)
-   7. (v + w) × u = (v × u) + (w × u)-/
+-- A semiring is a {×, +, 0, 1}-structure 
 def semiring_functions : ℕ → Type
 | 2 := bool   -- two binary functions
 | _ := empty
-def semiring_relations : ℕ → Type
-| 1 := fin 3  -- three unary relations 
-| 2 := unit   -- one binary relation
-| 3 := fin 4  -- four ternary relations
-| _ := empty
-def semiring_lang : lang := {F := semiring_functions, R := semiring_relations, C := bool}
+def semiring_lang : lang := {F := semiring_functions, C := bool, ..group_lang}
 
-/- A ring is a {×,+,−,0,1}-structure which satisfies the identities
-   1. u + (v + w) = (u + v) + w
-   2. u + v = v + u
-   3. u + 0 = u
-   4. u + (−u) = 0
-   5. u × (v × w) = (u × v) × w
-   6. u × 1 = u, 1 × u = u
-   7. u × (v + w) = (u × v) + (u × w)
-   8. (v + w) × u = (v × u) + (w × u)-/
+-- A ring is a {×,+,−,0,1}-structure
 def ring_functions : ℕ → Type
 | 1 := unit   -- one unary function
 | 2 := bool   -- two binary functions
 | _ := empty
-def ring_relations : ℕ → Type
-| 1 := fin 4  -- four unary relations
-| 2 := unit   -- one binary relation
-| 3 := fin 4  -- four ternary relations
+def ring_lang : lang := {F := ring_functions, ..semiring_lang}
+
+-- An ordered ring is a {×,+,−,<,0,1}-structure
+def ordered_ring_relations : ℕ → Type
+| 2 := unit
 | _ := empty
-def ring_lang : lang := {F := ring_functions, R := ring_relations, ..semiring_lang}
+def ordered_ring_lang : lang := {R := ordered_ring_relations, ..ring_lang}
 
 
 
@@ -113,6 +76,7 @@ def ring_lang : lang := {F := ring_functions, R := ring_relations, ..semiring_la
 structure struc (L : lang) : Type 1 :=
 (univ : Type)                                    -- universe/domain
 (F (n : ℕ) (f : L.F n) : vector univ n → univ)   -- interpretation of each function
+(R (n : ℕ) (r : L.R n) : set (vector univ n))    -- interpretation of each relation
 (C : L.C → univ)                                 -- interpretation of each constant
 
 
@@ -125,6 +89,8 @@ begin
    { exact A},
    { intros _ f,
      cases f},
+   { intros _ r,
+     cases r},
    { intros c,
      cases c},
  end
@@ -147,6 +113,10 @@ begin
      cases f,                                              -- n>2 → f n = empty
   },
   { 
+    intros n r,
+    cases r 
+  },
+  { 
     intro c, 
     cases c      -- C = empty
   }
@@ -165,6 +135,10 @@ begin
     { cases f},                                            -- n>2 → f n empty
   },
   { 
+    intros n r,
+    cases r 
+  },
+  { 
     intro c,     -- C = empty
     cases c
   }
@@ -181,6 +155,10 @@ begin
     cases n,
     { exact monoid.mul (v.nth 0) (v.nth 1)},               -- n=2 → f n = {×}
     { cases f},                                            -- n>2 → f n = empty
+  },
+  { 
+    intros n r,
+    cases r 
   },
   {
     intro c, 
@@ -204,6 +182,10 @@ begin
     { cases f},                                            -- n>2 → f n = empty
   },
   { 
+    intros n r,
+    cases r 
+  },
+  { 
     intro c,
     exact 1,     -- C = {1}
   }
@@ -222,6 +204,10 @@ begin
      { exact semiring.mul (v.nth 0) (v.nth 1)},            -- × 
      { exact semiring.add (v.nth 0) (v.nth 1)},            -- +
      cases f,                                              -- n>2: f n = empty
+  },
+  { 
+    intros n r,
+    cases r 
   },
   {
     intro c,
@@ -248,6 +234,10 @@ begin
      { exact ring.add (v.nth 0) (v.nth 1)},                -- +
      cases f,                                              -- n>2: f n = empty
   },
+  { 
+    intros n r,
+    cases r 
+  },
   {
     intro c,
     cases c,     --C = {0, 1}
@@ -256,7 +246,37 @@ begin
   }
 end
 
-#exit
+lemma ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A] :
+  struc (ordered_ring_lang) :=
+begin
+  fconstructor,
+  { exact A},
+  { 
+    intros n f v,
+    cases n,
+     cases f,                                              -- n=0: f n = empty
+    cases n,
+     exact ordered_ring.neg (v.nth 0),                     -- n=1: f n = {-}
+    cases n, 
+     cases f,                                              -- n=2: f n = {×, +}
+     { exact ordered_ring.mul (v.nth 0) (v.nth 1)},         -- × 
+     { exact ordered_ring.add (v.nth 0) (v.nth 1)},         -- +
+     cases f,                                              -- n>2: f n = empty
+  },
+  {
+    intros n r v,
+    iterate 2 {cases n, cases r},
+    cases n,
+    { exact ordered_ring.lt (v.nth 0) (v.nth 1)},
+    { cases r}
+  },
+  {
+    intro c,
+    cases c,     --C = {0, 1}
+    { exact 0},
+    { exact 1}
+  }
+end
 
 -- -----------------------------------------------------------------
 -- 3. Embeddings between Structures
