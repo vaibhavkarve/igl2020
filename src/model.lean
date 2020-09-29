@@ -193,14 +193,49 @@ end
 -- 4. Terms
 -- -----------------------------------------------------------------
 
-/-We need a type to represent variables.-/
-constant var : Type
+/-We specify a constant type for representing variables.-/
+constants (var : Type) [dec_eq_var: decidable_eq var]
 
-#exit
+
 
 /- We define terms in a language to be constants, variables or
    functions acting on terms.-/
 inductive term (L : lang) : Type
 | const : L.C → term
 | var : var → term
-| func (n : ℕ) (f : L.F n) (v : vector term n) : term
+| func (n : ℕ) (f : L.F n) (v : fin n → term) : term
+-- Note that we use `fin n → term` instead of `vector term n`. These
+-- two types are isomorphic but `vector term n` gives us a nested
+-- inductive type error.
+
+def vars_in_term {L : lang} : term L → list var
+| (term.const c)      := []
+| (term.var v)        := [v]
+| (term.func n f vec) := vars_in_term vec
+
+
+inductive term' (L : lang) : term L × list var :=
+| 
+
+/-We define an interpretation for L-terms in an L-structure.-/
+def term_interpretation {L : lang} (M : struc L) {m : ℕ} [decidable_eq var]
+  (t : term L) (v : list var := vars_in_term t) (a : fin m → M.univ) : M.univ :=
+  match t with
+  | (term.const c) := M.C c
+  | (term.var v_i) := a i
+  end
+
+#exit
+
+| (term.var v_index) a := match fin.find (λ n, v n = v_index) with
+                          | none       := sorry
+                          | some index := a index
+                          end
+| (term.func n f t) a := begin
+
+have t_map_fin : fin n → M.univ,
+apply fin.map,
+sorry,
+have t_map_vec : vector M.univ n := vector.of_fn t_map_fin,
+exact (M.F n f) t_map_vec,
+end
