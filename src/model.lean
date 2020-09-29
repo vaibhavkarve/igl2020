@@ -21,15 +21,20 @@ structure lang : Type 1 :=
 /-We now define some example languages. We start with the simplest
 possible language, the language of pure sets. This language has no
 functions, relations or constants.-/
-def set_lang: lang := ⟨(λ _ , empty), (λ _, empty),  empty⟩
+def set_lang: lang := ⟨function.const ℕ empty,
+                       function.const ℕ empty,
+                       empty⟩
 
-def magma_functions : ℕ → Type
-| 2 := unit   -- one binary operation
-| _ := empty  -- and nothing else
+/-The language of ordered sets is the language or sets with a binary
+  ordering relation {<}.
+-/
+def ordered_set_lang: lang := {R := λ n : ℕ, if n=2 then unit else empty,
+                               ..set_lang}
 
 /-A magma is a {×}-structure. So this has 1 function, 0 relations and
 0 constants.-/
-def magma_lang : lang := {F := magma_functions, ..set_lang}
+def magma_lang : lang := {F := λ n : ℕ, if n=2 then unit else empty,
+                          ..set_lang}
 
 
 --A semigroup is a {×}-structure
@@ -65,7 +70,6 @@ def ordered_ring_relations : ℕ → Type
 def ordered_ring_lang : lang := {R := ordered_ring_relations, ..ring_lang}
 
 
-
 -- -----------------------------------------------------------------
 -- 2. Structures and Examples
 -- -----------------------------------------------------------------
@@ -77,17 +81,8 @@ structure struc (L : lang) : Type 1 :=
 (univ : Type)                                    -- universe/domain
 (F (n : ℕ) (f : L.F n) : vector univ n → univ)   -- interpretation of each function
 (R (n : ℕ) (r : L.R n) : set (vector univ n))    -- interpretation of each relation
-(C : L.C → univ)                                 -- interpretation of each constant
+(C : L.C → univ)                                -- interpretation of each constant
 
-/- Important note:
-   --------------
-   We do not include interpretation of relations in the definition for a `struc`
-   because `struc` is purely syntactic data while the interpretation of relations
-   end up being semantic.
--/
-
-
-/-We can show that Mathlib's group structure is a struc on group_lang.-/
 
 lemma type_is_struc_of_set_lang {A : Type} : struc (set_lang) :=
 begin
@@ -100,6 +95,27 @@ begin
    { intros c,
      cases c},
  end
+
+lemma type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
+  struc (ordered_set_lang) :=
+begin
+  fconstructor,
+   { exact A},
+   { intros _ f,
+     cases f},
+   { intros n r v,
+     cases n,
+      { cases r}, -- if n=0
+     cases n,
+      { cases r}, -- if n=1
+     cases n; cases r,
+      { exact v.nth 0 < v.nth 1} -- if n=2
+   },  -- if n>2, handles automatically by Lean.
+   { intros c,
+     cases c},
+
+end
+
 
 /-We need to define a magma, because it looks like it is not defined
   in Mathlib.-/
@@ -149,6 +165,7 @@ begin
     cases c
   }
 end
+
 
 lemma monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
   struc (monoid_lang) :=
@@ -293,13 +310,13 @@ end
   on the domain and preserves the interpretation of all the symbols of
   L.-/
 structure embedding {L : lang} (M N : struc L) : Type :=
-(η : M.univ → N.univ)                              -- map of underlying domains
-(η_inj : function.injective η)                     -- should be one-to-one
-(η_F : ∀ n f v,                                    -- preserves action of each function
+(η : M.univ → N.univ)                         -- map of underlying domains
+(η_inj : function.injective η)                 -- should be one-to-one
+(η_F : ∀ n f v,                                -- preserves action of each function
      η (M.F n f v) = N.F n f (vector.map η v))
--- (η_R : ∀ n r v,                                    -- preserves each relation
---     v ∈ (M.R n r) ↔ (vector.map η v) ∈ (N.R n r))
-(η_C : ∀ c,                                        -- preserves each constant
+(η_R : ∀ n r v,                                -- preserves each relation
+     v ∈ (M.R n r) ↔ (vector.map η v) ∈ (N.R n r))
+(η_C : ∀ c,                                    -- preserves each constant
      η (M.C c) = N.C c)
 
 
@@ -328,10 +345,3 @@ end
 
 /-We need a type to represent variables.-/
 constant var : Type
-
-/- We define terms in a language to be constants, variables or
-   functions acting on terms.-/
-inductive term (L : lang) : Type
-| const : L.C → term
-| var : var → term
-| func (n : ℕ) (f : L.F n) (v : fin n → term) : term
