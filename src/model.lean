@@ -111,7 +111,7 @@ structure struc (L : lang) : Type 1 :=
 lemma type_is_struc_of_set_lang {A : Type} : struc (set_lang) :=
 begin
   fconstructor,
-   { exact A},
+   { exact A },
    { intros _ f,
      cases f},
    { intros _ r,
@@ -130,7 +130,7 @@ lemma free_magma_is_struc_of_magma_lang {A : Type} [magma A] :
   struc (magma_lang) :=
 begin
   fconstructor,
-    { exact A},
+    { exact A },
     { intros n f v,
       cases n,
       { cases f},                             -- if n = 0
