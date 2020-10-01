@@ -184,8 +184,11 @@ def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
   card M ≤ card N :=
 begin
-  sorry  -- Look for a theorem in mathlib that guarantees the result
-         -- using injectivity of η.
+  cases η,
+  apply cardinal.mk_le_of_injective,
+  -- this does work, but does anyone know how this solves both goals at once, shouldn't it also
+  -- need "exact η_η" as well as the line below that demonstrates injectivity?
+  exact η_η_inj,
 end
 
 
