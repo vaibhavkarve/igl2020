@@ -96,11 +96,18 @@ def sum {α : Type} [has_add α] [has_zero α] : list α → α
 | (x :: xs) := x + sum xs
 
 -- Multiply the elements in a list
-def mul {α : Type} [has_mul α] [has_one α] : list α → α := sorry
+def mul {α : Type} [has_mul α] [has_one α] : list α → α 
+| [] := 1
+| (x :: xs) := x * mul xs
+
+#eval mul [7, 9, 2] -- output: 126
 
 def max {α : Type} [decidable_linear_order α] : list α → α
 | []        := sorry
 | (x :: xs) := if x < max xs then max xs else x
+
+#print decidable_linear_order
+#eval max [14, 17]
 
 
 def max' {α : Type} [decidable_linear_order α] : list α → option α
