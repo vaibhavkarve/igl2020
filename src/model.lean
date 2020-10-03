@@ -48,7 +48,7 @@ def semigroup_lang : lang := magma_lang
    1. u × (v × w) = (u × v) × w
    2. u × 1 = u
    3. 1 × u = u. -/
-def monoid_lang : lang := sorry
+def monoid_lang : lang := {C := unit, ..magma_lang}
 
 /-- A group is a {×, ⁻¹, 1}-structure which satisfies the identities
  1. u × (v × w) = (u × v) × w
@@ -56,7 +56,8 @@ def monoid_lang : lang := sorry
  3. 1 × u = u
  4. u × u−1 = 1
  5. u−1 × u = 1 -/
-def group_lang : lang := sorry
+def group_lang : lang := {F := λ n : ℕ, if n = 2 then unit else if n = 1 then unit else empty,
+                          ..magma_lang}
 
 /-- A semiring is a {×, +, 0, 1}-structure which satisfies the identities
   1. u + (v + w) = (u + v) + w
@@ -66,7 +67,8 @@ def group_lang : lang := sorry
   6. u × 1 = u, 1 × u = u
   7. u × (v + w) = (u × v) + (u × w)
   8. (v + w) × u = (v × u) + (w × u)-/
-def semiring_lang : lang := sorry
+def semiring_lang : lang := {F := λ n : ℕ, if n = 2 then fin 2 else empty,
+                              C := fin 2, ..magma_lang}
 
 /-- A ring is a {×,+,−,0,1}-structure which satisfies the identities
    1. u + (v + w) = (u + v) + w
@@ -77,11 +79,13 @@ def semiring_lang : lang := sorry
    6. u × 1 = u, 1 × u = u
    7. u × (v + w) = (u × v) + (u × w)
    8. (v + w) × u = (v × u) + (w × u)-/
-def ring_lang : lang := sorry
+def ring_lang : lang := {F := λ n : ℕ, if n = 2 then fin 2 else if n = 1 then fin 1 else empty,
+                          C := fin 2, ..magma_lang}
 
 
 /-- An ordered ring is a ring along with a binary ordering relation {<}.-/
-def ordered_ring_lang : lang := sorry
+def ordered_ring_lang : lang := {R := λ n : ℕ, if n=2 then unit else empty,
+                                  ..ring_lang}
 
 
 /-! -----------------------------------------------------------------
