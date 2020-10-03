@@ -223,6 +223,7 @@ end
 -- 4. Terms
 -- ----------------------------------------------------------------/
 
+
 /-- We need a type to represent variables.-/
 constant var : Type
 
