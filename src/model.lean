@@ -5,8 +5,10 @@ import set_theory.cardinal
 1. We define languages and give examples.
 2. We define structures and give examples.
 3. We define embedding between two structures on the same language.
-4. (WIP) We define variables, terms, and formulas.
+4. We define terms.
    4.1 We give some examples of terms.
+   4.2 (WIP) We give an interpretation of terms in structures.
+5. (WIP) We define formulas.
 -/
 
 
@@ -234,44 +236,45 @@ inductive term (L : lang) : Type
 open term
 variable {L : lang}
 
+/-- Admissible terms are a subtype of terms -- they are terms that apply
+f to exact n arguments (where n is the arity of f). -/
+def is_admissible : term L → Prop
+| (app n f ts) := ts.length = n
+| _ := true
+def aterm (L : lang) : Type := {t : term L // is_admissible t}
+
+
 
 /-- We define a function to compute the number of variables in a term
-using mutual recursion.-/
-mutual def number_of_vars, number_of_vars_list
-with number_of_vars : term L → ℕ
-| (con c) := 0
-| (var n) := 1
-| (app n f ts) := number_of_vars_list ts
-with number_of_vars_list : list (term L) → ℕ
-| [] := 0
-| (t :: ts) := number_of_vars t + number_of_vars_list ts
+using mutual recursion.
 
+Important note: this function counts the number of variables with repetition.
+For number without repetition, use the size of the set computed by vars_in_term instead.
+-/
+mutual def number_of_vars_t, number_of_vars_list_t
+with number_of_vars_t : term L → ℕ
+| (con c) := 0
+| (var v) := 1
+| (app n f ts) := number_of_vars_list_t ts
+with number_of_vars_list_t : list (term L) → ℕ
+| [] := 0
+| (t :: ts) := number_of_vars_t t + number_of_vars_list_t ts
+
+def number_of_vars (t : aterm L) : ℕ := number_of_vars_t t.val
 
 /-- The variables in a term can also be computed using a mutually
 recursive pair of functions.-/
-mutual def vars_in_term, vars_in_term_list
-with vars_in_term : term L → list ℕ
-| (con c)      := []
-| (var n)      := [n]
-| (app n f ts) := vars_in_term_list ts
-with vars_in_term_list : list (term L) → list ℕ
-| [] := []
-| (t :: ts) := vars_in_term t ++ vars_in_term_list ts
+mutual def vars_in_term_t, vars_in_term_list_t
+with vars_in_term_t : term L → finset ℕ
+| (con c)      := ∅
+| (var v)      := {v}
+| (app n f ts) := vars_in_term_list_t ts
+with vars_in_term_list_t : list (term L) → finset ℕ
+| [] := ∅
+| (t :: ts) := vars_in_term_t t ∪ vars_in_term_list_t ts
 
+def vars_in_term (t : aterm L) : finset ℕ := vars_in_term_t t.val
 
-/-- We define an interpretation for L-terms in an L-structure.-/
-def term_interpretation (M : struc L) (t : term L)
-   (v : list ℕ := vars_in_term t)  -- set of vars in t
-   (a : vector M.univ v.length) -- vector of values in M.univ
-   : M.univ :=
-match t with
-| (con c)   := M.C c
-| (var n)   := begin
-                 have h : n ∈ v, sorry,
-                 exact a.nth ⟨v.index_of n, list.index_of_lt_length.2 h⟩,
-               end
-| (app n f ts) := sorry
-end
 
 
 /-! 4.1 Examples of Terms
@@ -291,11 +294,74 @@ namespace example_terms
   def c : L1.C   := unit.star
 
   /-- t₁ = f(g(c, f(v₁))) is a term on language L1. -/
-  def t₁ : term L1 := app _ f [app _ g [con c, app _ f [var 1]]] 
+  def t₁ : term L1 := app _ f [app _ g [con c, app _ f [var 1]]]
+
   
-  #eval number_of_vars t₁
-  #eval vars_in_term t₁
+  #eval number_of_vars_t t₁
+  #eval vars_in_term_t t₁
 
 end example_terms
+
+/-! 4.2 Term Interpretation
+    -----------------------
+We define an interpretation for L-terms in an L-structure.
+This section is a work in progress.
+-/
+def term_interpretation (M : struc L) (t : term L)
+   (v : finset ℕ := vars_in_term_t t)  -- finset of vars in t
+   (a : vector M.univ v.card) : M.univ :=
+match t with
+| (con c)   := M.C c
+| (var n)   := begin
+                 have h : n ∈ v, sorry,
+                 --exact a.nth ⟨v.index_of n, list.index_of_lt_length.2 h⟩,
+                 sorry,
+               end
+| (app n f ts) := sorry
+end
+
+
+
+
+/-! -----------------------------------------------------------------
+-- 5. Formulas
+-- ----------------------------------------------------------------/
+
+
+inductive formula (L : lang)
+| eq  : term L → term L → formula
+| rel : Π {n : ℕ}, L.R n → term L → formula
+| neg : formula → formula
+| and : formula → formula → formula
+| or  : formula → formula → formula
+| exi : ℕ → formula → formula    -- ℕ gives us a variable
+| all : ℕ → formula → formula    -- ℕ gives us a variable
+
+
+infix    `='` :  80 := formula.eq
+prefix   `¬'` :  60 := formula.neg
+infix    `∧'` :  70 := formula.and
+infix    `∨'` :  70 := formula.or
+notation `∃'` : 110 := formula.exi
+notation `∀'` : 110 := formula.all
+
+/-- A variable occurs freely in a formula if it is not quantified
+over.-/
+def var_is_free (n : ℕ) : formula L → Prop
+| (t₁='t₂)          := true
+| (formula.rel r t) := true
+| (¬' ϕ)      := var_is_free ϕ
+| (ϕ₁ ∧' ϕ₂)  := var_is_free ϕ₁ ∧ var_is_free ϕ₂
+| (ϕ₁ ∨' ϕ₂)  := var_is_free ϕ₁ ∧ var_is_free ϕ₂
+| (∃' v ϕ)    := v ≠ n ∧ var_is_free ϕ
+| (∀' v ϕ)    := v ≠ n ∧ var_is_free ϕ
+
+/-- If the variable does not occur freely, we say that it is bound.-/
+def var_is_bound (n : ℕ) (ϕ : formula L) : Prop := ¬ var_is_free n ϕ
+
+-- TODO: there is some caveat about a variable appearing freely in ϕ₁
+-- but bound in ϕ₂ when considering the term ϕ₁ ∧ ϕ₂?
+
+
 
 #lint
