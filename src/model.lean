@@ -321,10 +321,9 @@ def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
   card M ≤ card N :=
 begin
-  sorry  -- Look for a theorem in mathlib that guarantees the result
-         -- using injectivity of η.
+  apply cardinal.mk_le_of_injective,  -- Look for a theorem in mathlib that guarantees the result
+  apply η.η_inj,                                    -- using injectivity of η.
 end
-
 
 /-! -----------------------------------------------------------------
 -- 4. Terms
