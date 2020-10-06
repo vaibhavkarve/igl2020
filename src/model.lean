@@ -223,8 +223,54 @@ end
 -- 4. Terms
 -- ----------------------------------------------------------------/
 
+/-- We define terms in a language to be constants, variables or
+   applications of functions acting on terms.-/
+inductive term (L : lang) : Type
+| con : L.C → term
+| var : ℕ → term
+| app (n : ℕ) (f : L.F n) (ts : list term) : term
 
-/-- We need a type to represent variables.-/
-constant var : Type
+open term
+variable {L : lang}
+
+
+/-- We define a function to compute the number of variables in a term
+using mutual recursion.-/
+mutual def number_of_vars, number_of_vars_list
+with number_of_vars : term L → ℕ
+| (con c) := 0
+| (var n) := 1
+| (app n f ts) := number_of_vars_list ts
+with number_of_vars_list : list (term L) → ℕ
+| [] := 0
+| (t :: ts) := number_of_vars t + number_of_vars_list ts
+
+
+/-- The variables in a term can also be computed using a mutually
+recursive pair of functions.-/
+mutual def vars_in_term, vars_in_term_list
+with vars_in_term : term L → list ℕ
+| (con c)      := []
+| (var n)      := [n]
+| (app n f ts) := vars_in_term_list ts
+with vars_in_term_list : list (term L) → list ℕ
+| [] := []
+| (t :: ts) := vars_in_term t ++ vars_in_term_list ts
+
+
+/-- We define an interpretation for L-terms in an L-structure.-/
+def term_interpretation (M : struc L) (t : term L)
+   (v : list ℕ := vars_in_term t)  -- set of vars in t
+   (a : vector M.univ v.length) -- vector of values in M.univ
+   : M.univ :=
+match t with
+| (con c)   := M.C c
+| (var n)   := begin
+                 have h : n ∈ v, sorry,
+                 exact a.nth ⟨v.index_of n, list.index_of_lt_length.2 h⟩,
+               end
+| (app n f ts) := sorry
+end
+
 
 #lint
