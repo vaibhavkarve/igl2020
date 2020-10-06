@@ -104,13 +104,11 @@ begin
    { intros _ f,
      cases f},
    { intros n r v,
+     iterate 2 {cases n, cases r},                         -- n<2: r n = empty 
      cases n,
-      { cases r}, -- if n=0
-     cases n,
-      { cases r}, -- if n=1
-     cases n; cases r,
-      { exact v.nth 0 < v.nth 1} -- if n=2
-   },  -- if n>2, handles automatically by Lean.
+      exact v.nth 0 < v.nth 1,                             -- n=2: r n = {<}
+      cases r,                                             -- n>2: r n = empty
+   },
    { intros c,
      cases c},
 
@@ -343,5 +341,50 @@ end
 -- 4. Terms
 -- -----------------------------------------------------------------
 
-/-We need a type to represent variables.-/
-constant var : Type
+/-We specify a constant type for representing variables.-/
+constants (var : Type) [dec_eq_var: decidable_eq var]
+
+
+/- We define terms in a language to be constants, variables or
+   functions acting on terms.-/
+inductive term (L : lang) : Type
+| const : L.C → term
+| var : var → term
+| func (n : ℕ) (f : L.F n) (v : fin n → term) : term
+-- Note that we use `fin n → term` instead of `vector term n`. These
+-- two types are isomorphic but `vector term n` gives us a nested
+-- inductive type error.
+
+def func (L : lang) (n : ℕ) := L.F n
+
+
+def vars_in_term {L : lang} : term L → set var
+| (term.const c)      := ∅ 
+| (term.var v)        := {v}
+| (term.func n f vec) := 
+begin
+  have h := list.of_fn vec,
+  have i : ℕ := list.sizeof h,
+  intro v,
+  exact (_ < i) ∧ (v = vars_in_term (h.nth _))
+end 
+
+#exit
+-- All lines beyond this point are error prone.
+
+/-We define an interpretation for L-terms in an L-structure.-/
+def term_interpretation {L : lang} (M : struc L) {m : ℕ} [decidable_eq var]
+  (t : term L) (v : list var := vars_in_term t) (a : fin m → M.univ) : M.univ :=
+  match t with
+  | (term.const c) := M.C c
+  | (term.var v_index) a := match fin.find (λ n, v n = v_index) with
+                          | none       := sorry
+                          | some index := a index
+                          end
+  | (term.func n f t) a := begin
+  have t_map_fin : fin n → M.univ,
+apply fin.map,
+sorry,
+have t_map_vec : vector M.univ n := vector.of_fn t_map_fin,
+exact (M.F n f) t_map_vec,
+end
