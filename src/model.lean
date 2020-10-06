@@ -6,6 +6,7 @@ import set_theory.cardinal
 2. We define structures and give examples.
 3. We define embedding between two structures on the same language.
 4. (WIP) We define variables, terms, and formulas.
+   4.1 We give some examples of terms.
 -/
 
 
@@ -272,5 +273,30 @@ match t with
 | (app n f ts) := sorry
 end
 
+
+/-! 4.1 Examples of Terms
+    ---------------------
+The following example is taken from [Marker2002]. -/
+
+#check @set.univ
+namespace example_terms
+  /-- The language L has:
+  - one unary function f,
+  - one binary function g,
+  - and one constant symbol c.-/
+  def L1 : lang := {F := λ n, if n=1 then unit else if n=2 then unit else empty,
+                   R := function.const ℕ empty,
+                   C := unit}
+  def f : L1.F 1 := unit.star
+  def g : L1.F 2 := unit.star
+  def c : L1.C   := unit.star
+
+  /-- t₁ = f(g(c, f(v₁))) is a term-/
+  def t₁ : term L1 := app _ f [app _ g [con c, app _ f [var 1]]] 
+  
+  #eval number_of_vars t₁
+  #eval vars_in_term t₁
+
+end example_terms
 
 #lint
