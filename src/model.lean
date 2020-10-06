@@ -42,7 +42,7 @@ def magma_lang : lang := {F := λ n : ℕ, if n=2 then unit else empty,
 
 
 /-- A semigroup is a {×}-structure which satisfies the identity
-  u × (v × w) = (u × v) × w.  Note that identities are note relations!-/
+  u × (v × w) = (u × v) × w.  Note that identities are not relations!-/
 def semigroup_lang : lang := magma_lang
 
 /-- A monoid is a {×, 1}-structure which satisfies the identities
