@@ -168,21 +168,124 @@ begin
       cases n,
       cases f,
       exact semigroup.mul (v.nth 0) (v.nth 1)},
-    { sorry},
-    { sorry}
+    { intros _ r,
+      cases r },
+    { intro c,
+      cases c}
 end
 
 
 lemma monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
-  struc (monoid_lang) := sorry
+  struc (monoid_lang) := 
+begin
+  fconstructor,
+  { exact A},
+  { intros n f v,
+    cases n,
+    cases f,
+    exact monoid.mul (v.nth 0) (v.nth 1)},
+  { intros _ r,
+      cases r },
+    { intro c,
+      exact 1},
+end
+
+
 lemma group_is_struc_of_group_lang {A : Type} [group A] :
-  struc (group_lang) := sorry
+  struc (group_lang) := 
+begin
+  fconstructor,
+  { exact A },
+  { intros n f v,
+    cases n,
+    cases f,
+    cases n,
+    {exact group.inv (v.nth 0)},
+    cases n,
+    {exact group.mul (v.nth 0) (v.nth 1)},
+    cases f,
+  },
+  { intros _ r,
+      cases r },
+    { intro c,
+      exact 1},
+end
+
 lemma semiring_is_struc_of_semiring_lang {A : Type} [semiring A] :
-  struc (semiring_lang) := sorry
+  struc (semiring_lang) := 
+begin
+  fconstructor,
+  { exact A },
+  { intros n f v,
+    iterate 2 {cases n, cases f},  
+    cases n,
+    cases f,
+      {exact semiring.mul (v.nth 0) (v.nth 1)},
+      {exact semiring.add (v.nth 0) (v.nth 1)},
+  },
+  { intros n r,
+      cases r },
+  { 
+    intros c,
+    cases c,
+    exact semiring.zero,
+  },
+end
+
 lemma ring_is_struc_of_ring_lang {A : Type} [ring A] :
-  struc (ring_lang) := sorry
+  struc (ring_lang) := 
+begin
+  fconstructor,
+  {exact A},
+  { intros n f v,
+    cases n,
+    cases f,
+    cases n,
+    cases f,
+    exact ring.neg (v.nth 0),
+    cases n,
+    cases f,
+      exact ring.add (v.nth 0) (v.nth 1),
+      exact ring.mul (v.nth 0) (v.nth 1),
+  },
+  { intros n r,
+    cases r },
+  {
+    intros c,
+    cases c,
+    exact ring.zero,
+  },
+end
+  
 lemma ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
-  : lang := sorry
+  : struc(ordered_ring_lang) := 
+begin
+  fconstructor,
+  { exact A },
+  { intros n f v,
+    cases n,
+    cases f,
+    cases n,
+    cases f,
+    exact ordered_ring.neg (v.nth 0),
+    cases n,
+    cases f,
+      exact ordered_ring.add (v.nth 0) (v.nth 1),
+      exact ordered_ring.mul (v.nth 0) (v.nth 1),
+  },
+  { intros n r v,
+    cases n, 
+    cases r,
+    cases n,
+    cases r,
+      exact ordered_ring.lt (v.nth 0) (v.nth 1),
+  },
+  {
+    intros c,
+    cases c,
+    exact ordered_ring.zero,
+  },
+end
 
 
 
