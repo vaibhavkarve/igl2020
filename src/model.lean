@@ -1,16 +1,20 @@
 import tactic
 import data.real.basic
 import set_theory.cardinal
-/- This is an attempt to define Languages and Structures on these
-   Languages.-/
+/-!
+1. We define languages and give examples.
+2. We define structures and give examples.
+3. We define embedding between two structures on the same language.
+4. (WIP) We define variables, terms, and formulas.
+-/
 
 
 
--- -----------------------------------------------------------------
+/-! -----------------------------------------------------------------
 -- 1. Languages and Examples
--- -----------------------------------------------------------------
+-- ----------------------------------------------------------------/
 
-/-A language is given by specifying functions, relations and constants
+/-- A language is given by specifying functions, relations and constants
 along with the arity of each function and each relation.-/
 structure lang : Type 1 :=
 (F : ℕ → Type)    -- functions
@@ -18,20 +22,19 @@ structure lang : Type 1 :=
 (C : Type)          -- constants
 
 
-/-We now define some example languages. We start with the simplest
+/-- We now define some example languages. We start with the simplest
 possible language, the language of pure sets. This language has no
 functions, relations or constants.-/
 def set_lang: lang := ⟨function.const ℕ empty,
                        function.const ℕ empty,
                        empty⟩
 
-/-The language of ordered sets is the language or sets with a binary
-  ordering relation {<}.
--/
+/-- The language of ordered sets is the language or sets with a binary
+  ordering relation {<}.-/
 def ordered_set_lang: lang := {R := λ n : ℕ, if n=2 then unit else empty,
                                ..set_lang}
 
-/-A magma is a {×}-structure. So this has 1 function, 0 relations and
+/-- A magma is a {×}-structure. So this has 1 function, 0 relations and
 0 constants.-/
 def magma_lang : lang := {F := λ n : ℕ, if n=2 then unit else empty,
                           ..set_lang}
@@ -70,12 +73,12 @@ def ordered_ring_relations : ℕ → Type
 def ordered_ring_lang : lang := {R := ordered_ring_relations, ..ring_lang}
 
 
--- -----------------------------------------------------------------
+/-! -----------------------------------------------------------------
 -- 2. Structures and Examples
--- -----------------------------------------------------------------
+-- ----------------------------------------------------------------/
 
 
-/- We now define an L-structure to be interpretations of functions,
+/-- We now define an L-structure to be interpretations of functions,
  relations and constants. -/
 structure struc (L : lang) : Type 1 :=
 (univ : Type)                                    -- universe/domain
@@ -96,6 +99,7 @@ begin
      cases c},
  end
 
+
 lemma type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
   struc (ordered_set_lang) :=
 begin
@@ -115,7 +119,7 @@ begin
 end
 
 
-/-We need to define a magma, because it looks like it is not defined
+/-- We need to define a magma, because it looks like it is not defined
   in Mathlib.-/
 class magma (α : Type) :=
 (mul : α → α → α)
@@ -299,14 +303,13 @@ begin
   }
 end
 
--- -----------------------------------------------------------------
+/-! -----------------------------------------------------------------
 -- 3. Embeddings between Structures
--- -----------------------------------------------------------------
+-- ----------------------------------------------------------------/
 
 
-/-An L-embedding is a map between two L-structures that is injective
-  on the domain and preserves the interpretation of all the symbols of
-  L.-/
+/-- An L-embedding is a map between two L-structures that is injective
+on the domain and preserves the interpretation of all the symbols of L.-/
 structure embedding {L : lang} (M N : struc L) : Type :=
 (η : M.univ → N.univ)                         -- map of underlying domains
 (η_inj : function.injective η)                 -- should be one-to-one
@@ -318,16 +321,16 @@ structure embedding {L : lang} (M N : struc L) : Type :=
      η (M.C c) = N.C c)
 
 
-/-A bijective L-embedding is called an L-isomorphism.-/
+/-- A bijective L-embedding is called an L-isomorphism.-/
 structure isomorphism {L: lang} (M N : struc L) extends (embedding M N) : Type :=
 (η_bij : function.bijective η)
 
 
-/-The cardinality of a struc is the cardinality of its domain.-/
+/-- The cardinality of a struc is the cardinality of its domain.-/
 def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 
 
-/-If η: M → N is an embedding, then the cardinality of N is at least
+/-- If η: M → N is an embedding, then the cardinality of N is at least
   the cardinality of M.-/
 lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
   card M ≤ card N :=
@@ -337,54 +340,58 @@ begin
 end
 
 
--- -----------------------------------------------------------------
+/-! -----------------------------------------------------------------
 -- 4. Terms
--- -----------------------------------------------------------------
+-- ----------------------------------------------------------------/
 
-/-We specify a constant type for representing variables.-/
-constants (var : Type) [dec_eq_var: decidable_eq var]
-
-
-/- We define terms in a language to be constants, variables or
-   functions acting on terms.-/
+/-- We define terms in a language to be constants, variables or
+   applications of functions acting on terms.-/
 inductive term (L : lang) : Type
-| const : L.C → term
-| var : var → term
-| func (n : ℕ) (f : L.F n) (v : fin n → term) : term
--- Note that we use `fin n → term` instead of `vector term n`. These
--- two types are isomorphic but `vector term n` gives us a nested
--- inductive type error.
+| con : L.C → term
+| var : ℕ → term
+| app (n : ℕ) (f : L.F n) (ts : list term) : term
 
-def func (L : lang) (n : ℕ) := L.F n
+open term
+variable {L : lang}
 
 
-def vars_in_term {L : lang} : term L → set var
-| (term.const c)      := ∅ 
-| (term.var v)        := {v}
-| (term.func n f vec) := 
-begin
-  have h := list.of_fn vec,
-  have i : ℕ := list.sizeof h,
-  intro v,
-  exact (_ < i) ∧ (v = vars_in_term (h.nth _))
-end 
+/-- We define a function to compute the number of variables in a term
+using mutual recursion.-/
+mutual def number_of_vars, number_of_vars_list
+with number_of_vars : term L → ℕ
+| (con c) := 0
+| (var n) := 1
+| (app n f ts) := number_of_vars_list ts
+with number_of_vars_list : list (term L) → ℕ
+| [] := 0
+| (t :: ts) := number_of_vars t + number_of_vars_list ts
 
-#exit
--- All lines beyond this point are error prone.
 
-/-We define an interpretation for L-terms in an L-structure.-/
-def term_interpretation {L : lang} (M : struc L) {m : ℕ} [decidable_eq var]
-  (t : term L) (v : list var := vars_in_term t) (a : fin m → M.univ) : M.univ :=
-  match t with
-  | (term.const c) := M.C c
-  | (term.var v_index) a := match fin.find (λ n, v n = v_index) with
-                          | none       := sorry
-                          | some index := a index
-                          end
-  | (term.func n f t) a := begin
-  have t_map_fin : fin n → M.univ,
-apply fin.map,
-sorry,
-have t_map_vec : vector M.univ n := vector.of_fn t_map_fin,
-exact (M.F n f) t_map_vec,
+/-- The variables in a term can also be computed using a mutually
+recursive pair of functions.-/
+mutual def vars_in_term, vars_in_term_list
+with vars_in_term : term L → list ℕ
+| (con c)      := []
+| (var n)      := [n]
+| (app n f ts) := vars_in_term_list ts
+with vars_in_term_list : list (term L) → list ℕ
+| [] := []
+| (t :: ts) := vars_in_term t ++ vars_in_term_list ts
+
+
+/-- We define an interpretation for L-terms in an L-structure.-/
+def term_interpretation (M : struc L) (t : term L)
+   (v : list ℕ := vars_in_term t)  -- set of vars in t
+   (a : vector M.univ v.length) -- vector of values in M.univ
+   : M.univ :=
+match t with
+| (con c)   := M.C c
+| (var n)   := begin
+                 have h : n ∈ v, sorry,
+                 exact a.nth ⟨v.index_of n, list.index_of_lt_length.2 h⟩,
+               end
+| (app n f ts) := sorry
 end
+
+
+#lint
