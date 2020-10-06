@@ -278,7 +278,6 @@ end
     ---------------------
 The following example is taken from [Marker2002]. -/
 
-#check @set.univ
 namespace example_terms
   /-- The language L has:
   - one unary function f,
@@ -291,7 +290,7 @@ namespace example_terms
   def g : L1.F 2 := unit.star
   def c : L1.C   := unit.star
 
-  /-- t₁ = f(g(c, f(v₁))) is a term-/
+  /-- t₁ = f(g(c, f(v₁))) is a term on language L1. -/
   def t₁ : term L1 := app _ f [app _ g [con c, app _ f [var 1]]] 
   
   #eval number_of_vars t₁
