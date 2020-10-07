@@ -7,7 +7,8 @@ import set_theory.cardinal
 3. We define embedding between two structures on the same language.
 4. We define terms.
    4.1 We give some examples of terms.
-   4.2 (WIP) We give an interpretation of terms in structures.
+   4.2 (WIP) We define a function for term substitution and prove a theorem.
+   4.3 (WIP) We give an interpretation of terms in structures.
 5. (WIP) We define formulas.
 -/
 
@@ -306,12 +307,16 @@ namespace example_terms
   #eval number_of_vars_t t₁
   #eval vars_in_term_t t₁
 
+end example_terms
+
+
+/-! 4.2 Terms Substitution
+    -----------------------/
 
 /-- Simple example of a map where we substitute every variable
 with exactly one term. A lemma will show if the term is variable
 free, then the image of the function is variable free. Can be
 generalized to subsitute each variable with its own term. -/
-
 mutual def term_sub, term_sub_list (t' : term L)
 with term_sub : term L → term L
 | (con c)      := con c
@@ -324,13 +329,13 @@ with term_sub_list : list (term L) → list (term L)
 
 def var_free (t : term L) : Prop := number_of_vars_t t = 0
 
+
 theorem term_sub_free (t' t : term L)
   : var_free t' → var_free (term_sub t' t) :=
 begin
-
-sorry 
-
+  sorry 
 end
+
 
 /-! 4.2 Term Interpretation
     -----------------------
@@ -360,7 +365,7 @@ end
 
 inductive formula (L : lang)
 | eq  : term L → term L → formula
-| rel : Π {n : ℕ}, L.R n → term L → formula
+| rel : Π {n : ℕ}, L.R n → vector (term L) n → formula
 | neg : formula → formula
 | and : formula → formula → formula
 | or  : formula → formula → formula
@@ -378,9 +383,9 @@ notation `∀'` : 110 := formula.all
 /-- A variable occurs freely in a formula if it is not quantified
 over.-/
 def var_is_free (n : ℕ) : formula L → Prop
-| (t₁='t₂)          := true
-| (formula.rel r t) := true
-| (¬' ϕ)      := var_is_free ϕ
+| (t₁='t₂)           := true
+| (formula.rel r ts) := true
+| (¬' ϕ)       := var_is_free ϕ
 | (ϕ₁ ∧' ϕ₂)  := var_is_free ϕ₁ ∧ var_is_free ϕ₂
 | (ϕ₁ ∨' ϕ₂)  := var_is_free ϕ₁ ∧ var_is_free ϕ₂
 | (∃' v ϕ)    := v ≠ n ∧ var_is_free ϕ
@@ -391,7 +396,5 @@ def var_is_bound (n : ℕ) (ϕ : formula L) : Prop := ¬ var_is_free n ϕ
 
 -- TODO: there is some caveat about a variable appearing freely in ϕ₁
 -- but bound in ϕ₂ when considering the term ϕ₁ ∧ ϕ₂?
-
-
 
 #lint
