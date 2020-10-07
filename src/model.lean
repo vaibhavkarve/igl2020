@@ -312,21 +312,20 @@ with exactly one term. A lemma will show if the term is variable
 free, then the image of the function is variable free. Can be
 generalized to subsitute each variable with its own term. -/
 
-mutual def term_sub, term_sub_list (T' : term L)
+mutual def term_sub, term_sub_list (t' : term L)
 with term_sub : term L → term L
 | (con c)      := con c
-| (var n)      := T'
+| (var n)      := t'
 | (app n f ts) := app n f (term_sub_list ts)
 with term_sub_list : list (term L) → list (term L)
 | [] := []
 | (t :: ts) := term_sub t :: term_sub_list ts
 
-#check term_sub
 
-def var_free (T : term L) : Prop := number_of_vars_t T = 0
+def var_free (t : term L) : Prop := number_of_vars_t t = 0
 
-theorem term_sub_free (T' : term L)(T : term L) 
-  : var_free T' → var_free (term_sub T' T) :=
+theorem term_sub_free (t' t : term L)
+  : var_free t' → var_free (term_sub t' t) :=
 begin
 
 sorry 
