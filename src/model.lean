@@ -233,16 +233,20 @@ inductive term (L : lang) : Type
 | var : ℕ → term
 | app (n : ℕ) (f : L.F n) (ts : list term) : term
 
+
 open term
 variable {L : lang}
 
-/-- Admissible terms are a subtype of terms -- they are terms that apply
-f to exact n arguments (where n is the arity of f). -/
-def is_admissible : term L → Prop
-| (app n f ts) := ts.length = n
-| _ := true
-def aterm (L : lang) : Type := {t : term L // is_admissible t}
+mutual def is_admissible, is_admissible_list
+with is_admissible : term L → Prop
+| (con c) := true
+| (var v) := true
+| (app n f ts) := (n = ts.length) ∧ is_admissible_list ts
+with is_admissible_list : list (term L) → Prop
+| [] := true
+| (t :: ts) := is_admissible t ∧ is_admissible_list ts
 
+def aterm (L : lang) : Type := {t : term L // is_admissible t}
 
 
 /-- We define a function to compute the number of variables in a term
@@ -251,6 +255,7 @@ using mutual recursion.
 Important note: this function counts the number of variables with repetition.
 For number without repetition, use the size of the set computed by vars_in_term instead.
 -/
+
 mutual def number_of_vars_t, number_of_vars_list_t
 with number_of_vars_t : term L → ℕ
 | (con c) := 0
@@ -264,6 +269,7 @@ def number_of_vars (t : aterm L) : ℕ := number_of_vars_t t.val
 
 /-- The variables in a term can also be computed using a mutually
 recursive pair of functions.-/
+
 mutual def vars_in_term_t, vars_in_term_list_t
 with vars_in_term_t : term L → finset ℕ
 | (con c)      := ∅
@@ -300,7 +306,31 @@ namespace example_terms
   #eval number_of_vars_t t₁
   #eval vars_in_term_t t₁
 
-end example_terms
+
+/-- Simple example of a map where we substitute every variable
+with exactly one term. A lemma will show if the term is variable
+free, then the image of the function is variable free. Can be
+generalized to subsitute each variable with its own term. -/
+
+mutual def term_sub, term_sub_list (t' : term L)
+with term_sub : term L → term L
+| (con c)      := con c
+| (var n)      := t'
+| (app n f ts) := app n f (term_sub_list ts)
+with term_sub_list : list (term L) → list (term L)
+| [] := []
+| (t :: ts) := term_sub t :: term_sub_list ts
+
+
+def var_free (t : term L) : Prop := number_of_vars_t t = 0
+
+theorem term_sub_free (t' t : term L)
+  : var_free t' → var_free (term_sub t' t) :=
+begin
+
+sorry 
+
+end
 
 /-! 4.2 Term Interpretation
     -----------------------
