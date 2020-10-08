@@ -105,8 +105,7 @@ structure struc (L : lang) : Type 1 :=
 (R (n : ℕ) (r : L.R n) : set (vector univ n))    -- interpretation of each relation
 (C : L.C → univ)                                -- interpretation of each constant
 
-
-lemma type_is_struc_of_set_lang {A : Type} : struc (set_lang) :=
+def type_is_struc_of_set_lang {A : Type} : struc (set_lang) :=
 begin
   fconstructor,
    { exact A },
@@ -118,8 +117,9 @@ begin
      cases c},
  end
 
+ #print type_is_struc_of_set_lang
 
-lemma type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
+def type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
   struc (ordered_set_lang) :=
 begin
   fconstructor,
@@ -146,7 +146,7 @@ class magma (α : Type) :=
 (mul : α → α → α)
 
 
-lemma magma_is_struc_of_magma_lang {A : Type} [magma A] :
+def magma_is_struc_of_magma_lang {A : Type} [magma A] :
   struc (magma_lang) :=
 begin
   fconstructor,
@@ -163,7 +163,7 @@ end
 
 
 
-lemma semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
+def semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
   struc (semigroup_lang) :=
 begin
   fconstructor,
@@ -179,7 +179,7 @@ begin
 end
 
 
-lemma monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
+def monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
   struc (monoid_lang) := 
 begin
   fconstructor,
@@ -195,7 +195,7 @@ begin
 end
 
 
-lemma group_is_struc_of_group_lang {A : Type} [group A] :
+def group_is_struc_of_group_lang {A : Type} [group A] :
   struc (group_lang) := 
 begin
   fconstructor,
@@ -215,7 +215,7 @@ begin
       exact 1},
 end
 
-lemma semiring_is_struc_of_semiring_lang {A : Type} [semiring A] :
+def semiring_is_struc_of_semiring_lang {A : Type} [semiring A] :
   struc (semiring_lang) := 
 begin
   fconstructor,
@@ -236,7 +236,7 @@ begin
   },
 end
 
-lemma ring_is_struc_of_ring_lang {A : Type} [ring A] :
+def ring_is_struc_of_ring_lang {A : Type} [ring A] :
   struc (ring_lang) := 
 begin
   fconstructor,
@@ -261,7 +261,7 @@ begin
   },
 end
   
-lemma ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
+def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
   : struc(ordered_ring_lang) := 
 begin
   fconstructor,

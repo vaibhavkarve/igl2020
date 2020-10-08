@@ -103,7 +103,7 @@ def mul {α : Type} [has_mul α] [has_one α] : list α → α
 #eval mul [7, 9, 2] -- output: 126
 
 def max {α : Type} [decidable_linear_order α]: list α → α
-| []        := [].minimum
+| []        := sorry
 | (x :: xs) := if x < max xs then max xs else x
 
 #print decidable_linear_order
