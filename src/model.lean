@@ -5,7 +5,11 @@ import set_theory.cardinal
 1. We define languages and give examples.
 2. We define structures and give examples.
 3. We define embedding between two structures on the same language.
-4. (WIP) We define variables, terms, and formulas.
+4. We define terms.
+   4.1 We give some examples of terms.
+   4.2 (WIP) We define a function for term substitution and prove a theorem.
+   4.3 (WIP) We give an interpretation of terms in structures.
+5. (WIP) We define formulas.
 -/
 
 
@@ -41,14 +45,15 @@ def magma_lang : lang := {F := λ n : ℕ, if n=2 then unit else empty,
 
 
 /-- A semigroup is a {×}-structure which satisfies the identity
-  u × (v × w) = (u × v) × w.  Note that identities are note relations!-/
+  u × (v × w) = (u × v) × w.  Note that identities are not relations!-/
 def semigroup_lang : lang := magma_lang
 
 /-- A monoid is a {×, 1}-structure which satisfies the identities
    1. u × (v × w) = (u × v) × w
    2. u × 1 = u
    3. 1 × u = u. -/
-def monoid_lang : lang := sorry
+def monoid_lang : lang := {F := λ n : ℕ, if n=2 then unit else empty, 
+                            C := unit, ..set_lang}
 
 /-- A group is a {×, ⁻¹, 1}-structure which satisfies the identities
  1. u × (v × w) = (u × v) × w
@@ -56,7 +61,7 @@ def monoid_lang : lang := sorry
  3. 1 × u = u
  4. u × u−1 = 1
  5. u−1 × u = 1 -/
-def group_lang : lang := {F := λ n : ℕ, if n=1 then unit else if n=2 then unit else empty,
+def group_lang : lang := {F := λ n : ℕ, if n = 2 then unit else if n = 1 then unit else empty,
                           C := unit, ..set_lang}
 
 /-- A semiring is a {×, +, 0, 1}-structure which satisfies the identities
@@ -80,7 +85,6 @@ def semiring_lang : lang := sorry
    8. (v + w) × u = (v × u) + (w × u)-/
 def ring_lang : lang := sorry
 
-
 /-- An ordered ring is a ring along with a binary ordering relation {<}.-/
 def ordered_ring_lang : lang := sorry
 
@@ -98,11 +102,11 @@ structure struc (L : lang) : Type 1 :=
 (R (n : ℕ) (r : L.R n) : set (vector univ n))    -- interpretation of each relation
 (C : L.C → univ)                                -- interpretation of each constant
 
-
-lemma type_is_struc_of_set_lang {A : Type} : struc (set_lang) :=
+/-- Type is a structure of the set language-/
+def type_is_struc_of_set_lang {A : Type} : struc (set_lang) :=
 begin
   fconstructor,
-   { exact A},
+   { exact A },
    { intros _ f,
      cases f},
    { intros _ r,
@@ -111,8 +115,8 @@ begin
      cases c},
  end
 
-
-lemma type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
+/-- Type is a structure of the ordered set language-/
+def type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
   struc (ordered_set_lang) :=
 begin
   fconstructor,
@@ -138,50 +142,69 @@ end
 class magma (α : Type) :=
 (mul : α → α → α)
 
-
-lemma magma_is_struc_of_magma_lang {A : Type} [magma A] :
+/-- Magma is a structure of the magma language-/
+def magma_is_struc_of_magma_lang {A : Type} [magma A] :
   struc (magma_lang) :=
 begin
   fconstructor,
-    { exact A},
+    { exact A },
     { intros n f v,
       cases n,
-      { cases f},                             -- if n = 0
-      { exact magma.mul (v.nth 0) (v.nth 1)}}, -- if n = 1
+      { cases f },                             -- if n = 0
+      { exact magma.mul (v.nth 0) (v.nth 1)} }, -- if n = 1
     { intros _ r,
       cases r},
     { intros c,
       cases c},
 end
 
-
-
-lemma semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
+/-- Semigroup is a structure of the language of semigroups-/
+def semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
   struc (semigroup_lang) :=
 begin
   fconstructor,
-    { exact A},
+    { exact A },
     { intros n f v,
       cases n,
       cases f,
       exact semigroup.mul (v.nth 0) (v.nth 1)},
     { intros _ r,
-      cases r},
-    { intros c,
-      cases c},
+      cases r },
+    { intro c,
+      cases c }
 end
 
+/-- Monoid is a structure of the language of monoids-/
+def monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
+  struc (monoid_lang) := 
+begin
+  fconstructor,
+  { exact A },
+  { intros n f v,
+    cases n,
+    cases f,
+    exact monoid.mul (v.nth 0) (v.nth 1)},
+  { intros _ r,
+      cases r },
+  { intro c,
+    exact 1 },
+end
 
-lemma monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
-  struc (monoid_lang) := sorry
-lemma group_is_struc_of_group_lang {A : Type} [group A] :
+/-- Group is a structure of the group language-/
+def group_is_struc_of_group_lang {A : Type} [group A] :
   struc (group_lang) := sorry
-lemma semiring_is_struc_of_semiring_lang {A : Type} [semiring A] :
+
+/-- Semiring is a structure of the language of semirings-/
+def semiring_is_struc_of_semiring_lang {A : Type} [semiring A] :
   struc (semiring_lang) := sorry
-lemma ring_is_struc_of_ring_lang {A : Type} [ring A] :
+
+/-- Ring is a structure of the language of rings-/
+def ring_is_struc_of_ring_lang {A : Type} [ring A] :
   struc (ring_lang) := sorry
-lemma ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
-  : lang := sorry
+  
+/-- Ordered ring is a structure of the language of ordered rings-/
+def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
+  : struc(ordered_ring_lang) := sorry
 
 
 
@@ -217,13 +240,9 @@ def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
   card M ≤ card N :=
 begin
-  cases η,
-  apply cardinal.mk_le_of_injective,
-  -- this does work, but does anyone know how this solves both goals at once, shouldn't it also
-  -- need "exact η_η" as well as the line below that demonstrates injectivity?
-  exact η_η_inj,
+  apply cardinal.mk_le_of_injective,  -- Look for a theorem in mathlib that guarantees the result
+  apply η.η_inj,                                    -- using injectivity of η.
 end
-
 
 /-! -----------------------------------------------------------------
 -- 4. Terms
@@ -237,7 +256,167 @@ inductive term (L : lang) : Type
 | app (n : ℕ) (f : L.F n) (ts : list term) : term
 
 
+open term
+variable {L : lang}
 
+mutual def is_admissible, is_admissible_list
+with is_admissible : term L → Prop
+| (con c) := true
+| (var v) := true
+| (app n f ts) := (n = ts.length) ∧ is_admissible_list ts
+with is_admissible_list : list (term L) → Prop
+| [] := true
+| (t :: ts) := is_admissible t ∧ is_admissible_list ts
+
+def aterm (L : lang) : Type := {t : term L // is_admissible t}
+
+
+/-- We define a function to compute the number of variables in a term
+using mutual recursion.
+
+Important note: this function counts the number of variables with repetition.
+For number without repetition, use the size of the set computed by vars_in_term instead.
+-/
+
+mutual def number_of_vars_t, number_of_vars_list_t
+with number_of_vars_t : term L → ℕ
+| (con c) := 0
+| (var v) := 1
+| (app n f ts) := number_of_vars_list_t ts
+with number_of_vars_list_t : list (term L) → ℕ
+| [] := 0
+| (t :: ts) := number_of_vars_t t + number_of_vars_list_t ts
+
+def number_of_vars (t : aterm L) : ℕ := number_of_vars_t t.val
+
+/-- The variables in a term can also be computed using a mutually
+recursive pair of functions.-/
+
+mutual def vars_in_term_t, vars_in_term_list_t
+with vars_in_term_t : term L → finset ℕ
+| (con c)      := ∅
+| (var v)      := {v}
+| (app n f ts) := vars_in_term_list_t ts
+with vars_in_term_list_t : list (term L) → finset ℕ
+| [] := ∅
+| (t :: ts) := vars_in_term_t t ∪ vars_in_term_list_t ts
+
+def vars_in_term (t : aterm L) : finset ℕ := vars_in_term_t t.val
+
+
+
+/-! 4.1 Examples of Terms
+    ---------------------
+The following example is taken from [Marker2002]. -/
+
+namespace example_terms
+  /-- The language L has:
+  - one unary function f,
+  - one binary function g,
+  - and one constant symbol c.-/
+  def L1 : lang := {F := λ n, if n=1 then unit else if n=2 then unit else empty,
+                   R := function.const ℕ empty,
+                   C := unit}
+  def f : L1.F 1 := unit.star
+  def g : L1.F 2 := unit.star
+  def c : L1.C   := unit.star
+
+  /-- t₁ = f(g(c, f(v₁))) is a term on language L1. -/
+  def t₁ : term L1 := app _ f [app _ g [con c, app _ f [var 1]]]
+
+  
+  #eval number_of_vars_t t₁
+  #eval vars_in_term_t t₁
+
+end example_terms
+
+
+/-! 4.2 Terms Substitution
+    -----------------------/
+
+/-- Simple example of a map where we substitute every variable
+with exactly one term. A lemma will show if the term is variable
+free, then the image of the function is variable free. Can be
+generalized to subsitute each variable with its own term. -/
+mutual def term_sub, term_sub_list (t' : term L)
+with term_sub : term L → term L
+| (con c)      := con c
+| (var n)      := t'
+| (app n f ts) := app n f (term_sub_list ts)
+with term_sub_list : list (term L) → list (term L)
+| [] := []
+| (t :: ts) := term_sub t :: term_sub_list ts
+
+
+def var_free (t : term L) : Prop := number_of_vars_t t = 0
+
+
+theorem term_sub_free (t' t : term L)
+  : var_free t' → var_free (term_sub t' t) :=
+begin
+  sorry 
+end
+
+
+/-! 4.2 Term Interpretation
+    -----------------------
+We define an interpretation for L-terms in an L-structure.
+This section is a work in progress.
+-/
+def term_interpretation (M : struc L) (t : term L)
+   (v : finset ℕ := vars_in_term_t t)  -- finset of vars in t
+   (a : vector M.univ v.card) : M.univ :=
+match t with
+| (con c)   := M.C c
+| (var n)   := begin
+                 have h : n ∈ v, sorry,
+                 --exact a.nth ⟨v.index_of n, list.index_of_lt_length.2 h⟩,
+                 sorry,
+               end
+| (app n f ts) := sorry
+end
+
+
+
+
+/-! -----------------------------------------------------------------
+-- 5. Formulas
+-- ----------------------------------------------------------------/
+
+
+inductive formula (L : lang)
+| eq  : term L → term L → formula
+| rel : Π {n : ℕ}, L.R n → vector (term L) n → formula
+| neg : formula → formula
+| and : formula → formula → formula
+| or  : formula → formula → formula
+| exi : ℕ → formula → formula    -- ℕ gives us a variable
+| all : ℕ → formula → formula    -- ℕ gives us a variable
+
+
+infix    `='` :  80 := formula.eq
+prefix   `¬'` :  60 := formula.neg
+infix    `∧'` :  70 := formula.and
+infix    `∨'` :  70 := formula.or
+notation `∃'` : 110 := formula.exi
+notation `∀'` : 110 := formula.all
+
+/-- A variable occurs freely in a formula if it is not quantified
+over.-/
+def var_is_free (n : ℕ) : formula L → Prop
+| (t₁='t₂)           := true
+| (formula.rel r ts) := true
+| (¬' ϕ)       := var_is_free ϕ
+| (ϕ₁ ∧' ϕ₂)  := var_is_free ϕ₁ ∧ var_is_free ϕ₂
+| (ϕ₁ ∨' ϕ₂)  := var_is_free ϕ₁ ∧ var_is_free ϕ₂
+| (∃' v ϕ)    := v ≠ n ∧ var_is_free ϕ
+| (∀' v ϕ)    := v ≠ n ∧ var_is_free ϕ
+
+/-- If the variable does not occur freely, we say that it is bound.-/
+def var_is_bound (n : ℕ) (ϕ : formula L) : Prop := ¬ var_is_free n ϕ
+
+-- TODO: there is some caveat about a variable appearing freely in ϕ₁
+-- but bound in ϕ₂ when considering the term ϕ₁ ∧ ϕ₂?
 
 #lint
 
