@@ -52,7 +52,8 @@ def semigroup_lang : lang := magma_lang
    1. u × (v × w) = (u × v) × w
    2. u × 1 = u
    3. 1 × u = u. -/
-def monoid_lang : lang := {C := unit, ..magma_lang}
+def monoid_lang : lang := {F := λ n : ℕ, if n=2 then unit else empty, 
+                            C := unit, ..set_lang}
 
 /-- A group is a {×, ⁻¹, 1}-structure which satisfies the identities
  1. u × (v × w) = (u × v) × w
@@ -61,7 +62,7 @@ def monoid_lang : lang := {C := unit, ..magma_lang}
  4. u × u−1 = 1
  5. u−1 × u = 1 -/
 def group_lang : lang := {F := λ n : ℕ, if n = 2 then unit else if n = 1 then unit else empty,
-                          ..magma_lang}
+                          C := unit, ..set_lang}
 
 /-- A semiring is a {×, +, 0, 1}-structure which satisfies the identities
   1. u + (v + w) = (u + v) + w
@@ -71,8 +72,7 @@ def group_lang : lang := {F := λ n : ℕ, if n = 2 then unit else if n = 1 then
   6. u × 1 = u, 1 × u = u
   7. u × (v + w) = (u × v) + (u × w)
   8. (v + w) × u = (v × u) + (w × u)-/
-def semiring_lang : lang := {F := λ n : ℕ, if n = 2 then fin 2 else empty,
-                              C := fin 2, ..magma_lang}
+def semiring_lang : lang := sorry
 
 /-- A ring is a {×,+,−,0,1}-structure which satisfies the identities
    1. u + (v + w) = (u + v) + w
@@ -83,13 +83,10 @@ def semiring_lang : lang := {F := λ n : ℕ, if n = 2 then fin 2 else empty,
    6. u × 1 = u, 1 × u = u
    7. u × (v + w) = (u × v) + (u × w)
    8. (v + w) × u = (v × u) + (w × u)-/
-def ring_lang : lang := {F := λ n : ℕ, if n = 2 then fin 2 else if n = 1 then fin 1 else empty,
-                          C := fin 2, ..magma_lang}
-
+def ring_lang : lang := sorry
 
 /-- An ordered ring is a ring along with a binary ordering relation {<}.-/
-def ordered_ring_lang : lang := {R := λ n : ℕ, if n=2 then unit else empty,
-                                  ..ring_lang}
+def ordered_ring_lang : lang := sorry
 
 
 /-! -----------------------------------------------------------------
@@ -153,20 +150,20 @@ begin
     { exact A },
     { intros n f v,
       cases n,
-      { cases f},                             -- if n = 0
-      { exact magma.mul (v.nth 0) (v.nth 1)}}, -- if n = 1
+      { cases f },                             -- if n = 0
+      { exact magma.mul (v.nth 0) (v.nth 1)} }, -- if n = 1
     { intros _ r,
       cases r},
     { intros c,
       cases c},
 end
 
-/-- Semigroup is a structure of the semigroup language-/
+/-- Semigroup is a structure of the language of semigroups-/
 def semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
   struc (semigroup_lang) :=
 begin
   fconstructor,
-    { exact A},
+    { exact A },
     { intros n f v,
       cases n,
       cases f,
@@ -174,124 +171,40 @@ begin
     { intros _ r,
       cases r },
     { intro c,
-      cases c}
+      cases c }
 end
 
-/-- Monoid is a structure of the monoid language-/
+/-- Monoid is a structure of the language of monoids-/
 def monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
   struc (monoid_lang) := 
 begin
   fconstructor,
-  { exact A},
+  { exact A },
   { intros n f v,
     cases n,
     cases f,
     exact monoid.mul (v.nth 0) (v.nth 1)},
   { intros _ r,
       cases r },
-    { intro c,
-      exact 1},
+  { intro c,
+    exact 1 },
 end
 
 /-- Group is a structure of the group language-/
 def group_is_struc_of_group_lang {A : Type} [group A] :
-  struc (group_lang) := 
-begin
-  fconstructor,
-  { exact A },
-  { intros n f v,
-    cases n,
-    cases f,
-    cases n,
-    {exact group.inv (v.nth 0)},
-    cases n,
-    {exact group.mul (v.nth 0) (v.nth 1)},
-    cases f,
-  },
-  { intros _ r,
-      cases r },
-    { intro c,
-      exact 1},
-end
+  struc (group_lang) := sorry
 
 /-- Semiring is a structure of the language of semirings-/
 def semiring_is_struc_of_semiring_lang {A : Type} [semiring A] :
-  struc (semiring_lang) := 
-begin
-  fconstructor,
-  { exact A },
-  { intros n f v,
-    iterate 2 {cases n, cases f},  
-    cases n,
-    cases f,
-      {exact semiring.mul (v.nth 0) (v.nth 1)},
-      {exact semiring.add (v.nth 0) (v.nth 1)},
-  },
-  { intros n r,
-      cases r },
-  { 
-    intros c,
-    cases c,
-    exact semiring.zero,
-  },
-end
+  struc (semiring_lang) := sorry
 
 /-- Ring is a structure of the language of rings-/
 def ring_is_struc_of_ring_lang {A : Type} [ring A] :
-  struc (ring_lang) := 
-begin
-  fconstructor,
-  {exact A},
-  { intros n f v,
-    cases n,
-    cases f,
-    cases n,
-    cases f,
-    exact ring.neg (v.nth 0),
-    cases n,
-    cases f,
-      exact ring.add (v.nth 0) (v.nth 1),
-      exact ring.mul (v.nth 0) (v.nth 1),
-  },
-  { intros n r,
-    cases r },
-  {
-    intros c,
-    cases c,
-    exact ring.zero,
-  },
-end
+  struc (ring_lang) := sorry
   
 /-- Ordered ring is a structure of the language of ordered rings-/
 def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
-  : struc(ordered_ring_lang) := 
-begin
-  fconstructor,
-  { exact A },
-  { intros n f v,
-    cases n,
-    cases f,
-    cases n,
-    cases f,
-    exact ordered_ring.neg (v.nth 0),
-    cases n,
-    cases f,
-      exact ordered_ring.add (v.nth 0) (v.nth 1),
-      exact ordered_ring.mul (v.nth 0) (v.nth 1),
-  },
-  { intros n r v,
-    cases n, 
-    cases r,
-    cases n,
-    cases r,
-      exact ordered_ring.lt (v.nth 0) (v.nth 1),
-  },
-  {
-    intros c,
-    cases c,
-    exact ordered_ring.zero,
-  },
-end
+  : struc(ordered_ring_lang) := sorry
 
 
 
