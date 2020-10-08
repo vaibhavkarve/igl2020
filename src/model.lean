@@ -52,7 +52,8 @@ def semigroup_lang : lang := magma_lang
    1. u × (v × w) = (u × v) × w
    2. u × 1 = u
    3. 1 × u = u. -/
-def monoid_lang : lang := sorry
+def monoid_lang : lang := {F := λ n : ℕ, if n=2 then unit else empty, 
+                            C := unit, ..set_lang}
 
 /-- A group is a {×, ⁻¹, 1}-structure which satisfies the identities
  1. u × (v × w) = (u × v) × w
@@ -60,7 +61,8 @@ def monoid_lang : lang := sorry
  3. 1 × u = u
  4. u × u−1 = 1
  5. u−1 × u = 1 -/
-def group_lang : lang := sorry
+def group_lang : lang := {F := λ n : ℕ, if n = 2 then unit else if n = 1 then unit else empty,
+                          C := unit, ..set_lang}
 
 /-- A semiring is a {×, +, 0, 1}-structure which satisfies the identities
   1. u + (v + w) = (u + v) + w
@@ -83,7 +85,6 @@ def semiring_lang : lang := sorry
    8. (v + w) × u = (v × u) + (w × u)-/
 def ring_lang : lang := sorry
 
-
 /-- An ordered ring is a ring along with a binary ordering relation {<}.-/
 def ordered_ring_lang : lang := sorry
 
@@ -101,11 +102,11 @@ structure struc (L : lang) : Type 1 :=
 (R (n : ℕ) (r : L.R n) : set (vector univ n))    -- interpretation of each relation
 (C : L.C → univ)                                -- interpretation of each constant
 
-
-lemma type_is_struc_of_set_lang {A : Type} : struc (set_lang) :=
+/-- Type is a structure of the set language-/
+def type_is_struc_of_set_lang {A : Type} : struc (set_lang) :=
 begin
   fconstructor,
-   { exact A},
+   { exact A },
    { intros _ f,
      cases f},
    { intros _ r,
@@ -114,8 +115,8 @@ begin
      cases c},
  end
 
-
-lemma type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
+/-- Type is a structure of the ordered set language-/
+def type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
   struc (ordered_set_lang) :=
 begin
   fconstructor,
@@ -141,48 +142,69 @@ end
 class magma (α : Type) :=
 (mul : α → α → α)
 
-
-lemma magma_is_struc_of_magma_lang {A : Type} [magma A] :
+/-- Magma is a structure of the magma language-/
+def magma_is_struc_of_magma_lang {A : Type} [magma A] :
   struc (magma_lang) :=
 begin
   fconstructor,
-    { exact A},
+    { exact A },
     { intros n f v,
       cases n,
-      { cases f},                             -- if n = 0
-      { exact magma.mul (v.nth 0) (v.nth 1)}}, -- if n = 1
+      { cases f },                             -- if n = 0
+      { exact magma.mul (v.nth 0) (v.nth 1)} }, -- if n = 1
     { intros _ r,
       cases r},
     { intros c,
       cases c},
 end
 
-
-
-lemma semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
+/-- Semigroup is a structure of the language of semigroups-/
+def semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
   struc (semigroup_lang) :=
 begin
   fconstructor,
-    { exact A},
+    { exact A },
     { intros n f v,
       cases n,
       cases f,
       exact semigroup.mul (v.nth 0) (v.nth 1)},
-    { sorry},
-    { sorry}
+    { intros _ r,
+      cases r },
+    { intro c,
+      cases c }
 end
 
+/-- Monoid is a structure of the language of monoids-/
+def monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
+  struc (monoid_lang) := 
+begin
+  fconstructor,
+  { exact A },
+  { intros n f v,
+    cases n,
+    cases f,
+    exact monoid.mul (v.nth 0) (v.nth 1)},
+  { intros _ r,
+      cases r },
+  { intro c,
+    exact 1 },
+end
 
-lemma monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
-  struc (monoid_lang) := sorry
-lemma group_is_struc_of_group_lang {A : Type} [group A] :
+/-- Group is a structure of the group language-/
+def group_is_struc_of_group_lang {A : Type} [group A] :
   struc (group_lang) := sorry
-lemma semiring_is_struc_of_semiring_lang {A : Type} [semiring A] :
+
+/-- Semiring is a structure of the language of semirings-/
+def semiring_is_struc_of_semiring_lang {A : Type} [semiring A] :
   struc (semiring_lang) := sorry
-lemma ring_is_struc_of_ring_lang {A : Type} [ring A] :
+
+/-- Ring is a structure of the language of rings-/
+def ring_is_struc_of_ring_lang {A : Type} [ring A] :
   struc (ring_lang) := sorry
-lemma ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
-  : lang := sorry
+  
+/-- Ordered ring is a structure of the language of ordered rings-/
+def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
+  : struc(ordered_ring_lang) := sorry
 
 
 
@@ -218,10 +240,9 @@ def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
   card M ≤ card N :=
 begin
-  sorry  -- Look for a theorem in mathlib that guarantees the result
-         -- using injectivity of η.
+  apply cardinal.mk_le_of_injective,  -- Look for a theorem in mathlib that guarantees the result
+  apply η.η_inj,                                    -- using injectivity of η.
 end
-
 
 /-! -----------------------------------------------------------------
 -- 4. Terms
