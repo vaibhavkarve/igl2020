@@ -56,7 +56,8 @@ def monoid_lang : lang := sorry
  3. 1 × u = u
  4. u × u−1 = 1
  5. u−1 × u = 1 -/
-def group_lang : lang := sorry
+def group_lang : lang := {F := λ n : ℕ, if n=1 then unit else if n=2 then unit else empty,
+                          C := unit, ..set_lang}
 
 /-- A semiring is a {×, +, 0, 1}-structure which satisfies the identities
   1. u + (v + w) = (u + v) + w
@@ -228,40 +229,17 @@ end
 -- 4. Terms
 -- ----------------------------------------------------------------/
 
-/-- We need a type to represent variables.-/
--- constant var : Type
-
-/-We specify a constant type for representing variables.-/
-constants (var : Type) [dec_eq_var: decidable_eq var]
-
-
-/- We define terms in a language to be constants, variables or
-   functions acting on terms.-/
+/-- We define terms in a language to be constants, variables or
+   applications of functions acting on terms.-/
 inductive term (L : lang) : Type
-| const : L.C → term
-| var : var → term
-| func (n : ℕ) (f : L.F n) (v : fin n → term) : term
--- Note that we use `fin n → term` instead of `vector term n`. These
--- two types are isomorphic but `vector term n` gives us a nested
--- inductive type error.
+| con : L.C → term
+| var : ℕ → term
+| app (n : ℕ) (f : L.F n) (ts : list term) : term
 
 
--- def vars_in_term {L : lang} : term L → list var
--- | (term.const c)      := []
--- | (term.var v)        := [v]
--- -- | (term.func n f vec) :=  list.bind (list.of_fn vec) vars_in_term
--- | (term.func n f vec) := []
-
-
--- mutual def vars_in_term, vars_in_term_f {L : lang}
--- with vars_in_term : term L → list var
--- | (term.const c) := []
--- | (term.var v) := [v]
--- | (term.func n f vec) := vars_in_term_f vec
--- with vars_in_term_f : term L  → list var 
--- | (term.func n f vec) := 
-
--- Second idea : unwrap term into list of subterms, then get vars from list
 
 
 #lint
+
+
+-- multiplications of elements in a list on your own
