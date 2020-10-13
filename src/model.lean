@@ -225,6 +225,9 @@ structure embedding {L : lang} (M N : struc L) : Type :=
 (η_C : ∀ c,                                    -- preserves each constant
      η (M.C c) = N.C c)
 
+/-- Given an L-embedding η: M → N, if M.univ ⊆ N.Univ then M is a substructure of N -/
+structure substructure {L : lang} (M N : struc L) extends (embedding M N) : Type :=
+(univ_ss :  ∃ p : N.univ → Prop, M.univ = subtype p )
 
 /-- A bijective L-embedding is called an L-isomorphism.-/
 structure isomorphism {L: lang} (M N : struc L) extends (embedding M N) : Type :=
