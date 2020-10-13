@@ -2,7 +2,6 @@ import tactic -- this shows that mathlib is getting imported correctly.
 import data.real.basic
 -- This is a file for running random snippets of lean code
 /-this is a docstring.
-
 Write longer comments like this.-/
 
 -- We can define functions
@@ -15,12 +14,9 @@ Write longer comments like this.-/
 
 /-! Today we will be talking about Recursion.
     -----------------------------------------
-
 Functional programming languages do not have loops (for and while).
 Here we do everything with recursion instead.
-
 Recursion = a function calling itself (with some different arguments).
-
 -/
 namespace recursion -- we open a namespace so as to avoid name clashes
 
@@ -66,7 +62,6 @@ def fac2 (n : ℕ) := go n 1
 /-! Another example to illistrate tail recursion.
 Note: good resource on tail recursion is Computerphile's video on tail recursion:
 [[https://youtu.be/_JtPhF8MshA]].
-
 First we define fib without tail recursion.-/
 def fib : ℕ → ℕ  -- compute the n-th Fibonacci number.
 | 0       := 0
@@ -121,5 +116,3 @@ def max' {α : Type} [decidable_linear_order α] : list α → option α
 #eval max' [1, 3, 20, 5, 10]
 
 end recursion
-
-

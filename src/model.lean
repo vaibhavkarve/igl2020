@@ -72,7 +72,8 @@ def group_lang : lang := {F := λ n : ℕ, if n = 2 then unit else if n = 1 then
   6. u × 1 = u, 1 × u = u
   7. u × (v + w) = (u × v) + (u × w)
   8. (v + w) × u = (v × u) + (w × u)-/
-def semiring_lang : lang := sorry
+def semiring_lang : lang := {F := λ n : ℕ,  if n=2 then bool else empty,
+                             C := bool, ..set_lang}
 
 /-- A ring is a {×,+,−,0,1}-structure which satisfies the identities
    1. u + (v + w) = (u + v) + w
@@ -83,10 +84,13 @@ def semiring_lang : lang := sorry
    6. u × 1 = u, 1 × u = u
    7. u × (v + w) = (u × v) + (u × w)
    8. (v + w) × u = (v × u) + (w × u)-/
-def ring_lang : lang := sorry
+def ring_lang : lang := {F := λ n : ℕ,  if n=2 then bool else if n=1 then unit else empty,
+                             C := bool, ..set_lang}
+
 
 /-- An ordered ring is a ring along with a binary ordering relation {<}.-/
-def ordered_ring_lang : lang := sorry
+def ordered_ring_lang : lang := {F := λ n : ℕ,  if n=2 then bool else if n=1 then unit else empty,
+                             C := bool, ..ordered_set_lang}
 
 
 /-! -----------------------------------------------------------------
@@ -190,13 +194,38 @@ begin
     exact 1 },
 end
 
-/-- Group is a structure of the group language-/
+/-- Group is a structure of the group language-/ -- I am a bit confused about how to approach this part.
 def group_is_struc_of_group_lang {A : Type} [group A] :
-  struc (group_lang) := sorry
+  struc (group_lang) := 
+begin
+  fconstructor,
+    { exact A},
+    { intros n f v,
+      cases n,
+      { cases f},
+      { exact group.mul (v.nth 0) (v.nth 1)}},
+    { intros _ r,
+      cases r},
+    { intros c,
+      exact 1},
+end
 
-/-- Semiring is a structure of the language of semirings-/
+/-- Semiring is a structure of the language of semirings-/ 
 def semiring_is_struc_of_semiring_lang {A : Type} [semiring A] :
-  struc (semiring_lang) := sorry
+  struc (semiring_lang) := 
+begin
+  fconstructor,
+    { exact A},
+    { intros n f v,
+      cases n,
+      { cases f},
+      { exact semiring.mul (v.nth 0) (v.nth 1)}},
+    { intros _ r,
+      cases r},
+    { intros c,
+      exact 2},
+end
+
 
 /-- Ring is a structure of the language of rings-/
 def ring_is_struc_of_ring_lang {A : Type} [ring A] :
@@ -250,58 +279,57 @@ end
 
 /-- We define terms in a language to be constants, variables or
    applications of functions acting on terms.-/
-inductive term (L : lang) : Type
-| con : L.C → term
-| var : ℕ → term
-| app (n : ℕ) (f : L.F n) (ts : list term) : term
+inductive term' (L : lang) : Type
+| con : L.C → term'
+| var : ℕ → term'
+| app (n : ℕ) (f : L.F n) (ts : list term') : term'
 
 
-open term
+open term'
 variable {L : lang}
 
 mutual def is_admissible, is_admissible_list
-with is_admissible : term L → Prop
+with is_admissible : term' L → Prop
 | (con c) := true
 | (var v) := true
 | (app n f ts) := (n = ts.length) ∧ is_admissible_list ts
-with is_admissible_list : list (term L) → Prop
+with is_admissible_list : list (term' L) → Prop
 | [] := true
 | (t :: ts) := is_admissible t ∧ is_admissible_list ts
 
-def aterm (L : lang) : Type := {t : term L // is_admissible t}
+def term (L : lang) : Type := {t : term' L // is_admissible t}
 
 
 /-- We define a function to compute the number of variables in a term
 using mutual recursion.
-
 Important note: this function counts the number of variables with repetition.
 For number without repetition, use the size of the set computed by vars_in_term instead.
 -/
 
 mutual def number_of_vars_t, number_of_vars_list_t
-with number_of_vars_t : term L → ℕ
+with number_of_vars_t : term' L → ℕ
 | (con c) := 0
 | (var v) := 1
 | (app n f ts) := number_of_vars_list_t ts
-with number_of_vars_list_t : list (term L) → ℕ
+with number_of_vars_list_t : list (term' L) → ℕ
 | [] := 0
 | (t :: ts) := number_of_vars_t t + number_of_vars_list_t ts
 
-def number_of_vars (t : aterm L) : ℕ := number_of_vars_t t.val
+def number_of_vars (t : term L) : ℕ := number_of_vars_t t.val
 
 /-- The variables in a term can also be computed using a mutually
 recursive pair of functions.-/
 
 mutual def vars_in_term_t, vars_in_term_list_t
-with vars_in_term_t : term L → finset ℕ
+with vars_in_term_t : term' L → finset ℕ
 | (con c)      := ∅
 | (var v)      := {v}
 | (app n f ts) := vars_in_term_list_t ts
-with vars_in_term_list_t : list (term L) → finset ℕ
+with vars_in_term_list_t : list (term' L) → finset ℕ
 | [] := ∅
 | (t :: ts) := vars_in_term_t t ∪ vars_in_term_list_t ts
 
-def vars_in_term (t : aterm L) : finset ℕ := vars_in_term_t t.val
+def vars_in_term (t : term L) : finset ℕ := vars_in_term_t t.val
 
 
 
@@ -322,7 +350,7 @@ namespace example_terms
   def c : L1.C   := unit.star
 
   /-- t₁ = f(g(c, f(v₁))) is a term on language L1. -/
-  def t₁ : term L1 := app _ f [app _ g [con c, app _ f [var 1]]]
+  def t₁ : term' L1 := app _ f [app _ g [con c, app _ f [var 1]]]
 
   
   #eval number_of_vars_t t₁
@@ -338,20 +366,20 @@ end example_terms
 with exactly one term. A lemma will show if the term is variable
 free, then the image of the function is variable free. Can be
 generalized to subsitute each variable with its own term. -/
-mutual def term_sub, term_sub_list (t' : term L)
-with term_sub : term L → term L
+mutual def term_sub, term_sub_list (t' : term' L)
+with term_sub : term' L → term' L
 | (con c)      := con c
 | (var n)      := t'
 | (app n f ts) := app n f (term_sub_list ts)
-with term_sub_list : list (term L) → list (term L)
+with term_sub_list : list (term' L) → list (term' L)
 | [] := []
 | (t :: ts) := term_sub t :: term_sub_list ts
 
 
-def var_free (t : term L) : Prop := number_of_vars_t t = 0
+def var_free (t : term' L) : Prop := number_of_vars_t t = 0
 
 
-theorem term_sub_free (t' t : term L)
+theorem term_sub_free (t' t : term' L)
   : var_free t' → var_free (term_sub t' t) :=
 begin
   sorry 
@@ -363,7 +391,7 @@ end
 We define an interpretation for L-terms in an L-structure.
 This section is a work in progress.
 -/
-def term_interpretation (M : struc L) (t : term L)
+def term_interpretation (M : struc L) (t : term' L)
    (v : finset ℕ := vars_in_term_t t)  -- finset of vars in t
    (a : vector M.univ v.card) : M.univ :=
 match t with
@@ -385,8 +413,8 @@ end
 
 
 inductive formula (L : lang)
-| eq  : term L → term L → formula
-| rel : Π {n : ℕ}, L.R n → vector (term L) n → formula
+| eq  : term' L → term' L → formula
+| rel : Π {n : ℕ}, L.R n → vector (term' L) n → formula
 | neg : formula → formula
 | and : formula → formula → formula
 | or  : formula → formula → formula
