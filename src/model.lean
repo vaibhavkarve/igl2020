@@ -238,11 +238,7 @@ def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 /-- If η: M → N is an embedding, then the cardinality of N is at least
   the cardinality of M.-/
 lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
-  card M ≤ card N :=
-begin
-  apply cardinal.mk_le_of_injective,  -- Look for a theorem in mathlib that guarantees the result
-  apply η.η_inj,                                    -- using injectivity of η.
-end
+  card M ≤ card N := cardinal.mk_le_of_injective η.η_inj
 
 /-! -----------------------------------------------------------------
 -- 4. Terms
