@@ -187,14 +187,14 @@ begin
   { intros n f v,
     cases n,
     cases f,
-    exact monoid.mul (v.nth 0) (v.nth 1)},
+    exact monoid.mul (v.nth 0) (v.nth 1),},
   { intros _ r,
       cases r },
   { intro c,
     exact 1 },
 end
 
-/-- Group is a structure of the group language-/ -- I am a bit confused about how to approach this part.
+/-- Group is a structure of the group language-/ -- Just changed my is_struc based on Kyle's explanation. Should be correct this time?
 def group_is_struc_of_group_lang {A : Type} [group A] :
   struc (group_lang) := 
 begin
@@ -202,8 +202,10 @@ begin
     { exact A},
     { intros n f v,
       cases n,
-      { cases f},
-      { exact group.mul (v.nth 0) (v.nth 1)}},
+      cases f,
+      cases n,
+      {exact group.inv (v.nth 0)},   --inverse
+      {exact group.mul (v.nth 0) (v.nth 1)},},
     { intros _ r,
       cases r},
     { intros c,
@@ -218,22 +220,77 @@ begin
     { exact A},
     { intros n f v,
       cases n,
-      { cases f},
-      { exact semiring.mul (v.nth 0) (v.nth 1)}},
+      cases f,
+      cases n,
+      cases f,
+      cases n,
+      {exact semiring.mul (v.nth 0) (v.nth 1)},
+      {exact semiring.add (v.nth 0) (v.nth 1)},
+      },
     { intros _ r,
       cases r},
     { intros c,
-      exact 2},
+      cases c,
+      exact 1,
+      exact 0} -- constant 0 since addition
 end
 
 
 /-- Ring is a structure of the language of rings-/
 def ring_is_struc_of_ring_lang {A : Type} [ring A] :
-  struc (ring_lang) := sorry
+  struc (ring_lang) := 
+  begin
+  fconstructor,
+    { exact A},
+    { intros n f v,
+      cases n,
+      cases f,
+      cases n,
+      exact ring.neg (v.nth 0),   -- oh i checked the lib and this should be neg
+      cases n,
+      cases f,
+      {exact ring.mul (v.nth 0) (v.nth 1)},
+      {exact ring.add (v.nth 0) (v.nth 1)},
+      cases f
+      },
+    { intros _ r,
+      cases r},
+    { intros c,
+      cases c,
+      exact 1,
+      exact 0}
+end
   
 /-- Ordered ring is a structure of the language of ordered rings-/
 def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
-  : struc(ordered_ring_lang) := sorry
+  : struc(ordered_ring_lang) := 
+  begin
+  fconstructor,
+    { exact A},
+    { intros n f v,
+      cases n,
+      cases f,
+      cases n,
+      exact ring.neg (v.nth 0),
+      cases n,
+      cases f,
+      {exact ring.mul (v.nth 0) (v.nth 1)},
+      {exact ring.add (v.nth 0) (v.nth 1)},
+      cases f
+      },
+    { intros n r v,
+     cases n,
+      { cases r},
+     cases n,
+      { cases r},
+     cases n; cases r,
+      { exact v.nth 0 < v.nth 1} 
+   },
+    { intros c,
+      cases c,
+      exact 1,
+      exact 0}
+end
 
 
 
