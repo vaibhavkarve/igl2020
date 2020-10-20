@@ -25,6 +25,8 @@ structure lang : Type 1 :=
 (R : ℕ → Type)    -- relations
 (C : Type)          -- constants
 
+def dense_linear_order: lang := {R := λ n : ℕ, if n=2 then unit else empty,
+                                  F := function.const ℕ empty, C := empty}
 
 /-- We now define some example languages. We start with the simplest
 possible language, the language of pure sets. This language has no
@@ -122,7 +124,7 @@ begin
 
 end
 
-
+-- ∈ ℕ 
 /-- We need to define a magma, because it looks like it is not defined
   in Mathlib.-/
 class magma (α : Type) :=
@@ -516,4 +518,26 @@ def var_is_bound (n : ℕ) (ϕ : formula L) : Prop := ¬ var_is_free n ϕ
 -- TODO: there is some caveat about a variable appearing freely in ϕ₁
 -- but bound in ϕ₂ when considering the term ϕ₁ ∧ ϕ₂?
 
-#lint
+def vars_in_formula (f : formula L) : finset ℕ := sorry
+def term_interpretation' (M : struc L) (t : term L)
+   (v : finset ℕ := vars_in_term_t t)  -- finset of vars in t
+   (a : vector M.univ v.card) : M.univ := sorry
+
+def formula_interpretation' (M : struc L) (f : formula L) (v : finset ℕ := vars_in_formula f)  -- finset of vars in f
+   (a : vector M.univ v.card) : bool := sorry
+    
+def is_definable (L : lang) (M : struc L) (X : set M.univ) : Prop := sorry
+
+-- also needs to extend dense linear order (more relations than just <) ?
+-- sublanguages
+
+def is_o_minimal (M : struc dense_linear_order) : Prop :=
+{
+  ∀ X : set M.univ, is_definable dense_linear_order M X →
+  ∃n : ℕ, ∃ v : vector (M.univ × M.univ) n, ∃ X₀ : finset M.univ, 
+  let S : list (set M.univ) := sorry /- the list of all n open intervals in v -/ in 
+  X = sorry -- union of X₀ and each open interval in the list S
+}
+
+#check @list.foldr
+#check @set.Union 
