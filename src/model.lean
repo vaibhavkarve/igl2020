@@ -2,6 +2,7 @@ import tactic
 import data.real.basic
 import set_theory.cardinal
 /-!
+0. We define functions of arity (n : ℕ) and their API.
 1. We define languages and give examples.
 2. We define structures and give examples.
 3. We define embedding between two structures on the same language.
@@ -11,6 +12,51 @@ import set_theory.cardinal
    4.3 (WIP) We give an interpretation of terms in structures.
 5. (WIP) We define formulas.
 -/
+
+
+/-! -----------------------------------------------------------------
+-- 0. Arity n Functions and their API
+-- ----------------------------------------------------------------/
+
+/-- Inductively define a function on n arguments. 0-arity functions are just
+terms of type α.-/
+def Func (α : Type) : ℕ → Type
+| 0 := α
+| (nat.succ n) := α → Func n
+
+/-- Create a type of ALL functions with finite arity. Here we use Σ to
+sum up the types. Sum for types :: union for sets.-/
+def Funcs (α : Type) : Type := Σ (n : ℕ), Func α n
+
+/-- We can apply a Func to an element. This will give us a lower-level
+function.-/
+def app_elem {α : Type} {n : ℕ} (f : Func α n) (h : 0 < n) (a : α) : Func α (n-1) :=
+begin
+ cases n,
+    linarith,  -- Rule out case (n=0) because n assumed positive
+  exact f a,
+end
+
+
+/-- We can apply a Func to a vector of elements of the right size.-/
+def app_vec {α : Type} {n : ℕ} (f : Func α n) (v : vector α n) : α :=
+begin
+  induction n with n n_ih,
+   { unfold Func at f,
+     exact f},
+  apply n_ih,
+  exact app_elem f (by norm_num) v.head,  -- apply f to the first element of v
+  exact v.tail,                            -- recursively apply to the tail of v
+end
+
+/-- We can apply a Func to a function on `fin n`.-/
+def app_fin {α : Type} {n : ℕ} (f : Func α n) (v : fin n → α) : α :=
+  app_vec f (vector.of_fn v)
+
+
+/-- We can apply a Func to a vector of elements of the incorrect size as well.-/
+def app_vec_partial {α : Type} {n m : ℕ} (h : m ≤ n) (f : Func α n)
+  (v : vector α m) : Func α (n-m) := sorry
 
 
 
