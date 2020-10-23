@@ -310,18 +310,31 @@ def vars_in_term {L : lang} : Π {n : ℕ}, term L n → list ℕ
 | n (func f)   := []
 | n (app t t₀) := vars_in_term t ++ vars_in_term t₀
 
+/-- Variables in a list of terms.-/
+
+/-- Same function but returns a set.-/
+
+def var_set_in_term {L : lang} : Π {n : ℕ}, term L n → finset ℕ
+| 0 (con c)    := ∅ 
+| 0 (var v)    := {v}
+| n (func f)   := ∅ 
+| n (app t t₀) := var_set_in_term t ∪ var_set_in_term t₀
+
 /-- The number of variables in a term. We remove duplicates before
 counting.-/
+
 def number_of_vars {L : lang} {n : ℕ} (t : term L n) : ℕ :=
   (vars_in_term t).erase_dup.length
 
+def var_free {L : lang} {n : ℕ} (t : term L n) : Prop := number_of_vars t = 0
 
-def term_interpretation : Π {n : ℕ}, term L n → Funcs M.univ
-| 0 (con c) := ⟨0, M.C c⟩
-| 0 (var v) := ⟨1, id⟩
-| n (func f) := ⟨n, M.F n f⟩
-| n (app t t₀) := sorry
 
+/-- Term interpretation in the  case the term has 0 variables.-/
+
+def term_interpretation {L: lang} {M : struc L} (t : term L 0) {h : var_free t} : M.univ :=
+begin
+  sorry
+end 
 
 /-! 4.1 Examples of Terms
     ---------------------
@@ -356,8 +369,8 @@ namespace example_terms
   def t₂ : term L1 0 := app (app (func g) (con c)) t₁   -- g(c)(t₁)
   def t₃ : term L1 0 := app (func f) t₂                 -- f(t₂)
 
-
 end example_terms
+
 
 
 /-! 4.2 Terms Substitution
@@ -374,9 +387,6 @@ def term_sub {L : lang} {m : ℕ} (t' : term L m) : Π n, term L n → term L n
 | n (app t t₀) := sorry -- This used to be [app n f (term_sub_list ts)].
 
 
-def var_free {L : lang} {n : ℕ} (t : term L n) : Prop := number_of_vars t = 0
-
-
 theorem term_sub_free {n m : ℕ} (t' : term L n) (t : term L m)
   : var_free t' → var_free (term_sub t' m t) :=
 begin
@@ -386,13 +396,15 @@ end
 
 
 /-! -----------------------------------------------------------------
--- 5. Formulas
+-- 5. Formulas and Sentences
 -- ----------------------------------------------------------------/
 
 
 inductive formula (L : lang)
-| eq  : Π {n : ℕ}, term L n → term L n → formula
-| rel : Π {n : ℕ}, L.R n → vector (term L n) n → formula
+| t : formula
+| f : formula
+| eq  : term L 0 → term L 0 → formula
+| rel : Π {n : ℕ}, L.R n → vector (term L 0) n → formula
 | neg : formula → formula
 | and : formula → formula → formula
 | or  : formula → formula → formula
@@ -406,10 +418,33 @@ infix    `∧'` :  70 := formula.and
 infix    `∨'` :  70 := formula.or
 notation `∃'` : 110 := formula.exi
 notation `∀'` : 110 := formula.all
+notation `⊤'` : 110 := formula.t
+notation `⊥'` : 110 := formula.f
+
+/--Helper function for variables from list of terms-/
+
+def vars_in_list {L : lang} : list (term L 0) → finset ℕ
+|[] := ∅
+|(t :: ts) := var_set_in_term t ∪ vars_in_list ts 
+
+/-- Extracts set of variables from the formula-/
+
+def vars_in_formula {L : lang}: formula L → finset ℕ 
+| ⊤'                 := ∅
+| ⊥'                 := ∅
+| (t₁='t₂)           := var_set_in_term t₁ ∪ var_set_in_term t₂ 
+| (formula.rel r ts) := vars_in_list (ts.to_list)
+| (¬' ϕ)       := vars_in_formula ϕ
+| (ϕ₁ ∧' ϕ₂)  := vars_in_formula ϕ₁ ∪ vars_in_formula ϕ₂
+| (ϕ₁ ∨' ϕ₂)  := vars_in_formula ϕ₁ ∪ vars_in_formula ϕ₂
+| (∃' v ϕ)    := vars_in_formula ϕ ∪ {v}
+| (∀' v ϕ)    := vars_in_formula ϕ ∪ {v}
 
 /-- A variable occurs freely in a formula if it is not quantified
 over.-/
-def var_is_free (n : ℕ) : formula L → Prop
+def var_is_free (n : ℕ) {L : lang}: formula L → Prop
+| ⊤'                 := true
+| ⊥'                 := true
 | (t₁='t₂)           := true
 | (formula.rel r ts) := true
 | (¬' ϕ)       := var_is_free ϕ
@@ -419,8 +454,49 @@ def var_is_free (n : ℕ) : formula L → Prop
 | (∀' v ϕ)    := v ≠ n ∧ var_is_free ϕ
 
 /-- If the variable does not occur freely, we say that it is bound.-/
-def var_is_bound (n : ℕ) (ϕ : formula L) : Prop := ¬ var_is_free L n ϕ
+def var_is_bound {L : lang}(n : ℕ) (ϕ : formula L) : Prop := ¬ var_is_free n ϕ
 
--- TODO: there is some caveat about a variable appearing freely in ϕ₁
--- but bound in ϕ₂ when considering the term ϕ₁ ∧ ϕ₂?
+/-- We use the following to define sentences within Lean-/
+def is_sentence {L : lang}(ϕ : formula L) : Prop :=
+(∀ n : ℕ, n ∈ vars_in_formula ϕ → var_is_bound n ϕ)
 
+/-- Examples of formulas and sentences.-/
+
+namespace example_sentences
+  open example_terms
+  def ψ₁ : formula L1 := t₁ =' var 5 -- f(v₅) = v₅
+  def ψ₂ : formula L1 := ¬' (var 4 =' t₃ ) -- g(c, t₁) =/= v₄ 
+  def ψ₃ : formula L1 := ∃' 3 ψ₁ -- ∃v₃  f(v₅) = v₅
+  def ψ₄ : formula L1 := ∀' 4 (∀' 5 ψ₂) -- ∀v₄∀v₅ g(c, f(v₄)) =/= v₅
+
+  #reduce is_sentence (ψ₁)
+  #reduce is_sentence (ψ₂)
+  #reduce is_sentence (ψ₃)
+  #reduce is_sentence (ψ₄)
+
+/-! -----------------------------------------------------------------
+-- 6. Satisfiability and Models
+-- ----------------------------------------------------------------/
+
+/-- We know interpret what it means for sentences to be true
+    inside of our L-structures.-/
+
+/-- Expand the language to introduce a constant for each element
+    of the domain.-/
+
+def expanded_lang (L : lang)(M : struc L) : lang :=
+  sorry
+
+def expanded_struc (L: lang)(M : struc L) : struc (expanded_lang L M) :=
+  sorry
+
+def models {L : lang}{M : struc L} : formula L →  Prop
+|⊤'                 := true 
+|⊥'                 := false 
+|(t₁ =' t₂)         := sorry
+|(formula.rel r ts) := sorry
+| (¬' ϕ)       := ¬models(ϕ)
+| (ϕ₁ ∧' ϕ₂)  := models(ϕ₁) ∧ models (ϕ₂)
+| (ϕ₁ ∨' ϕ₂)  := models(ϕ₁) ∨ models (ϕ₂)
+| (∃' v ϕ)    :=  --∃(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
+| (∀' v ϕ)    :=  --∀(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
