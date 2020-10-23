@@ -67,7 +67,7 @@ def app_vec_partial {α : Type} {n m : ℕ} (h : m ≤ n) (f : Func α n)
 /-- A language is given by specifying functions, relations and constants
 along with the arity of each function and each relation.-/
 structure lang : Type 1 :=
-(F : ℕ → Type)    -- functions
+(F : ℕ → Type)    -- functions. ℕ keeps track of arity.
 (R : ℕ → Type)    -- relations
 (C : Type)          -- constants
 
@@ -143,10 +143,11 @@ def ordered_ring_lang : lang := sorry
 /-- We now define an L-structure to be interpretations of functions,
  relations and constants. -/
 structure struc (L : lang) : Type 1 :=
-(univ : Type)                                    -- universe/domain
-(F (n : ℕ) (f : L.F n) : vector univ n → univ)  -- interpretation of each function
-(R (n : ℕ) (r : L.R n) : set (vector univ n))    -- interpretation of each relation
-(C : L.C → univ)                                -- interpretation of each constant
+(univ : Type)                                   -- universe/domain
+(F (n : ℕ) (f : L.F n) : Func univ n)          -- interpretation of each function
+(R (n : ℕ) (r : L.R n) : set (vector univ n))  -- interpretation of each relation
+(C : L.C → univ)                               -- interpretation of each constant
+
 
 /-- Type is a structure of the set language-/
 def type_is_struc_of_set_lang {A : Type} : struc (set_lang) :=
