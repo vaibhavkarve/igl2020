@@ -195,10 +195,10 @@ def magma_is_struc_of_magma_lang {A : Type} [magma A] :
 begin
   fconstructor,
     { exact A },
-    { intros n f v,
-      cases n,
-      { cases f },                             -- if n = 0
-      { exact magma.mul (v.nth 0) (v.nth 1)} }, -- if n = 1
+    { intros n f,
+      iterate {cases n, cases f}, -- if n=0,1
+      exact magma.mul, -- if n=2
+      cases f},        -- if n≥3
     { intros _ r,
       cases r},
     { intros c,
@@ -211,14 +211,14 @@ def semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
 begin
   fconstructor,
     { exact A },
-    { intros n f v,
-      cases n,
-      cases f,
-      exact semigroup.mul (v.nth 0) (v.nth 1)},
+    { intros n f,
+      iterate {cases n, cases f},
+      exact semigroup.mul,
+      cases f},
     { intros _ r,
-      cases r },
+      cases r},
     { intro c,
-      cases c }
+      cases c}
 end
 
 /-- Monoid is a structure of the language of monoids-/
@@ -227,14 +227,14 @@ def monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
 begin
   fconstructor,
   { exact A },
-  { intros n f v,
-    cases n,
-    cases f,
-    exact monoid.mul (v.nth 0) (v.nth 1)},
+  { intros n f,
+    iterate {cases n, cases f},
+    exact monoid.mul,
+    cases f},
   { intros _ r,
-      cases r },
+      cases r},
   { intro c,
-    exact 1 },
+    exact 1},
 end
 
 /-- Group is a structure of the group language-/
