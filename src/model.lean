@@ -367,44 +367,21 @@ end example_terms
 with exactly one term. A lemma will show if the term is variable
 free, then the image of the function is variable free. Can be
 generalized to subsitute each variable with its own term. -/
-mutual def term_sub, term_sub_list (t' : term L)
-with term_sub : term L → term L
-| (con c)      := con c
-| (var n)      := t'
-| (app n f ts) := app n f (term_sub_list ts)
-with term_sub_list : list (term L) → list (term L)
-| [] := []
-| (t :: ts) := term_sub t :: term_sub_list ts
+def term_sub {L : lang} {m : ℕ} (t' : term L m) : Π n, term L n → term L n
+| 0 (con c)    := con c
+| 0 (var n)    := sorry -- This used to be t'. What should it be now?
+| n (func f)   := sorry
+| n (app t t₀) := sorry -- This used to be [app n f (term_sub_list ts)].
 
 
-def var_free (t : term L) : Prop := number_of_vars_t t = 0
+def var_free {L : lang} {n : ℕ} (t : term L n) : Prop := number_of_vars t = 0
 
 
-theorem term_sub_free (t' t : term L)
-  : var_free t' → var_free (term_sub t' t) :=
+theorem term_sub_free {n m : ℕ} (t' : term L n) (t : term L m)
+  : var_free t' → var_free (term_sub t' m t) :=
 begin
   sorry 
 end
-
-
-/-! 4.2 Term Interpretation
-    -----------------------
-We define an interpretation for L-terms in an L-structure.
-This section is a work in progress.
--/
-def term_interpretation (M : struc L) (t : term L)
-   (v : finset ℕ := vars_in_term_t t)  -- finset of vars in t
-   (a : vector M.univ v.card) : M.univ :=
-match t with
-| (con c)   := M.C c
-| (var n)   := begin
-                 have h : n ∈ v, sorry,
-                 --exact a.nth ⟨v.index_of n, list.index_of_lt_length.2 h⟩,
-                 sorry,
-               end
-| (app n f ts) := sorry
-end
-
 
 
 
@@ -414,8 +391,8 @@ end
 
 
 inductive formula (L : lang)
-| eq  : term L → term L → formula
-| rel : Π {n : ℕ}, L.R n → vector (term L) n → formula
+| eq  : Π {n : ℕ}, term L n → term L n → formula
+| rel : Π {n : ℕ}, L.R n → vector (term L n) n → formula
 | neg : formula → formula
 | and : formula → formula → formula
 | or  : formula → formula → formula
@@ -442,10 +419,8 @@ def var_is_free (n : ℕ) : formula L → Prop
 | (∀' v ϕ)    := v ≠ n ∧ var_is_free ϕ
 
 /-- If the variable does not occur freely, we say that it is bound.-/
-def var_is_bound (n : ℕ) (ϕ : formula L) : Prop := ¬ var_is_free n ϕ
+def var_is_bound (n : ℕ) (ϕ : formula L) : Prop := ¬ var_is_free L n ϕ
 
 -- TODO: there is some caveat about a variable appearing freely in ϕ₁
 -- but bound in ϕ₂ when considering the term ϕ₁ ∧ ϕ₂?
-
-#lint
 
