@@ -20,7 +20,7 @@ import set_theory.cardinal
 
 /-- Inductively define a function on n arguments. 0-arity functions are just
 terms of type α.-/
-def Func (α : Type) : ℕ → Type
+@[reducible] def Func (α : Type) : ℕ → Type
 | 0 := α
 | (nat.succ n) := α → Func n
 
@@ -42,8 +42,7 @@ end
 def app_vec {α : Type} {n : ℕ} (f : Func α n) (v : vector α n) : α :=
 begin
   induction n with n n_ih,
-   { unfold Func at f,
-     exact f},
+   { exact f},
   apply n_ih,
   exact app_elem f (by norm_num) v.head,  -- apply f to the first element of v
   exact v.tail,                            -- recursively apply to the tail of v
@@ -171,16 +170,11 @@ begin
    { intros _ f,
      cases f},
    { intros n r v,
-     cases n,
-      { cases r}, -- if n=0
-     cases n,
-      { cases r}, -- if n=1
-     cases n; cases r,
-      { exact v.nth 0 < v.nth 1} -- if n=2
-   },  -- if n>2, handles automatically by Lean.
+     iterate {cases n, cases r},
+     exact (v.nth 0 < v.nth 1),
+     cases r},
    { intros c,
      cases c},
-
 end
 
 
