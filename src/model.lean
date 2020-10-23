@@ -257,13 +257,13 @@ def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
 /-- An L-embedding is a map between two L-structures that is injective
 on the domain and preserves the interpretation of all the symbols of L.-/
 structure embedding {L : lang} (M N : struc L) : Type :=
-(η : M.univ → N.univ)                         -- map of underlying domains
-(η_inj : function.injective η)                 -- should be one-to-one
-(η_F : ∀ n f v,                                -- preserves action of each function
-     η (M.F n f v) = N.F n f (vector.map η v))
-(η_R : ∀ n r v,                                -- preserves each relation
+(η : M.univ → N.univ)                        -- map of underlying domains
+(η_inj : function.injective η)                -- should be one-to-one
+(η_F : ∀ n f v,                              -- preserves action of each function
+     η (app_vec (M.F n f) v) = app_vec (N.F n f) (vector.map η v))
+(η_R : ∀ n r v,                              -- preserves each relation
      v ∈ (M.R n r) ↔ (vector.map η v) ∈ (N.R n r))
-(η_C : ∀ c,                                    -- preserves each constant
+(η_C : ∀ c,                                   -- preserves each constant
      η (M.C c) = N.C c)
 
 
@@ -319,9 +319,8 @@ def number_of_vars {L : lang} {n : ℕ} (t : term L n) : ℕ :=
 def term_interpretation : Π {n : ℕ}, term L n → Funcs M.univ
 | 0 (con c) := ⟨0, M.C c⟩
 | 0 (var v) := ⟨1, id⟩
-| n (func f) := ⟨n, M.F f⟩
+| n (func f) := ⟨n, M.F n f⟩
 | n (app t t₀) := sorry
-
 
 
 /-! 4.1 Examples of Terms
@@ -333,19 +332,30 @@ namespace example_terms
   - one unary function f,
   - one binary function g,
   - and one constant symbol c.-/
+
   def L1 : lang := {F := λ n, if n=1 then unit else if n=2 then unit else empty,
-                   R := function.const ℕ empty,
-                   C := unit}
+                    R := function.const ℕ empty,
+                    C := unit}
   def f : L1.F 1 := unit.star
   def g : L1.F 2 := unit.star
   def c : L1.C   := unit.star
 
-  /-- t₁ = f(g(c, f(v₁))) is a term on language L1. -/
-  def t₁ : term L1 := app _ f [app _ g [con c, app _ f [var 1]]]
+  def M1 : struc L1 :=
+  {univ := ℝ,
+   F := by {intros n f,
+            cases n, { cases f},            -- if n=0
+            cases n, { exact λ x : ℝ, x*2}, -- if n=1
+            cases n, { exact (+)},          -- if n=2
+            cases f},                       -- if n>2
+   R := λ _ f _, by {cases f},
+   C := λ c, 1}
 
-  
-  #eval number_of_vars_t t₁
-  #eval vars_in_term_t t₁
+
+  /-- t₃ = f(g(c, f(v₅))) is a term on language L1.-/
+  def t₁ : term L1 0 := app (func f) (var 5)            -- f(v₅)
+  def t₂ : term L1 0 := app (app (func g) (con c)) t₁   -- g(c)(t₁)
+  def t₃ : term L1 0 := app (func f) t₂                 -- f(t₂)
+
 
 end example_terms
 
