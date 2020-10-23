@@ -290,28 +290,18 @@ lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
 /-! -----------------------------------------------------------------
 -- 4. Terms
 -- ----------------------------------------------------------------/
+variables (L : lang) (M : struc L)
 
-/-- We define terms in a language to be constants, variables or
-   applications of functions acting on terms.-/
-inductive term (L : lang) : Type
-| con : L.C → term
-| var : ℕ → term
-| app (n : ℕ) (f : L.F n) (ts : list term) : term
-
-
+/-- We define terms in a language to be constants, variables, functions or
+   functions applied to level-0 terms. Here a (term L n) represents all
+   terms of level n. Level 0 terms must be constants, variables, or terms
+   of type L.F 0.-/
+inductive term : ℕ → Type
+| con : L.C → term 0
+| var : ℕ → term 0
+| func {n : ℕ} : L.F n → term n
+| app {n : ℕ} : term (n+1) → term 0 → term n
 open term
-variable {L : lang}
-
-mutual def is_admissible, is_admissible_list
-with is_admissible : term L → Prop
-| (con c) := true
-| (var v) := true
-| (app n f ts) := (n = ts.length) ∧ is_admissible_list ts
-with is_admissible_list : list (term L) → Prop
-| [] := true
-| (t :: ts) := is_admissible t ∧ is_admissible_list ts
-
-def aterm (L : lang) : Type := {t : term L // is_admissible t}
 
 
 /-- We define a function to compute the number of variables in a term
