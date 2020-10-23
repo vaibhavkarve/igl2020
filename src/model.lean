@@ -303,38 +303,30 @@ inductive term : ℕ → Type
 | app {n : ℕ} : term (n+1) → term 0 → term n
 open term
 
+/- Note about Prod and Sum:
+  1. Π denotes Prod of types. Represents ∀ at type level.
+     Cartesian product of types
+  2. Σ denotes Sum of types. Represents ∃ at type level.
+     Disjoint union of types (co-product in category of Set/Types).-/
 
-/-- We define a function to compute the number of variables in a term
-using mutual recursion.
+/-- Variables in a term.-/
+def vars_in_term {L : lang} : Π {n : ℕ}, term L n → list ℕ
+| 0 (con c)    := []
+| 0 (var v)    := [v]
+| n (func f)   := []
+| n (app t t₀) := vars_in_term t ++ vars_in_term t₀
 
-Important note: this function counts the number of variables with repetition.
-For number without repetition, use the size of the set computed by vars_in_term instead.
--/
+/-- The number of variables in a term. We remove duplicates before
+counting.-/
+def number_of_vars {L : lang} {n : ℕ} (t : term L n) : ℕ :=
+  (vars_in_term t).erase_dup.length
 
-mutual def number_of_vars_t, number_of_vars_list_t
-with number_of_vars_t : term L → ℕ
-| (con c) := 0
-| (var v) := 1
-| (app n f ts) := number_of_vars_list_t ts
-with number_of_vars_list_t : list (term L) → ℕ
-| [] := 0
-| (t :: ts) := number_of_vars_t t + number_of_vars_list_t ts
 
-def number_of_vars (t : aterm L) : ℕ := number_of_vars_t t.val
-
-/-- The variables in a term can also be computed using a mutually
-recursive pair of functions.-/
-
-mutual def vars_in_term_t, vars_in_term_list_t
-with vars_in_term_t : term L → finset ℕ
-| (con c)      := ∅
-| (var v)      := {v}
-| (app n f ts) := vars_in_term_list_t ts
-with vars_in_term_list_t : list (term L) → finset ℕ
-| [] := ∅
-| (t :: ts) := vars_in_term_t t ∪ vars_in_term_list_t ts
-
-def vars_in_term (t : aterm L) : finset ℕ := vars_in_term_t t.val
+def term_interpretation : Π {n : ℕ}, term L n → Funcs M.univ
+| 0 (con c) := ⟨0, M.C c⟩
+| 0 (var v) := ⟨1, id⟩
+| n (func f) := ⟨n, M.F f⟩
+| n (app t t₀) := sorry
 
 
 
@@ -452,3 +444,4 @@ def var_is_bound (n : ℕ) (ϕ : formula L) : Prop := ¬ var_is_free n ϕ
 -- but bound in ϕ₂ when considering the term ϕ₁ ∧ ϕ₂?
 
 #lint
+
