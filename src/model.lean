@@ -30,22 +30,16 @@ def Funcs (α : Type) : Type := Σ (n : ℕ), Func α n
 
 /-- We can apply a Func to an element. This will give us a lower-level
 function.-/
-def app_elem {α : Type} {n : ℕ} (f : Func α n) (h : 0 < n) (a : α) : Func α (n-1) :=
-begin
- cases n,
-    linarith,  -- Rule out case (n=0) because n assumed positive
-  exact f a,
-end
+def app_elem {α : Type} {n : ℕ} (f : Func α n) (h : 0 < n) (a : α) : Func α (n-1)
+  := nat.cases_on n (λ _ _, a) (λ _ f _, f a) f h
 
 
 /-- We can apply a Func to a vector of elements of the right size.-/
 def app_vec {α : Type} {n : ℕ} (f : Func α n) (v : vector α n) : α :=
 begin
   induction n with n n_ih,
-   { exact f},
-  apply n_ih,
-  exact app_elem f (by norm_num) v.head,  -- apply f to the first element of v
-  exact v.tail,                            -- recursively apply to the tail of v
+    exact f,
+  exact n_ih (app_elem f (by norm_num) v.head) v.tail,
 end
 
 /-- We can apply a Func to a function on `fin n`.-/
@@ -74,9 +68,10 @@ structure lang : Type 1 :=
 /-- We now define some example languages. We start with the simplest
 possible language, the language of pure sets. This language has no
 functions, relations or constants.-/
-def set_lang: lang := ⟨function.const ℕ empty,
-                       function.const ℕ empty,
-                       empty⟩
+def set_lang: lang := {F := function.const ℕ empty,
+                       R := function.const ℕ empty,
+                       C := empty}
+                       
 
 /-- The language of ordered sets is the language or sets with a binary
   ordering relation {<}.-/
@@ -98,7 +93,7 @@ def semigroup_lang : lang := magma_lang
    2. u × 1 = u
    3. 1 × u = u. -/
 def monoid_lang : lang := {F := λ n : ℕ, if n=2 then unit else empty, 
-                            C := unit, ..set_lang}
+                           C := unit, ..set_lang}
 
 /-- A group is a {×, ⁻¹, 1}-structure which satisfies the identities
  1. u × (v × w) = (u × v) × w
@@ -106,7 +101,8 @@ def monoid_lang : lang := {F := λ n : ℕ, if n=2 then unit else empty,
  3. 1 × u = u
  4. u × u−1 = 1
  5. u−1 × u = 1 -/
-def group_lang : lang := {F := λ n : ℕ, if n = 2 then unit else if n = 1 then unit else empty,
+def group_lang : lang := {F := λ n : ℕ, if n = 2 then unit
+                                        else if n = 1 then unit else empty,
                           C := unit, ..set_lang}
 
 /-- A semiring is a {×, +, 0, 1}-structure which satisfies the identities
@@ -150,32 +146,23 @@ structure struc (L : lang) : Type 1 :=
 
 /-- Type is a structure of the set language-/
 def type_is_struc_of_set_lang {A : Type} : struc (set_lang) :=
-begin
-  fconstructor,
-   { exact A },
-   { intros _ f,
-     cases f},
-   { intros _ r,
-     cases r},
-   { intros c,
-     cases c},
- end
+ {univ := A,
+  F := λ _ f, empty.elim f,
+  R := λ _ r, empty.elim r,
+  C := λ c, empty.elim c}
+
+
 
 /-- Type is a structure of the ordered set language-/
 def type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
   struc (ordered_set_lang) :=
-begin
-  fconstructor,
-   { exact A},
-   { intros _ f,
-     cases f},
-   { intros n r v,
-     iterate {cases n, cases r},
-     exact (v.nth 0 < v.nth 1),
-     cases r},
-   { intros c,
-     cases c},
-end
+  {univ := A,
+   F := λ _ f, empty.elim f,
+   R := by {intros n r v,
+            iterate {cases n, cases r},
+            exact (v.nth 0 < v.nth 1),
+            cases r},
+   C := λ c, empty.elim c}
 
 
 /-- We need to define a magma, because it looks like it is not defined
@@ -186,50 +173,36 @@ class magma (α : Type) :=
 /-- Magma is a structure of the magma language-/
 def magma_is_struc_of_magma_lang {A : Type} [magma A] :
   struc (magma_lang) :=
-begin
-  fconstructor,
-    { exact A },
-    { intros n f,
-      iterate {cases n, cases f}, -- if n=0,1
-      exact magma.mul, -- if n=2
-      cases f},        -- if n≥3
-    { intros _ r,
-      cases r},
-    { intros c,
-      cases c},
-end
+  {univ := A,
+   F := by {intros n f,
+            iterate {cases n, cases f}, -- if n=0,1
+            exact magma.mul, -- if n=2
+            cases f},        -- if n≥3
+   R := λ _ r, empty.elim r,
+   C := λ c, empty.elim c}
 
 /-- Semigroup is a structure of the language of semigroups-/
 def semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
   struc (semigroup_lang) :=
-begin
-  fconstructor,
-    { exact A },
-    { intros n f,
-      iterate {cases n, cases f},
-      exact semigroup.mul,
-      cases f},
-    { intros _ r,
-      cases r},
-    { intro c,
-      cases c}
-end
+  {univ := A,
+   F := by {intros n f,
+            iterate {cases n, cases f},
+            exact semigroup.mul,
+            cases f},
+   R := λ _ r, empty.elim r,
+   C := λ c, empty.elim c}
+
 
 /-- Monoid is a structure of the language of monoids-/
 def monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
   struc (monoid_lang) := 
-begin
-  fconstructor,
-  { exact A },
-  { intros n f,
-    iterate {cases n, cases f},
-    exact monoid.mul,
-    cases f},
-  { intros _ r,
-      cases r},
-  { intro c,
-    exact 1},
-end
+  {univ := A,
+   F := by {intros n f,
+            iterate {cases n, cases f},
+            exact monoid.mul,
+            cases f},
+   R := λ _ r, empty.elim r,
+   C := λ c, 1}
 
 /-- Group is a structure of the group language-/
 def group_is_struc_of_group_lang {A : Type} [group A] :
@@ -310,10 +283,9 @@ def vars_in_term {L : lang} : Π {n : ℕ}, term L n → list ℕ
 | n (func f)   := []
 | n (app t t₀) := vars_in_term t ++ vars_in_term t₀
 
-/-- Variables in a list of terms.-/
+/- Variables in a list of terms.-/
 
 /-- Same function but returns a set.-/
-
 def var_set_in_term {L : lang} : Π {n : ℕ}, term L n → finset ℕ
 | 0 (con c)    := ∅ 
 | 0 (var v)    := {v}
@@ -460,7 +432,7 @@ def var_is_bound {L : lang}(n : ℕ) (ϕ : formula L) : Prop := ¬ var_is_free n
 def is_sentence {L : lang}(ϕ : formula L) : Prop :=
 (∀ n : ℕ, n ∈ vars_in_formula ϕ → var_is_bound n ϕ)
 
-/-- Examples of formulas and sentences.-/
+/-! Examples of formulas and sentences.-/
 
 namespace example_sentences
   open example_terms
@@ -474,15 +446,17 @@ namespace example_sentences
   #reduce is_sentence (ψ₃)
   #reduce is_sentence (ψ₄)
 
+end example_sentences
+
 /-! -----------------------------------------------------------------
 -- 6. Satisfiability and Models
 -- ----------------------------------------------------------------/
 
 /-- We know interpret what it means for sentences to be true
-    inside of our L-structures.-/
+    inside of our L-structures.
 
-/-- Expand the language to introduce a constant for each element
-    of the domain.-/
+ Expand the language to introduce a constant for each element
+ of the domain.-/
 
 def expanded_lang (L : lang)(M : struc L) : lang :=
   sorry
@@ -498,5 +472,7 @@ def models {L : lang}{M : struc L} : formula L →  Prop
 | (¬' ϕ)       := ¬models(ϕ)
 | (ϕ₁ ∧' ϕ₂)  := models(ϕ₁) ∧ models (ϕ₂)
 | (ϕ₁ ∨' ϕ₂)  := models(ϕ₁) ∨ models (ϕ₂)
-| (∃' v ϕ)    :=  --∃(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
-| (∀' v ϕ)    :=  --∀(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
+| (∃' v ϕ)    := sorry --∃(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
+| (∀' v ϕ)    := sorry --∀(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
+
+
