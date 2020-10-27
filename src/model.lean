@@ -7,9 +7,9 @@ import set_theory.cardinal
 3. We define embedding between two structures on the same language.
 4. We define terms.
    4.1 We give some examples of terms.
-   4.2 (WIP) We define a function for term substitution and prove a theorem.
-   4.3 (WIP) We give an interpretation of terms in structures.
-5. (WIP) We define formulas.
+   4.2 We define a function for term substitution and prove a theorem.
+   4.3 We give an interpretation of terms in structures.
+5. We define formulas.
 -/
 
 
@@ -177,7 +177,7 @@ begin
       cases c }
 end
 
-/-- Monoid is a structure of the language of language of monoids-/
+/-- Monoid is a structure of the language of monoids-/
 def monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
   struc (monoid_lang) := 
 begin
@@ -241,7 +241,7 @@ def ring_is_struc_of_ring_lang {A : Type} [ring A] :
   struc (ring_lang) := 
 begin
   fconstructor,
-  {exact A},
+  { exact A},
   { intros n f v,
     cases n,
     cases f,
@@ -325,11 +325,7 @@ def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 /-- If η: M → N is an embedding, then the cardinality of N is at least
   the cardinality of M.-/
 lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
-  card M ≤ card N :=
-begin
-  apply cardinal.mk_le_of_injective,  -- Look for a theorem in mathlib that guarantees the result
-  apply η.η_inj,                                    -- using injectivity of η.
-end
+  card M ≤ card N := cardinal.mk_le_of_injective η.η_inj
 
 def is_subtype_of (A B : Type) : Prop :=
   ∃ p : B → Prop, A = subtype p
@@ -342,8 +338,6 @@ structure inclusion_map {L: lang} (M N : struc L) extends (embedding M N) : Type
 
 structure substructure (L : lang) (M N: struc L) :=
 (f_incl : inclusion_map (M N))
-
-
 
 /-! -----------------------------------------------------------------
 -- 4. Terms
@@ -451,19 +445,16 @@ with term_sub_list : list (term' L) → list (term' L)
 
 def var_free (t : term' L) : Prop := number_of_vars_t t = 0
 
--- def list_var_free (t' : term L) (terms : list (term L)) 
--- : Prop := (∀ t ∈ terms, term_sub_free (t))
-
 
 
 def length {α : Type} : list α → ℕ
 | []        := 0
 | (x :: xs) := nat.succ $ length xs
 
+
 def var_free_list (ts : list (term' L)): (list (term' L)) → Prop  
 | [] := true
 | (t :: ts) := var_free t ∧ var_free_list ts
-
 
 
 theorem term_sub_free (t t': term' L)
@@ -497,11 +488,6 @@ begin
 end
 
 
-
-#print list.sizeof
-#print list.cons
-
-
 /-! 4.2 Term Interpretation
     -----------------------
 We define an interpretation for L-terms in an L-structure.
@@ -519,7 +505,6 @@ match t with
                end
 | (app n f ts) := sorry
 end
-
 
 
 
@@ -561,15 +546,5 @@ def var_is_bound (n : ℕ) (ϕ : formula L) : Prop := ¬ var_is_free n ϕ
 
 -- TODO: there is some caveat about a variable appearing freely in ϕ₁
 -- but bound in ϕ₂ when considering the term ϕ₁ ∧ ϕ₂?
-
-
--- def var_list (φ : formula L): formula L → set ℕ :=
--- let s : set ℕ := {n : ℕ | ∀ v : vars_in_term_t }
--- | 
-
-
-
--- def is_sentence (φ : formula L) :
--- | 
 
 #lint
