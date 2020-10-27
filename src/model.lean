@@ -28,6 +28,16 @@ terms of type α.-/
 sum up the types. Sum for types :: union for sets.-/
 def Funcs (α : Type) : Type := Σ (n : ℕ), Func α n
 
+def mk_Func_of_vec {α : Type} {n : ℕ} (f : vector α n → α) : Func α n :=
+  nat.rec             -- induction on n
+  (λ f, f vector.nil) -- if n=0
+  (λ (m : ℕ)          -- if n = m+1
+     (m_ih : (vector α m → α) → Func α m) -- induction hypothesis for m
+     (f' : vector α m.succ → α) (a : α),   -- intro f and a
+     m_ih (λ v, f' (vector.cons a v)))      -- apply induction hyp to (a :: v)
+  n f                  -- prove for n and f
+
+
 /-- We can apply a Func to an element. This will give us a lower-level
 function.-/
 def app_elem {α : Type} {n : ℕ} (f : Func α n) (h : 0 < n) (a : α) : Func α (n-1)
