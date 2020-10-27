@@ -28,6 +28,22 @@ terms of type α.-/
 sum up the types. Sum for types :: union for sets.-/
 def Funcs (α : Type) : Type := Σ (n : ℕ), Func α n
 
+/-- If α is inhabited (i.e. if it has at least one term), then so is Funcs α.
+This serves 2 purposes:
+1. It is good practice to follow each new type definition with an inhabited
+   instance. This is to convince us that our defintion makes actual sense and
+   that we are not making claims about the empty set.
+2. Declaring that type α has an inhabited instance lets us access that term
+   by calling it using `arbitrary α` or `default α` anywhere in later proofs
+   when an arbitrary α term is needed.
+
+We show that (Funcs α) is inhabited by constructing a 0-level Func
+that returns an arbitrary α.
+-/
+instance Funcs.inhabited {α : Type} [inhabited α] : inhabited (Funcs α) :=
+ {default := ⟨0, arbitrary α⟩}
+
+
 def mk_Func_of_vec {α : Type} {n : ℕ} (f : vector α n → α) : Func α n :=
   nat.rec             -- induction on n
   (λ f, f vector.nil) -- if n=0
@@ -82,6 +98,9 @@ def set_lang: lang := {F := function.const ℕ empty,
                        R := function.const ℕ empty,
                        C := empty}
                        
+/-- Having defined a set_lang, we now use it to declare that lang is an
+inhabited type.-/
+instance lang.inhabited : inhabited lang := {default := set_lang}
 
 /-- The language of ordered sets is the language or sets with a binary
   ordering relation {<}.-/
@@ -162,6 +181,12 @@ def type_is_struc_of_set_lang {A : Type} : struc (set_lang) :=
   C := λ c, empty.elim c}
 
 
+instance struc.inhabited {L : lang} : inhabited (struc L) :=
+  {default := {univ := unit,  -- The domain must have at least one term
+               F := λ _ _, mk_Func_of_vec (function.const _ ()),
+               R := λ _ _, ∅,
+               C := function.const _ ()}
+  }
 
 /-- Type is a structure of the ordered set language-/
 def type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
@@ -250,9 +275,33 @@ structure embedding {L : lang} (M N : struc L) : Type :=
      η (M.C c) = N.C c)
 
 
+@[simp] lemma vec_map_id {α : Type} {n : ℕ} (v : vector α n) : vector.map id v = v :=
+begin
+  apply vector.eq,
+  simp only [list.map_id, vector.to_list_map],
+end
+
+
+/-- We argue that every structure has an L-embedding, namely, the embedding
+to itself via the identity map.-/
+instance embedding.inhabited {L : lang} {M : struc L} : inhabited (embedding M M) :=
+  {default := {η := id,
+               η_inj := function.injective_id,
+               η_F := by simp,
+               η_R := by simp,
+               η_C := λ _, rfl}}
+
+
 /-- A bijective L-embedding is called an L-isomorphism.-/
 structure isomorphism {L: lang} (M N : struc L) extends (embedding M N) : Type :=
 (η_bij : function.bijective η)
+
+
+/-- We argue that every structure has an L-isomorphism, namely, the isomorphism
+to itself.-/
+instance isomorphism.inhabited {L : lang} {M : struc L} : inhabited (isomorphism M M) :=
+  {default := {η_bij := function.bijective_id,
+               .. default (embedding M M)}}
 
 
 /-- The cardinality of a struc is the cardinality of its domain.-/
@@ -279,6 +328,13 @@ inductive term : ℕ → Type
 | func {n : ℕ} : L.F n → term n
 | app {n : ℕ} : term (n+1) → term 0 → term n
 open term
+
+/-- Every language L is guaranteed to have a 0-level term because
+variable terms can be formed without reference to L. In fact, every
+language has countably infinite terms of level 0.
+-/
+instance term.inhabited {L : lang} : inhabited (term L 0) :=
+  {default := var 0}
 
 /- Note about Prod and Sum:
   1. Π denotes Prod of types. Represents ∀ at type level.
