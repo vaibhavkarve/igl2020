@@ -322,17 +322,18 @@ variables (L : lang) (M : struc L)
    of type L.F 0.-/
 inductive term : ℕ → Type
 | con : L.C → term 0
-| var : ℕ → term 0
+--| var : ℕ → term 0
 | func {n : ℕ} : L.F n → term n
 | app {n : ℕ} : term (n+1) → term 0 → term n
 open term
+
 
 /-- Every language L is guaranteed to have a 0-level term because
 variable terms can be formed without reference to L. In fact, every
 language has countably infinite terms of level 0.
 -/
 instance term.inhabited {L : lang} : inhabited (term L 0) :=
-  {default := var 0}
+ sorry --  {default := var 0}
 
 /- Note about Prod and Sum:
   1. Π denotes Prod of types. Represents ∀ at type level.
@@ -343,34 +344,28 @@ instance term.inhabited {L : lang} : inhabited (term L 0) :=
 /-- Variables in a term.-/
 def vars_in_term {L : lang} : Π {n : ℕ}, term L n → list ℕ
 | 0 (con c)    := []
-| 0 (var v)    := [v]
+--| 0 (var v)    := [v]
 | n (func f)   := []
 | n (app t t₀) := vars_in_term t ++ vars_in_term t₀
+
 
 /- Variables in a list of terms.-/
 
 /-- Same function but returns a set.-/
 def var_set_in_term {L : lang} : Π {n : ℕ}, term L n → finset ℕ
-| 0 (con c)    := ∅ 
-| 0 (var v)    := {v}
+| 0 (con c)    := ∅
+--| 0 (var v)    := {v}
 | n (func f)   := ∅ 
 | n (app t t₀) := var_set_in_term t ∪ var_set_in_term t₀
 
-/-- The number of variables in a term. We remove duplicates before
-counting.-/
-
-def number_of_vars {L : lang} {n : ℕ} (t : term L n) : ℕ :=
-  (vars_in_term t).erase_dup.length
-
-def var_free {L : lang} {n : ℕ} (t : term L n) : Prop := number_of_vars t = 0
-
 
 /-- Term interpretation in the  case the term has 0 variables.-/
+def term_interpretation {L: lang} (M : struc L) : Π {n : ℕ}, term L n → Func M.univ n
+| 0 (con c) := M.C c
+| n (func f) := M.F n f
+| n (app t t₀) := app_elem (term_interpretation t) (term_interpretation t₀)
 
-def term_interpretation {L: lang} {M : struc L} (t : term L 0) {h : var_free t} : M.univ :=
-begin
-  sorry
-end 
+
 
 /-! 4.1 Examples of Terms
     ---------------------
@@ -390,24 +385,29 @@ namespace example_terms
   def c : L1.C   := unit.star
 
   def M1 : struc L1 :=
-  {univ := ℝ,
+  {univ := ℕ,
    F := by {intros n f,
             cases n, { cases f},            -- if n=0
-            cases n, { exact λ x : ℝ, x*2}, -- if n=1
+            cases n, { exact λ x : ℕ, 100*x}, -- if n=1
             cases n, { exact (+)},          -- if n=2
             cases f},                       -- if n>2
    R := λ _ f _, by {cases f},
-   C := λ c, 1}
+   C := function.const L1.C 1}
 
 
-  /-- t₃ = f(g(c, f(v₅))) is a term on language L1.-/
-  def t₁ : term L1 0 := app (func f) (var 5)            -- f(v₅)
+  /-- t = f(g(c, f(v₅))) is a term on language L1.-/
+  def t₁ : term L1 0 := app (func f) (con c)            -- f(v₅)
   def t₂ : term L1 0 := app (app (func g) (con c)) t₁   -- g(c)(t₁)
   def t₃ : term L1 0 := app (func f) t₂                 -- f(t₂)
+  def t : term L1 0 := app (func f)
+                           $ app (app (func g) (con c))
+                                 $ app (func f) (con c)
+
+  #reduce term_interpretation M1 t₂
 
 end example_terms
 
-
+#exit
 
 /-! 4.2 Terms Substitution
     -----------------------/
