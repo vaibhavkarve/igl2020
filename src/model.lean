@@ -41,7 +41,7 @@ We show that (Funcs α) is inhabited by constructing a 0-level Func
 that returns an arbitrary α.
 -/
 instance Funcs.inhabited {α : Type} [inhabited α] : inhabited (Funcs α) :=
- {default := ⟨0, arbitrary α⟩}
+ {default := ⟨0, default α⟩}
 
 
 def mk_Func_of_vec {α : Type} {n : ℕ} (f : vector α n → α) : Func α n :=
@@ -56,16 +56,14 @@ def mk_Func_of_vec {α : Type} {n : ℕ} (f : vector α n → α) : Func α n :=
 
 /-- We can apply a Func to an element. This will give us a lower-level
 function.-/
-def app_elem {α : Type} {n : ℕ} (f : Func α n) (h : 0 < n) (a : α) : Func α (n-1)
-  := nat.cases_on n (λ _ _, a) (λ _ f _, f a) f h
-
+def app_elem {α : Type} {n : ℕ} (f : Func α (n+1)) (a : α) : Func α n := f a
 
 /-- We can apply a Func to a vector of elements of the right size.-/
 def app_vec {α : Type} {n : ℕ} (f : Func α n) (v : vector α n) : α :=
 begin
   induction n with n n_ih,
     exact f,
-  exact n_ih (app_elem f (by norm_num) v.head) v.tail,
+  exact n_ih (app_elem f v.head) v.tail,
 end
 
 /-- We can apply a Func to a function on `fin n`.-/
