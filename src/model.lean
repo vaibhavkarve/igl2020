@@ -403,7 +403,14 @@ namespace example_terms
                            $ app (app (func g) (con c))
                                  $ app (func f) (con c)
 
-  #reduce term_interpretation M1 t₂
+  #reduce term_interpretation M1 (func f)  -- f is interpreted as x ↦ 100x
+  #reduce term_interpretation M1 (func g)  -- g is interpreted (x, y) ↦ x+y
+  #reduce term_interpretation M1 (con c)   -- c is interpreted as (1 : ℕ)
+  #eval term_interpretation M1 t₁     -- f(c) is interpreted as 100 
+  #eval term_interpretation M1 t₂     -- g(c, t₁) is interpreted as 101
+  #eval term_interpretation M1 t₃     -- f(g(c, f(c))) is interpreted as 10100
+  #eval term_interpretation M1 t      -- same as t₃
+  
 
 end example_terms
 
