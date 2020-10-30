@@ -56,14 +56,19 @@ def mk_Func_of_vec {α : Type} {n : ℕ} (f : vector α n → α) : Func α n :=
 
 /-- We can apply a Func to an element. This will give us a lower-level
 function.-/
-def app_elem {α : Type} {n : ℕ} (f : Func α (n+1)) (a : α) : Func α n := f a
+def app_elem {α : Type} {n : ℕ} (f : Func α n) (h : 0 < n) (a : α) : Func α (n-1) :=
+begin
+  cases n,
+    {exfalso, linarith},
+  exact f a
+end
 
 /-- We can apply a Func to a vector of elements of the right size.-/
 def app_vec {α : Type} {n : ℕ} (f : Func α n) (v : vector α n) : α :=
 begin
   induction n with n n_ih,
     exact f,
-  exact n_ih (app_elem f v.head) v.tail,
+  exact n_ih (app_elem f (by norm_num) v.head) v.tail,
 end
 
 /-- We can apply a Func to a function on `fin n`.-/
