@@ -380,12 +380,12 @@ instance term.inhabited {L : lang} : inhabited (term L 0) :=
 | _ (app t t₀) := (vars_in_term  t ∪ vars_in_term t₀).card
 
 
-/-- Term interpretation in the  case the term has 0 variables.-/
-def term_interpretation {L: lang} (M : struc L) : Π {n : ℕ}, term L n → Func M.univ n
+/-- Recursively define term interpretation for variable-free terms. -/
+def fterm_interpretation {L: lang} (M : struc L) :
+  Π {n : ℕ} (t : fterm L n), Func M.univ n
 | 0 (con c) := M.C c
 | n (func f) := M.F n f
-| n (app t t₀) := app_elem (term_interpretation t) (term_interpretation t₀)
-
+| _ (app t t₀) := app_elem (fterm_interpretation t) (by linarith) (fterm_interpretation t₀)
 
 
 /-! 4.1 Examples of Terms
