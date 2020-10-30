@@ -348,8 +348,8 @@ needed to make the types agree.
 -/
 def fterm_to_term_coe {L : lang} : Π {n : ℕ}, fterm L n → term L n
 | 0 (con c) :=  con c
-| n (func f) := func f
-| n (app t t₀) := app (fterm_to_term_coe t) (fterm_to_term_coe t₀)
+| _ (func f) := func f
+| _ (app t t₀) := app (fterm_to_term_coe t) (fterm_to_term_coe t₀)
 instance fterm_to_term {n : ℕ} : has_coe (fterm L n) (term L n) := ⟨fterm_to_term_coe⟩
 
 /-- Every language L is guaranteed to have a 0-level term because
@@ -365,22 +365,19 @@ instance term.inhabited {L : lang} : inhabited (term L 0) :=
   2. Σ denotes Sum of types. Represents ∃ at type level.
      Disjoint union of types (co-product in category of Set/Types).-/
 
-/-- Variables in a term.-/
-def vars_in_term {L : lang} : Π {n : ℕ}, term L n → list ℕ
-| 0 (con c)    := []
---| 0 (var v)    := [v]
-| n (func f)   := []
-| n (app t t₀) := vars_in_term t ++ vars_in_term t₀
-
-
-/- Variables in a list of terms.-/
-
-/-- Same function but returns a set.-/
-def var_set_in_term {L : lang} : Π {n : ℕ}, term L n → finset ℕ
+/-- Variables in a of term returned as a finite set.-/
+@[reducible] def vars_in_term {L : lang} : Π {n : ℕ}, term L n → finset ℕ
 | 0 (con c)    := ∅
---| 0 (var v)    := {v}
-| n (func f)   := ∅ 
-| n (app t t₀) := var_set_in_term t ∪ var_set_in_term t₀
+| 0 (var v)    := {v}
+| _ (func f)   := ∅
+| _ (app t t₀) := vars_in_term t ∪ vars_in_term t₀
+
+
+@[reducible] def number_of_vars {L : lang} : Π (n : ℕ), term L n → ℕ
+| 0 (con c)    := 0
+| 0 (var v)    := 1
+| _ (func f)   := 0
+| _ (app t t₀) := (vars_in_term  t ∪ vars_in_term t₀).card
 
 
 /-- Term interpretation in the  case the term has 0 variables.-/
