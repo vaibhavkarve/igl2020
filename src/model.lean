@@ -327,18 +327,37 @@ variables (L : lang) (M : struc L)
    of type L.F 0.-/
 inductive term : ℕ → Type
 | con : L.C → term 0
---| var : ℕ → term 0
+| var : ℕ → term 0
 | func {n : ℕ} : L.F n → term n
 | app {n : ℕ} : term (n+1) → term 0 → term n
 open term
 
+/-- We define an fterm (free-term) as begin similar to a term, but without
+the `var` constructor.-/
+inductive fterm : ℕ → Type
+| con : L.C → fterm 0
+| func {n : ℕ} : L.F n → fterm n
+| app {n : ℕ} : fterm (n+1) → fterm 0 → fterm n
+open fterm
+
+
+/-- We define a coercion instance from fterm to term. This is to be understood
+as "every fterm is also a term".  This is called "type-casting" in other
+languages. Once we define the coercion, lean will put in the coercion maps wherever
+needed to make the types agree.
+-/
+def fterm_to_term_coe {L : lang} : Π {n : ℕ}, fterm L n → term L n
+| 0 (con c) :=  con c
+| n (func f) := func f
+| n (app t t₀) := app (fterm_to_term_coe t) (fterm_to_term_coe t₀)
+instance fterm_to_term {n : ℕ} : has_coe (fterm L n) (term L n) := ⟨fterm_to_term_coe⟩
 
 /-- Every language L is guaranteed to have a 0-level term because
 variable terms can be formed without reference to L. In fact, every
 language has countably infinite terms of level 0.
 -/
 instance term.inhabited {L : lang} : inhabited (term L 0) :=
- sorry --  {default := var 0}
+  {default := var 0}
 
 /- Note about Prod and Sum:
   1. Π denotes Prod of types. Represents ∀ at type level.
