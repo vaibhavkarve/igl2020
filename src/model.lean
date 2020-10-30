@@ -559,21 +559,25 @@ end example_sentences
  Expand the language to introduce a constant for each element
  of the domain.-/
 
-def expanded_lang (L : lang)(M : struc L) : lang :=
+def expanded_lang (L : lang) (M : struc L) : lang :=
   sorry
 
-def expanded_struc (L: lang)(M : struc L) : struc (expanded_lang L M) :=
+def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
   sorry
 
-def models {L : lang}{M : struc L} : formula L →  Prop
-|⊤'                 := true 
-|⊥'                 := false 
-|(t₁ =' t₂)         := sorry
-|(formula.rel r ts) := sorry
-| (¬' ϕ)       := ¬models(ϕ)
-| (ϕ₁ ∧' ϕ₂)  := models(ϕ₁) ∧ models (ϕ₂)
-| (ϕ₁ ∨' ϕ₂)  := models(ϕ₁) ∨ models (ϕ₂)
-| (∃' v ϕ)    := sorry --∃(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
-| (∀' v ϕ)    := sorry --∀(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
 
+inductive elements_of_domain (M : struc L) : Type
+| mk : M.univ → elements_of_domain
+| mk₁ : L.C → elements_of_domain
+
+def models {L : lang} (M : struc L) : sentence L →  Prop
+| ⟨⊤', h⟩           := true
+| ⟨⊥', h⟩           := false
+| ⟨(t₁ =' t₂), h⟩   := sorry  -- prove here that h is a proof of false
+| ⟨formula.rel r ts, h⟩ := sorry
+| ⟨¬' ϕ, h⟩             := sorry -- ¬models(ϕ)
+| ⟨ϕ₁ ∧' ϕ₂, h⟩        := sorry -- models(ϕ₁) ∧ models (ϕ₂)
+| ⟨ϕ₁ ∨' ϕ₂, h⟩        := sorry -- models(ϕ₁) ∨ models (ϕ₂)
+| ⟨∃' v ϕ, h⟩          := sorry --∃(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
+| ⟨∀' v ϕ, h⟩          := sorry --∀(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
 
