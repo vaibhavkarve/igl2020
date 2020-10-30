@@ -417,25 +417,24 @@ namespace example_terms
 
 
   /-- t = f(g(c, f(v₅))) is a term on language L1.-/
-  def t₁ : term L1 0 := app (func f) (con c)            -- f(v₅)
-  def t₂ : term L1 0 := app (app (func g) (con c)) t₁   -- g(c)(t₁)
-  def t₃ : term L1 0 := app (func f) t₂                 -- f(t₂)
-  def t : term L1 0 := app (func f)
+  def t₁ : fterm L1 0 := app (func f) (con c)            -- f(v₅)
+  def t₂ : fterm L1 0 := app (app (func g) (con c)) t₁   -- g(c)(t₁)
+  def t₃ : fterm L1 0 := app (func f) t₂                 -- f(t₂)
+  def t : fterm L1 0 := app (func f)
                            $ app (app (func g) (con c))
                                  $ app (func f) (con c)
 
-  #reduce term_interpretation M1 (func f)  -- f is interpreted as x ↦ 100x
-  #reduce term_interpretation M1 (func g)  -- g is interpreted (x, y) ↦ x+y
-  #reduce term_interpretation M1 (con c)   -- c is interpreted as (1 : ℕ)
-  #eval term_interpretation M1 t₁     -- f(c) is interpreted as 100 
-  #eval term_interpretation M1 t₂     -- g(c, t₁) is interpreted as 101
-  #eval term_interpretation M1 t₃     -- f(g(c, f(c))) is interpreted as 10100
-  #eval term_interpretation M1 t      -- same as t₃
+  #reduce fterm_interpretation M1 (func f)  -- f is interpreted as x ↦ 100x
+  #reduce fterm_interpretation M1 (func g)  -- g is interpreted (x, y) ↦ x+y
+  #reduce fterm_interpretation M1 (con c)   -- c is interpreted as (1 : ℕ)
+  #eval fterm_interpretation M1 t₁     -- f(c) is interpreted as 100 
+  #eval fterm_interpretation M1 t₂     -- g(c, t₁) is interpreted as 101
+  #eval fterm_interpretation M1 t₃     -- f(g(c, f(c))) is interpreted as 10100
+  #eval fterm_interpretation M1 t      -- same as t₃
   
 
 end example_terms
 
-#exit
 
 /-! 4.2 Terms Substitution
     -----------------------/
