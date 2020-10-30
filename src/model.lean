@@ -488,14 +488,14 @@ notation `⊥'` : 110 := formula.f
 
 def vars_in_list {L : lang} : list (term L 0) → finset ℕ
 |[] := ∅
-|(t :: ts) := var_set_in_term t ∪ vars_in_list ts 
+|(t :: ts) := vars_in_term t ∪ vars_in_list ts
 
 /-- Extracts set of variables from the formula-/
 
 def vars_in_formula {L : lang}: formula L → finset ℕ 
 | ⊤'                 := ∅
 | ⊥'                 := ∅
-| (t₁='t₂)           := var_set_in_term t₁ ∪ var_set_in_term t₂ 
+| (t₁='t₂)           := vars_in_term t₁ ∪ vars_in_term t₂
 | (formula.rel r ts) := vars_in_list (ts.to_list)
 | (¬' ϕ)       := vars_in_formula ϕ
 | (ϕ₁ ∧' ϕ₂)  := vars_in_formula ϕ₁ ∪ vars_in_formula ϕ₂
@@ -505,34 +505,44 @@ def vars_in_formula {L : lang}: formula L → finset ℕ
 
 /-- A variable occurs freely in a formula if it is not quantified
 over.-/
-def var_is_free (n : ℕ) {L : lang}: formula L → Prop
+def is_var_free (n : ℕ) {L : lang}: formula L → Prop
 | ⊤'                 := true
 | ⊥'                 := true
 | (t₁='t₂)           := true
 | (formula.rel r ts) := true
-| (¬' ϕ)       := var_is_free ϕ
-| (ϕ₁ ∧' ϕ₂)  := var_is_free ϕ₁ ∧ var_is_free ϕ₂
-| (ϕ₁ ∨' ϕ₂)  := var_is_free ϕ₁ ∧ var_is_free ϕ₂
-| (∃' v ϕ)    := v ≠ n ∧ var_is_free ϕ
-| (∀' v ϕ)    := v ≠ n ∧ var_is_free ϕ
+| (¬' ϕ)       := is_var_free ϕ
+| (ϕ₁ ∧' ϕ₂)  := is_var_free ϕ₁ ∧ is_var_free ϕ₂
+| (ϕ₁ ∨' ϕ₂)  := is_var_free ϕ₁ ∧ is_var_free ϕ₂
+| (∃' v ϕ)    := v ≠ n ∧ is_var_free ϕ
+| (∀' v ϕ)    := v ≠ n ∧ is_var_free ϕ
 
 /-- If the variable does not occur freely, we say that it is bound.-/
-def var_is_bound {L : lang}(n : ℕ) (ϕ : formula L) : Prop := ¬ var_is_free n ϕ
+def var_is_bound {L : lang} (n : ℕ) (ϕ : formula L) : Prop := ¬ is_var_free n ϕ
 
 /-- We use the following to define sentences within Lean-/
-def is_sentence {L : lang}(ϕ : formula L) : Prop :=
-(∀ n : ℕ, n ∈ vars_in_formula ϕ → var_is_bound n ϕ)
+def is_sentence {L : lang} (ϕ : formula L) : Prop :=
+  ∀ n : ℕ, (n ∈ vars_in_formula ϕ → var_is_bound n ϕ)
+
+def sentence (L : lang) : Type := {ϕ : formula L // is_sentence ϕ}
 
 /-! Examples of formulas and sentences.-/
 
 namespace example_sentences
   open example_terms
-  def ψ₁ : formula L1 := t₁ =' var 5 -- f(v₅) = v₅
+  def ψ₁ : formula L1 := t₁ =' (var 5) -- f(c) = v₅
   def ψ₂ : formula L1 := ¬' (var 4 =' t₃ ) -- g(c, t₁) =/= v₄ 
   def ψ₃ : formula L1 := ∃' 3 ψ₁ -- ∃v₃  f(v₅) = v₅
   def ψ₄ : formula L1 := ∀' 4 (∀' 5 ψ₂) -- ∀v₄∀v₅ g(c, f(v₄)) =/= v₅
 
-  #reduce is_sentence (ψ₁)
+  example : var_is_bound 5 (ψ₄) :=
+  begin
+    unfold var_is_bound,
+    rw ψ₄,
+    unfold is_var_free,
+    rw ψ₂,
+    simp,
+  end
+
   #reduce is_sentence (ψ₂)
   #reduce is_sentence (ψ₃)
   #reduce is_sentence (ψ₄)
