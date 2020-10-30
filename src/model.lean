@@ -56,14 +56,19 @@ def mk_Func_of_vec {α : Type} {n : ℕ} (f : vector α n → α) : Func α n :=
 
 /-- We can apply a Func to an element. This will give us a lower-level
 function.-/
-def app_elem {α : Type} {n : ℕ} (f : Func α (n+1)) (a : α) : Func α n := f a
+def app_elem {α : Type} {n : ℕ} (f : Func α n) (h : 0 < n) (a : α) : Func α (n-1) :=
+begin
+  cases n,
+    {exfalso, linarith},
+  exact f a
+end
 
 /-- We can apply a Func to a vector of elements of the right size.-/
 def app_vec {α : Type} {n : ℕ} (f : Func α n) (v : vector α n) : α :=
 begin
   induction n with n n_ih,
     exact f,
-  exact n_ih (app_elem f v.head) v.tail,
+  exact n_ih (app_elem f (by norm_num) v.head) v.tail,
 end
 
 /-- We can apply a Func to a function on `fin n`.-/
@@ -327,6 +332,26 @@ inductive term : ℕ → Type
 | app {n : ℕ} : term (n+1) → term 0 → term n
 open term
 
+/-- We define an fterm (free-term) as begin similar to a term, but without
+the `var` constructor.-/
+inductive fterm : ℕ → Type
+| con : L.C → fterm 0
+| func {n : ℕ} : L.F n → fterm n
+| app {n : ℕ} : fterm (n+1) → fterm 0 → fterm n
+open fterm
+
+
+/-- We define a coercion instance from fterm to term. This is to be understood
+as "every fterm is also a term".  This is called "type-casting" in other
+languages. Once we define the coercion, lean will put in the coercion maps wherever
+needed to make the types agree.
+-/
+def fterm_to_term_coe {L : lang} : Π {n : ℕ}, fterm L n → term L n
+| 0 (con c) :=  con c
+| _ (func f) := func f
+| _ (app t t₀) := app (fterm_to_term_coe t) (fterm_to_term_coe t₀)
+instance fterm_to_term {n : ℕ} : has_coe (fterm L n) (term L n) := ⟨fterm_to_term_coe⟩
+
 /-- Every language L is guaranteed to have a 0-level term because
 variable terms can be formed without reference to L. In fact, every
 language has countably infinite terms of level 0.
@@ -340,37 +365,28 @@ instance term.inhabited {L : lang} : inhabited (term L 0) :=
   2. Σ denotes Sum of types. Represents ∃ at type level.
      Disjoint union of types (co-product in category of Set/Types).-/
 
-/-- Variables in a term.-/
-def vars_in_term {L : lang} : Π {n : ℕ}, term L n → list ℕ
-| 0 (con c)    := []
-| 0 (var v)    := [v]
-| n (func f)   := []
-| n (app t t₀) := vars_in_term t ++ vars_in_term t₀
-
-/- Variables in a list of terms.-/
-
-/-- Same function but returns a set.-/
-def var_set_in_term {L : lang} : Π {n : ℕ}, term L n → finset ℕ
-| 0 (con c)    := ∅ 
+/-- Variables in a of term returned as a finite set.-/
+@[reducible] def vars_in_term {L : lang} : Π {n : ℕ}, term L n → finset ℕ
+| 0 (con c)    := ∅
 | 0 (var v)    := {v}
-| n (func f)   := ∅ 
-| n (app t t₀) := var_set_in_term t ∪ var_set_in_term t₀
-
-/-- The number of variables in a term. We remove duplicates before
-counting.-/
-
-def number_of_vars {L : lang} {n : ℕ} (t : term L n) : ℕ :=
-  (vars_in_term t).erase_dup.length
-
-def var_free {L : lang} {n : ℕ} (t : term L n) : Prop := number_of_vars t = 0
+| _ (func f)   := ∅
+| _ (app t t₀) := vars_in_term t ∪ vars_in_term t₀
 
 
-/-- Term interpretation in the  case the term has 0 variables.-/
+@[reducible] def number_of_vars {L : lang} : Π (n : ℕ), term L n → ℕ
+| 0 (con c)    := 0
+| 0 (var v)    := 1
+| _ (func f)   := 0
+| _ (app t t₀) := (vars_in_term  t ∪ vars_in_term t₀).card
 
-def term_interpretation {L: lang} {M : struc L} (t : term L 0) {h : var_free t} : M.univ :=
-begin
-  sorry
-end 
+
+/-- Recursively define term interpretation for variable-free terms. -/
+def fterm_interpretation {L: lang} (M : struc L) :
+  Π {n : ℕ} (t : fterm L n), Func M.univ n
+| 0 (con c) := M.C c
+| n (func f) := M.F n f
+| _ (app t t₀) := app_elem (fterm_interpretation t) (by linarith) (fterm_interpretation t₀)
+
 
 /-! 4.1 Examples of Terms
     ---------------------
@@ -390,23 +406,34 @@ namespace example_terms
   def c : L1.C   := unit.star
 
   def M1 : struc L1 :=
-  {univ := ℝ,
+  {univ := ℕ,
    F := by {intros n f,
             cases n, { cases f},            -- if n=0
-            cases n, { exact λ x : ℝ, x*2}, -- if n=1
+            cases n, { exact λ x : ℕ, 100*x}, -- if n=1
             cases n, { exact (+)},          -- if n=2
             cases f},                       -- if n>2
    R := λ _ f _, by {cases f},
-   C := λ c, 1}
+   C := function.const L1.C 1}
 
 
-  /-- t₃ = f(g(c, f(v₅))) is a term on language L1.-/
-  def t₁ : term L1 0 := app (func f) (var 5)            -- f(v₅)
-  def t₂ : term L1 0 := app (app (func g) (con c)) t₁   -- g(c)(t₁)
-  def t₃ : term L1 0 := app (func f) t₂                 -- f(t₂)
+  /-- t = f(g(c, f(v₅))) is a term on language L1.-/
+  def t₁ : fterm L1 0 := app (func f) (con c)            -- f(v₅)
+  def t₂ : fterm L1 0 := app (app (func g) (con c)) t₁   -- g(c)(t₁)
+  def t₃ : fterm L1 0 := app (func f) t₂                 -- f(t₂)
+  def t : fterm L1 0 := app (func f)
+                           $ app (app (func g) (con c))
+                                 $ app (func f) (con c)
+
+  #reduce fterm_interpretation M1 (func f)  -- f is interpreted as x ↦ 100x
+  #reduce fterm_interpretation M1 (func g)  -- g is interpreted (x, y) ↦ x+y
+  #reduce fterm_interpretation M1 (con c)   -- c is interpreted as (1 : ℕ)
+  #eval fterm_interpretation M1 t₁     -- f(c) is interpreted as 100 
+  #eval fterm_interpretation M1 t₂     -- g(c, t₁) is interpreted as 101
+  #eval fterm_interpretation M1 t₃     -- f(g(c, f(c))) is interpreted as 10100
+  #eval fterm_interpretation M1 t      -- same as t₃
+  
 
 end example_terms
-
 
 
 /-! 4.2 Terms Substitution
@@ -461,14 +488,14 @@ notation `⊥'` : 110 := formula.f
 
 def vars_in_list {L : lang} : list (term L 0) → finset ℕ
 |[] := ∅
-|(t :: ts) := var_set_in_term t ∪ vars_in_list ts 
+|(t :: ts) := vars_in_term t ∪ vars_in_list ts
 
 /-- Extracts set of variables from the formula-/
 
 def vars_in_formula {L : lang}: formula L → finset ℕ 
 | ⊤'                 := ∅
 | ⊥'                 := ∅
-| (t₁='t₂)           := var_set_in_term t₁ ∪ var_set_in_term t₂ 
+| (t₁='t₂)           := vars_in_term t₁ ∪ vars_in_term t₂
 | (formula.rel r ts) := vars_in_list (ts.to_list)
 | (¬' ϕ)       := vars_in_formula ϕ
 | (ϕ₁ ∧' ϕ₂)  := vars_in_formula ϕ₁ ∪ vars_in_formula ϕ₂
@@ -478,34 +505,44 @@ def vars_in_formula {L : lang}: formula L → finset ℕ
 
 /-- A variable occurs freely in a formula if it is not quantified
 over.-/
-def var_is_free (n : ℕ) {L : lang}: formula L → Prop
+def is_var_free (n : ℕ) {L : lang}: formula L → Prop
 | ⊤'                 := true
 | ⊥'                 := true
 | (t₁='t₂)           := true
 | (formula.rel r ts) := true
-| (¬' ϕ)       := var_is_free ϕ
-| (ϕ₁ ∧' ϕ₂)  := var_is_free ϕ₁ ∧ var_is_free ϕ₂
-| (ϕ₁ ∨' ϕ₂)  := var_is_free ϕ₁ ∧ var_is_free ϕ₂
-| (∃' v ϕ)    := v ≠ n ∧ var_is_free ϕ
-| (∀' v ϕ)    := v ≠ n ∧ var_is_free ϕ
+| (¬' ϕ)       := is_var_free ϕ
+| (ϕ₁ ∧' ϕ₂)  := is_var_free ϕ₁ ∧ is_var_free ϕ₂
+| (ϕ₁ ∨' ϕ₂)  := is_var_free ϕ₁ ∧ is_var_free ϕ₂
+| (∃' v ϕ)    := v ≠ n ∧ is_var_free ϕ
+| (∀' v ϕ)    := v ≠ n ∧ is_var_free ϕ
 
 /-- If the variable does not occur freely, we say that it is bound.-/
-def var_is_bound {L : lang}(n : ℕ) (ϕ : formula L) : Prop := ¬ var_is_free n ϕ
+def var_is_bound {L : lang} (n : ℕ) (ϕ : formula L) : Prop := ¬ is_var_free n ϕ
 
 /-- We use the following to define sentences within Lean-/
-def is_sentence {L : lang}(ϕ : formula L) : Prop :=
-(∀ n : ℕ, n ∈ vars_in_formula ϕ → var_is_bound n ϕ)
+def is_sentence {L : lang} (ϕ : formula L) : Prop :=
+  ∀ n : ℕ, (n ∈ vars_in_formula ϕ → var_is_bound n ϕ)
+
+def sentence (L : lang) : Type := {ϕ : formula L // is_sentence ϕ}
 
 /-! Examples of formulas and sentences.-/
 
 namespace example_sentences
   open example_terms
-  def ψ₁ : formula L1 := t₁ =' var 5 -- f(v₅) = v₅
+  def ψ₁ : formula L1 := t₁ =' (var 5) -- f(c) = v₅
   def ψ₂ : formula L1 := ¬' (var 4 =' t₃ ) -- g(c, t₁) =/= v₄ 
   def ψ₃ : formula L1 := ∃' 3 ψ₁ -- ∃v₃  f(v₅) = v₅
   def ψ₄ : formula L1 := ∀' 4 (∀' 5 ψ₂) -- ∀v₄∀v₅ g(c, f(v₄)) =/= v₅
 
-  #reduce is_sentence (ψ₁)
+  example : var_is_bound 5 (ψ₄) :=
+  begin
+    unfold var_is_bound,
+    rw ψ₄,
+    unfold is_var_free,
+    rw ψ₂,
+    simp,
+  end
+
   #reduce is_sentence (ψ₂)
   #reduce is_sentence (ψ₃)
   #reduce is_sentence (ψ₄)
@@ -522,21 +559,25 @@ end example_sentences
  Expand the language to introduce a constant for each element
  of the domain.-/
 
-def expanded_lang (L : lang)(M : struc L) : lang :=
+def expanded_lang (L : lang) (M : struc L) : lang :=
   sorry
 
-def expanded_struc (L: lang)(M : struc L) : struc (expanded_lang L M) :=
+def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
   sorry
 
-def models {L : lang}{M : struc L} : formula L →  Prop
-|⊤'                 := true 
-|⊥'                 := false 
-|(t₁ =' t₂)         := sorry
-|(formula.rel r ts) := sorry
-| (¬' ϕ)       := ¬models(ϕ)
-| (ϕ₁ ∧' ϕ₂)  := models(ϕ₁) ∧ models (ϕ₂)
-| (ϕ₁ ∨' ϕ₂)  := models(ϕ₁) ∨ models (ϕ₂)
-| (∃' v ϕ)    := sorry --∃(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
-| (∀' v ϕ)    := sorry --∀(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
 
+inductive elements_of_domain (M : struc L) : Type
+| mk : M.univ → elements_of_domain
+| mk₁ : L.C → elements_of_domain
+
+def models {L : lang} (M : struc L) : sentence L →  Prop
+| ⟨⊤', h⟩           := true
+| ⟨⊥', h⟩           := false
+| ⟨(t₁ =' t₂), h⟩   := sorry  -- prove here that h is a proof of false
+| ⟨formula.rel r ts, h⟩ := sorry
+| ⟨¬' ϕ, h⟩             := sorry -- ¬models(ϕ)
+| ⟨ϕ₁ ∧' ϕ₂, h⟩        := sorry -- models(ϕ₁) ∧ models (ϕ₂)
+| ⟨ϕ₁ ∨' ϕ₂, h⟩        := sorry -- models(ϕ₁) ∨ models (ϕ₂)
+| ⟨∃' v ϕ, h⟩          := sorry --∃(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
+| ⟨∀' v ϕ, h⟩          := sorry --∀(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
 
