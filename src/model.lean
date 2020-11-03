@@ -2,6 +2,7 @@ import tactic
 import data.real.basic
 import set_theory.cardinal
 /-!
+0. We define functions of arity (n : ℕ) and their API.
 1. We define languages and give examples.
 2. We define structures and give examples.
 3. We define embedding between two structures on the same language.
@@ -13,6 +14,50 @@ import set_theory.cardinal
 -/
 
 
+/-! -----------------------------------------------------------------
+-- 0. Arity n Functions and their API
+-- ----------------------------------------------------------------/
+
+/-- Inductively define a function on n arguments. 0-arity functions are just
+terms of type α.-/
+@[reducible] def Func (α : Type) : ℕ → Type
+| 0 := α
+| (nat.succ n) := α → Func n
+
+/-- Create a type of ALL functions with finite arity. Here we use Σ to
+sum up the types. Sum for types :: union for sets.-/
+def Funcs (α : Type) : Type := Σ (n : ℕ), Func α n
+
+/-- We can apply a Func to an element. This will give us a lower-level
+function.-/
+def app_elem {α : Type} {n : ℕ} (f : Func α n) (h : 0 < n) (a : α) : Func α (n-1) :=
+begin
+ cases n,
+    linarith,  -- Rule out case (n=0) because n assumed positive
+  exact f a,
+end
+
+
+/-- We can apply a Func to a vector of elements of the right size.-/
+def app_vec {α : Type} {n : ℕ} (f : Func α n) (v : vector α n) : α :=
+begin
+  induction n with n n_ih,
+   { exact f},
+  apply n_ih,
+  exact app_elem f (by norm_num) v.head,  -- apply f to the first element of v
+  exact v.tail,                            -- recursively apply to the tail of v
+end
+
+/-- We can apply a Func to a function on `fin n`.-/
+def app_fin {α : Type} {n : ℕ} (f : Func α n) (v : fin n → α) : α :=
+  app_vec f (vector.of_fn v)
+
+
+/-- We can apply a Func to a vector of elements of the incorrect size as well.-/
+def app_vec_partial {α : Type} {n m : ℕ} (h : m ≤ n) (f : Func α n)
+  (v : vector α m) : Func α (n-m) := sorry
+
+
 
 /-! -----------------------------------------------------------------
 -- 1. Languages and Examples
@@ -21,7 +66,7 @@ import set_theory.cardinal
 /-- A language is given by specifying functions, relations and constants
 along with the arity of each function and each relation.-/
 structure lang : Type 1 :=
-(F : ℕ → Type)    -- functions
+(F : ℕ → Type)    -- functions. ℕ keeps track of arity.
 (R : ℕ → Type)    -- relations
 (C : Type)          -- constants
 
@@ -100,10 +145,11 @@ def ordered_ring_lang : lang := {R := λ n : ℕ, if n=2 then unit else empty,
 /-- We now define an L-structure to be interpretations of functions,
  relations and constants. -/
 structure struc (L : lang) : Type 1 :=
-(univ : Type)                                    -- universe/domain
-(F (n : ℕ) (f : L.F n) : vector univ n → univ)  -- interpretation of each function
-(R (n : ℕ) (r : L.R n) : set (vector univ n))    -- interpretation of each relation
-(C : L.C → univ)                                -- interpretation of each constant
+(univ : Type)                                   -- universe/domain
+(F (n : ℕ) (f : L.F n) : Func univ n)          -- interpretation of each function
+(R (n : ℕ) (r : L.R n) : set (vector univ n))  -- interpretation of each relation
+(C : L.C → univ)                               -- interpretation of each constant
+
 
 /-- Type is a structure of the set language-/
 def type_is_struc_of_set_lang {A : Type} : struc (set_lang) :=
@@ -127,16 +173,11 @@ begin
    { intros _ f,
      cases f},
    { intros n r v,
-     cases n,
-      { cases r}, -- if n=0
-     cases n,
-      { cases r}, -- if n=1
-     cases n; cases r,
-      { exact v.nth 0 < v.nth 1} -- if n=2
-   },  -- if n>2, handles automatically by Lean.
+     iterate {cases n, cases r},
+     exact (v.nth 0 < v.nth 1),
+     cases r},
    { intros c,
      cases c},
-
 end
 
 
@@ -151,10 +192,10 @@ def magma_is_struc_of_magma_lang {A : Type} [magma A] :
 begin
   fconstructor,
     { exact A },
-    { intros n f v,
-      cases n,
-      { cases f },                             -- if n = 0
-      { exact magma.mul (v.nth 0) (v.nth 1)} }, -- if n = 1
+    { intros n f,
+      iterate {cases n, cases f}, -- if n=0,1
+      exact magma.mul, -- if n=2
+      cases f},        -- if n≥3
     { intros _ r,
       cases r},
     { intros c,
@@ -167,14 +208,14 @@ def semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
 begin
   fconstructor,
     { exact A },
-    { intros n f v,
-      cases n,
-      cases f,
-      exact semigroup.mul (v.nth 0) (v.nth 1)},
+    { intros n f,
+      iterate {cases n, cases f},
+      exact semigroup.mul,
+      cases f},
     { intros _ r,
-      cases r },
+      cases r},
     { intro c,
-      cases c }
+      cases c}
 end
 
 /-- Monoid is a structure of the language of monoids-/
@@ -183,14 +224,14 @@ def monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
 begin
   fconstructor,
   { exact A },
-  { intros n f v,
-    cases n,
-    cases f,
-    exact monoid.mul (v.nth 0) (v.nth 1)},
+  { intros n f,
+    iterate {cases n, cases f},
+    exact monoid.mul,
+    cases f},
   { intros _ r,
-      cases r },
+      cases r},
   { intro c,
-    exact 1 },
+    exact 1},
 end
 
 /-- Group is a structure of the group language-/
@@ -303,13 +344,13 @@ end
 /-- An L-embedding is a map between two L-structures that is injective
 on the domain and preserves the interpretation of all the symbols of L.-/
 structure embedding {L : lang} (M N : struc L) : Type :=
-(η : M.univ → N.univ)                         -- map of underlying domains
-(η_inj : function.injective η)                 -- should be one-to-one
-(η_F : ∀ n f v,                                -- preserves action of each function
-     η (M.F n f v) = N.F n f (vector.map η v))
-(η_R : ∀ n r v,                                -- preserves each relation
+(η : M.univ → N.univ)                        -- map of underlying domains
+(η_inj : function.injective η)                -- should be one-to-one
+(η_F : ∀ n f v,                              -- preserves action of each function
+     η (app_vec (M.F n f) v) = app_vec (N.F n f) (vector.map η v))
+(η_R : ∀ n r v,                              -- preserves each relation
      v ∈ (M.R n r) ↔ (vector.map η v) ∈ (N.R n r))
-(η_C : ∀ c,                                    -- preserves each constant
+(η_C : ∀ c,                                   -- preserves each constant
      η (M.C c) = N.C c)
 
 
@@ -342,63 +383,58 @@ structure substructure (L : lang) (M N: struc L) :=
 /-! -----------------------------------------------------------------
 -- 4. Terms
 -- ----------------------------------------------------------------/
+variables (L : lang) (M : struc L)
 
-/-- We define terms in a language to be constants, variables or
-   applications of functions acting on terms.-/
-inductive term' (L : lang) : Type
-| con : L.C → term'
-| var : ℕ → term'
-| app (n : ℕ) (f : L.F n) (ts : list term') : term'
+/-- We define terms in a language to be constants, variables, functions or
+   functions applied to level-0 terms. Here a (term L n) represents all
+   terms of level n. Level 0 terms must be constants, variables, or terms
+   of type L.F 0.-/
+inductive term : ℕ → Type
+| con : L.C → term 0
+| var : ℕ → term 0
+| func {n : ℕ} : L.F n → term n
+| app {n : ℕ} : term (n + 1) → term 0 → term (n)
+open term
 
+/- Note about Prod and Sum:
+  1. Π denotes Prod of types. Represents ∀ at type level.
+     Cartesian product of types
+  2. Σ denotes Sum of types. Represents ∃ at type level.
+     Disjoint union of types (co-product in category of Set/Types).-/
 
-open term'
-variable {L : lang}
+/-- Variables in a term.-/
+def vars_in_term {L : lang} : Π {n : ℕ}, term L n → list ℕ
+| 0 (con c)    := []
+| 0 (var v)    := [v]
+| n (func f)   := []
+| n (app t t₀) := vars_in_term t ++ vars_in_term t₀
 
-mutual def is_admissible, is_admissible_list
-with is_admissible : term' L → Prop
-| (con c) := true
-| (var v) := true
-| (app n f ts) := (n = ts.length) ∧ is_admissible_list ts
-with is_admissible_list : list (term' L) → Prop
-| [] := true
-| (t :: ts) := is_admissible t ∧ is_admissible_list ts
+/-- Variables in a list of terms.-/
 
-def term (L : lang) : Type := {t : term' L // is_admissible t}
+/-- Same function but returns a set.-/
 
+def var_set_in_term {L : lang} : Π {n : ℕ}, term L n → finset ℕ
+| 0 (con c)    := ∅ 
+| 0 (var v)    := {v}
+| n (func f)   := ∅ 
+| n (app t t₀) := var_set_in_term t ∪ var_set_in_term t₀
 
-/-- We define a function to compute the number of variables in a term
-using mutual recursion.
+/-- The number of variables in a term. We remove duplicates before
+counting.-/
 
-Important note: this function counts the number of variables with repetition.
-For number without repetition, use the size of the set computed by vars_in_term instead.
--/
+def number_of_vars {L : lang} {n : ℕ} (t : term L n) : ℕ :=
+  (vars_in_term t).erase_dup.length
 
-mutual def number_of_vars_t, number_of_vars_list_t
-with number_of_vars_t : term' L → ℕ
-| (con c) := 0
-| (var v) := 1
-| (app n f ts) := number_of_vars_list_t ts
-with number_of_vars_list_t : list (term' L) → ℕ
-| [] := 0
-| (t :: ts) := number_of_vars_t t + number_of_vars_list_t ts
+def var_free {L : lang} {n : ℕ} (t : term L n) : Prop := number_of_vars t = 0
 
-def number_of_vars (t : term L) : ℕ := number_of_vars_t t.val
+set_option trace.inductive
 
-/-- The variables in a term can also be computed using a mutually
-recursive pair of functions.-/
+/-- Term interpretation in the  case the term has 0 variables.-/
 
-mutual def vars_in_term_t, vars_in_term_list_t
-with vars_in_term_t : term' L → finset ℕ
-| (con c)      := ∅
-| (var v)      := {v}
-| (app n f ts) := vars_in_term_list_t ts
-with vars_in_term_list_t : list (term' L) → finset ℕ
-| [] := ∅
-| (t :: ts) := vars_in_term_t t ∪ vars_in_term_list_t ts
-
-def vars_in_term (t : term L) : finset ℕ := vars_in_term_t t.val
-
-
+def term_interpretation {L: lang} {M : struc L} (t : term L 0) {h : var_free t} : M.univ :=
+begin
+  sorry
+end 
 
 /-! 4.1 Examples of Terms
     ---------------------
@@ -409,21 +445,32 @@ namespace example_terms
   - one unary function f,
   - one binary function g,
   - and one constant symbol c.-/
+
   def L1 : lang := {F := λ n, if n=1 then unit else if n=2 then unit else empty,
-                   R := function.const ℕ empty,
-                   C := unit}
+                    R := function.const ℕ empty,
+                    C := unit}
   def f : L1.F 1 := unit.star
   def g : L1.F 2 := unit.star
   def c : L1.C   := unit.star
 
-  /-- t₁ = f(g(c, f(v₁))) is a term on language L1. -/
-  def t₁ : term' L1 := app _ f [app _ g [con c, app _ f [var 1]]]
+  def M1 : struc L1 :=
+  {univ := ℝ,
+   F := by {intros n f,
+            cases n, { cases f},            -- if n=0
+            cases n, { exact λ x : ℝ, x*2}, -- if n=1
+            cases n, { exact (+)},          -- if n=2
+            cases f},                       -- if n>2
+   R := λ _ f _, by {cases f},
+   C := λ c, 1}
 
-  
-  #eval number_of_vars_t t₁
-  #eval vars_in_term_t t₁
+
+  /-- t₃ = f(g(c, f(v₅))) is a term on language L1.-/
+  def t₁ : term L1 0 := app (func f) (var 5)            -- f(v₅)
+  def t₂ : term L1 0 := app (app (func g) (con c)) t₁   -- g(c)(t₁)
+  def t₃ : term L1 0 := app (func f) t₂                 -- f(t₂)
 
 end example_terms
+
 
 
 /-! 4.2 Terms Substitution
@@ -433,32 +480,15 @@ end example_terms
 with exactly one term. A lemma will show if the term is variable
 free, then the image of the function is variable free. Can be
 generalized to subsitute each variable with its own term. -/
-mutual def term_sub, term_sub_list (t' : term' L)
-with term_sub : term' L → term' L
-| (con c)      := con c
-| (var n)      := t'
-| (app n f ts) := app n f (term_sub_list ts)
-with term_sub_list : list (term' L) → list (term' L)
-| [] := []
-| (t :: ts) := term_sub t :: term_sub_list ts
+def term_sub {L : lang} {m : ℕ} (t' : term L m) : Π n, term L n → term L n
+| 0 (con c)    := con c
+| 0 (var n)    := sorry -- This used to be t'. What should it be now?
+| n (func f)   := sorry
+| n (app t t₀) := sorry -- This used to be [app n f (term_sub_list ts)].
 
 
-def var_free (t : term' L) : Prop := number_of_vars_t t = 0
-
-
-
-def length {α : Type} : list α → ℕ
-| []        := 0
-| (x :: xs) := nat.succ $ length xs
-
-
-def var_free_list (ts : list (term' L)): (list (term' L)) → Prop  
-| [] := true
-| (t :: ts) := var_free t ∧ var_free_list ts
-
-
-theorem term_sub_free (t t': term' L)
-  : var_free t' → var_free (term_sub t' t) :=
+theorem term_sub_free {n m : ℕ} (t' : term L n) (t : term L m)
+  : var_free t' → var_free (term_sub t' m t) :=
 begin
   intro H,
   cases t,
@@ -488,34 +518,17 @@ begin
 end
 
 
-/-! 4.2 Term Interpretation
-    -----------------------
-We define an interpretation for L-terms in an L-structure.
-This section is a work in progress.
--/
-def term_interpretation (M : struc L) (t : term' L)
-   (v : finset ℕ := vars_in_term_t t)  -- finset of vars in t
-   (a : vector M.univ v.card) : M.univ :=
-match t with
-| (con c)   := M.C c
-| (var n)   := begin
-                 have h : n ∈ v, sorry,
-                 --exact a.nth ⟨v.index_of n, list.index_of_lt_length.2 h⟩,
-                 sorry,
-               end
-| (app n f ts) := sorry
-end
-
-
 
 /-! -----------------------------------------------------------------
--- 5. Formulas
+-- 5. Formulas and Sentences
 -- ----------------------------------------------------------------/
 
 
 inductive formula (L : lang)
-| eq  : term L → term L → formula
-| rel : Π {n : ℕ}, L.R n → vector (term L) n → formula
+| t : formula
+| f : formula
+| eq  : term L 0 → term L 0 → formula
+| rel : Π {n : ℕ}, L.R n → vector (term L 0) n → formula
 | neg : formula → formula
 | and : formula → formula → formula
 | or  : formula → formula → formula
@@ -529,10 +542,33 @@ infix    `∧'` :  70 := formula.and
 infix    `∨'` :  70 := formula.or
 notation `∃'` : 110 := formula.exi
 notation `∀'` : 110 := formula.all
+notation `⊤'` : 110 := formula.t
+notation `⊥'` : 110 := formula.f
+
+/--Helper function for variables from list of terms-/
+
+def vars_in_list {L : lang} : list (term L 0) → finset ℕ
+|[] := ∅
+|(t :: ts) := var_set_in_term t ∪ vars_in_list ts 
+
+/-- Extracts set of variables from the formula-/
+
+def vars_in_formula {L : lang}: formula L → finset ℕ 
+| ⊤'                 := ∅
+| ⊥'                 := ∅
+| (t₁='t₂)           := var_set_in_term t₁ ∪ var_set_in_term t₂ 
+| (formula.rel r ts) := vars_in_list (ts.to_list)
+| (¬' ϕ)       := vars_in_formula ϕ
+| (ϕ₁ ∧' ϕ₂)  := vars_in_formula ϕ₁ ∪ vars_in_formula ϕ₂
+| (ϕ₁ ∨' ϕ₂)  := vars_in_formula ϕ₁ ∪ vars_in_formula ϕ₂
+| (∃' v ϕ)    := vars_in_formula ϕ ∪ {v}
+| (∀' v ϕ)    := vars_in_formula ϕ ∪ {v}
 
 /-- A variable occurs freely in a formula if it is not quantified
 over.-/
-def var_is_free (n : ℕ) : formula L → Prop
+def var_is_free (n : ℕ) {L : lang}: formula L → Prop
+| ⊤'                 := true
+| ⊥'                 := true
 | (t₁='t₂)           := true
 | (formula.rel r ts) := true
 | (¬' ϕ)       := var_is_free ϕ
@@ -542,9 +578,48 @@ def var_is_free (n : ℕ) : formula L → Prop
 | (∀' v ϕ)    := v ≠ n ∧ var_is_free ϕ
 
 /-- If the variable does not occur freely, we say that it is bound.-/
-def var_is_bound (n : ℕ) (ϕ : formula L) : Prop := ¬ var_is_free n ϕ
+def var_is_bound {L : lang}(n : ℕ) (ϕ : formula L) : Prop := ¬ var_is_free n ϕ
 
--- TODO: there is some caveat about a variable appearing freely in ϕ₁
--- but bound in ϕ₂ when considering the term ϕ₁ ∧ ϕ₂?
+/-- We use the following to define sentences within Lean-/
+def is_sentence {L : lang}(ϕ : formula L) : Prop :=
+(∀ n : ℕ, n ∈ vars_in_formula ϕ → var_is_bound n ϕ)
 
-#lint
+
+namespace example_sentences
+  open example_terms
+  def ψ₁ : formula L1 := t₁ =' var 5 -- f(v₅) = v₅
+  def ψ₂ : formula L1 := ¬' (var 4 =' t₃ ) -- g(c, t₁) =/= v₄ 
+  def ψ₃ : formula L1 := ∃' 3 ψ₁ -- ∃v₃  f(v₅) = v₅
+  def ψ₄ : formula L1 := ∀' 4 (∀' 5 ψ₂) -- ∀v₄∀v₅ g(c, f(v₄)) =/= v₅
+
+  #reduce is_sentence (ψ₁)
+  #reduce is_sentence (ψ₂)
+  #reduce is_sentence (ψ₃)
+  #reduce is_sentence (ψ₄)
+
+/-! -----------------------------------------------------------------
+-- 6. Satisfiability and Models
+-- ----------------------------------------------------------------/
+
+/-- We know interpret what it means for sentences to be true
+    inside of our L-structures.-/
+
+/-- Expand the language to introduce a constant for each element
+    of the domain.-/
+
+def expanded_lang (L : lang)(M : struc L) : lang :=
+  sorry
+
+def expanded_struc (L: lang)(M : struc L) : struc (expanded_lang L M) :=
+  sorry
+
+def models {L : lang}{M : struc L} : formula L →  Prop
+|⊤'                 := true 
+|⊥'                 := false 
+|(t₁ =' t₂)         := sorry
+|(formula.rel r ts) := sorry
+| (¬' ϕ)       := ¬models(ϕ)
+| (ϕ₁ ∧' ϕ₂)  := models(ϕ₁) ∧ models (ϕ₂)
+| (ϕ₁ ∨' ϕ₂)  := models(ϕ₁) ∨ models (ϕ₂)
+| (∃' v ϕ)    :=  --∃(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
+| (∀' v ϕ)    :=  --∀(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
