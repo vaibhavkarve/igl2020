@@ -581,3 +581,4 @@ def models {L : lang} (M : struc L) : sentence L →  Prop
 | ⟨∃' v ϕ, h⟩          := sorry --∃(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
 | ⟨∀' v ϕ, h⟩          := sorry --∀(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
 
+-- This is the bottom
