@@ -76,7 +76,6 @@ def app_fin {α : Type} {n : ℕ} (f : Func α (n+1)) (v : fin (n+1) → α) : �
   app_vec f (vector.of_fn v)
 
 
-
 /-- We can apply a Func to a vector of elements of the incorrect size as well.
 TODO: Turn this into patter-matched term-style definition.
 -/
@@ -90,7 +89,6 @@ begin
   rw ← nat_ineq at f',
   exact f' v.head,
 end
-
 
 
 /-! -----------------------------------------------------------------
@@ -212,6 +210,19 @@ instance struc.inhabited {L : lang} : inhabited (struc L) :=
                C := function.const _ unit.star}
   }
 
+
+/-- Define an expanded language, given a struc M.
+
+Idea: For every element of M.univ, we will add a new constant to the
+language.
+
+In Lou's book (more general): we start instead with C ⊂ M.univ, and then add
+only elements of C as constants to the language. -/
+def expanded_lang (L : lang) (M : struc L) : lang :=
+  {F := λ n, if n=0 then M.univ ⊕ L.F 0 else L.F n,
+   .. L}
+
+
 /-- Type is a structure of the ordered set language-/
 def type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
   struc (ordered_set_lang) :=
@@ -222,6 +233,8 @@ def type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
             exact (v.nth 0 < v.nth 1),
             cases r},
    C := λ c, empty.elim c}
+
+
 
 
 /-- We need to define a magma, because it looks like it is not defined
