@@ -60,16 +60,19 @@ function.
 def app_elem {α : Type} {n : ℕ} (f : Func α (n+1)) (a : α) : Func α n := f a
 
 
-/-- We can apply a Func to a vector of elements of the right size.-/
-def app_vec {α : Type} {n : ℕ} (f : Func α n) (v : vector α n) : α :=
-begin
-  induction n with n n_ih,
-    exact f,
-  exact n_ih (app_elem f (by norm_num) v.head) v.tail,
-end
+/-- A Func can be applied to a vector of elements of the right size.
+1. In the base case, apply a 1-ary function to a single element to yield the
+   image under said 1-ary function.
+2. In the recursive case, we can apply an (n+2)-ary function to (n+2) elements
+   by applying it to the head and then recursively calling the result on the
+   remaining (n+1)-sized tail. -/
+def app_vec {α : Type} : Π {n : ℕ}, Func α (n+1) → vector α (n+1) → α
+| 0     := λ f v, f v.head
+| (n+1) := λ f v, app_vec (f v.head) (v.tail)
 
-/-- We can apply a Func to a function on `fin n`.-/
-def app_fin {α : Type} {n : ℕ} (f : Func α n) (v : fin n → α) : α :=
+
+/-- Apply a Func to a function on `fin n`.-/
+def app_fin {α : Type} {n : ℕ} (f : Func α (n+1)) (v : fin (n+1) → α) : α :=
   app_vec f (vector.of_fn v)
 
 
