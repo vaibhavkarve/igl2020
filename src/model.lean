@@ -38,20 +38,19 @@ This serves 2 purposes:
    when an arbitrary α term is needed.
 
 We show that (Funcs α) is inhabited by constructing a 0-level Func
-that returns an arbitrary α.
--/
+that returns an arbitrary α. -/
 instance Funcs.inhabited {α : Type} [inhabited α] : inhabited (Funcs α) :=
  {default := ⟨0, default α⟩}
 
 
-def mk_Func_of_vec {α : Type} {n : ℕ} (f : vector α n → α) : Func α n :=
-  nat.rec             -- induction on n
-  (λ f, f vector.nil) -- if n=0
-  (λ (m : ℕ)          -- if n = m+1
-     (m_ih : (vector α m → α) → Func α m) -- induction hypothesis for m
-     (f' : vector α m.succ → α) (a : α),   -- intro f and a
-     m_ih (λ v, f' (vector.cons a v)))      -- apply induction hyp to (a :: v)
-  n f                  -- prove for n and f
+/-- Define a constructor for Func. It takes in a total function `f` and turns
+it into a partial function of the same arity.
+
+1. This constructor can only make functions of arity ≥ 1.
+2. This constructor makes a recursive call to itself. -/
+def mk_Func_of_total {α : Type} : Π {n : ℕ}, (vector α (n+1) → α) → Func α (n+1)
+| 0     := λ f a, f ⟨[a], by norm_num⟩                -- this produces a 1-ary func
+| (n+1) := λ f a, mk_Func_of_total (λ v, f (a :: v))  -- an (n+2)-ary function
 
 
 /-- We can apply a Func to an element. This will give us a lower-level
