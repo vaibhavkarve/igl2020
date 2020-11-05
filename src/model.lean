@@ -111,12 +111,12 @@ def lang.C (L : lang) : Type := L.F 0
 possible language, the language of pure sets. This language has no
 functions, relations or constants.-/
 def set_lang: lang := {F := function.const ℕ empty,
-                       R := function.const ℕ empty,
-                       C := empty}
+                       R := function.const ℕ empty}
                        
 /-- Having defined a set_lang, we now use it to declare that lang is an
 inhabited type.-/
 instance lang.inhabited : inhabited lang := {default := set_lang}
+
 
 /-- The language of ordered sets is the language or sets with a binary
   ordering relation {<}.-/
@@ -137,8 +137,10 @@ def semigroup_lang : lang := magma_lang
    1. u × (v × w) = (u × v) × w
    2. u × 1 = u
    3. 1 × u = u. -/
-def monoid_lang : lang := {F := λ n : ℕ, if n=2 then unit else empty, 
-                           C := unit, ..set_lang}
+def monoid_lang : lang := {F := λ n : ℕ,
+                                if n=0 then unit else        -- one constant
+                                if n=2 then unit else empty, -- one binary op.
+                           ..set_lang}
 
 /-- A group is a {×, ⁻¹, 1}-structure which satisfies the identities
  1. u × (v × w) = (u × v) × w
@@ -146,9 +148,11 @@ def monoid_lang : lang := {F := λ n : ℕ, if n=2 then unit else empty,
  3. 1 × u = u
  4. u × u−1 = 1
  5. u−1 × u = 1 -/
-def group_lang : lang := {F := λ n : ℕ, if n = 2 then unit
-                                        else if n = 1 then unit else empty,
-                          C := unit, ..set_lang}
+def group_lang : lang := {F := λ n : ℕ,
+                               if n=0 then unit else        -- one constant
+                               if n=1 then unit else        -- one unary op.
+                               if n=2 then unit else empty, -- one binary op.
+                          ..set_lang}
 
 /-- A semiring is a {×, +, 0, 1}-structure which satisfies the identities
   1. u + (v + w) = (u + v) + w
@@ -181,7 +185,11 @@ def ordered_ring_lang : lang := sorry
 
 
 /-- We now define an L-structure to be interpretations of functions,
- relations and constants. -/
+ relations and constants.
+
+TODO: For now, we add in explicit interpretation of the constants as well
+as (L.F 0). But in fact we should keep one or the other, not both.
+-/
 structure struc (L : lang) : Type 1 :=
 (univ : Type)                                   -- universe/domain
 (F (n : ℕ) (f : L.F n) : Func univ n)          -- interpretation of each function
@@ -199,9 +207,9 @@ def type_is_struc_of_set_lang {A : Type} : struc (set_lang) :=
 
 instance struc.inhabited {L : lang} : inhabited (struc L) :=
   {default := {univ := unit,  -- The domain must have at least one term
-               F := λ _ _, mk_Func_of_vec (function.const _ ()),
+               F := λ _ _, mk_Func_of_total (function.const _ unit.star) unit.star,
                R := λ _ _, ∅,
-               C := function.const _ ()}
+               C := function.const _ unit.star}
   }
 
 /-- Type is a structure of the ordered set language-/
@@ -249,6 +257,8 @@ def monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
   struc (monoid_lang) := 
   {univ := A,
    F := by {intros n f,
+            cases n, cases f,
+              {exact 1},
             iterate {cases n, cases f},
             exact monoid.mul,
             cases f},
