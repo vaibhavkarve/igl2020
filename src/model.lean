@@ -22,7 +22,7 @@ import set_theory.cardinal
 terms of type α.-/
 @[reducible] def Func (α : Type) : ℕ → Type
 | 0 := α
-| (nat.succ n) := α → Func n
+| (n+1) := α → Func n
 
 /-- Create a type of ALL functions with finite arity. Here we use Σ to
 sum up the types. Sum for types :: union for sets.-/
