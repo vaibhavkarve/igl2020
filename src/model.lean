@@ -423,20 +423,26 @@ namespace example_terms
   - one binary function g,
   - and one constant symbol c.-/
 
-  def L1 : lang := {F := λ n, if n=1 then unit else if n=2 then unit else empty,
-                    R := function.const ℕ empty,
-                    C := unit}
+  def L1 : lang := {F := λ n,
+                         if n=0 then unit else        -- one constant
+                         if n=1 then unit else        -- one unary op.
+                         if n=2 then unit else empty, -- one binrary op.
+                    R := function.const ℕ empty}
+  /-- f is a unary operation in L1. -/
   def f : L1.F 1 := unit.star
+  /-- g is a binary operation in L1. -/
   def g : L1.F 2 := unit.star
-  def c : L1.C   := unit.star
+  /-- c is a constant in L1. -/
+  def c : L1.C := unit.star
 
+  /-- M1 is a structure on L1. -/
   def M1 : struc L1 :=
   {univ := ℕ,
    F := by {intros n f,
-            cases n, { cases f},            -- if n=0
+            cases n, { exact 1},               -- if n=0 (must match with M1.C)
             cases n, { exact λ x : ℕ, 100*x}, -- if n=1
-            cases n, { exact (+)},          -- if n=2
-            cases f},                       -- if n>2
+            cases n, { exact (+)},             -- if n=2
+            cases f},                          -- if n>2
    R := λ _ f _, by {cases f},
    C := function.const L1.C 1}
 
@@ -605,4 +611,3 @@ def models {L : lang} (M : struc L) : sentence L →  Prop
 | ⟨ϕ₁ ∨' ϕ₂, h⟩        := sorry -- models(ϕ₁) ∨ models (ϕ₂)
 | ⟨∃' v ϕ, h⟩          := sorry --∃(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
 | ⟨∀' v ϕ, h⟩          := sorry --∀(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
-
