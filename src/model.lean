@@ -54,9 +54,10 @@ def mk_Func_of_total {α : Type} : Π {n : ℕ}, (vector α (n+1) → α) → Fu
 
 
 /-- We can apply a Func to an element. This will give us a lower-level
-function.-/
-def app_elem {α : Type} {n : ℕ} (f : Func α (n+1)) (a : α) : Func α n :=
- f a
+function.
+
+**Deprecation warning**: this function will be removed from future iterations.-/
+def app_elem {α : Type} {n : ℕ} (f : Func α (n+1)) (a : α) : Func α n := f a
 
 
 /-- We can apply a Func to a vector of elements of the right size.-/
