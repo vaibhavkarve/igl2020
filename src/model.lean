@@ -102,7 +102,9 @@ along with the arity of each function and each relation.-/
 structure lang : Type 1 :=
 (F : ℕ → Type)    -- functions. ℕ keeps track of arity.
 (R : ℕ → Type)    -- relations
-(C : Type)          -- constants
+
+/-- Constants of a language are simply its 0-ary functions. -/
+def lang.C (L : lang) : Type := L.F 0
 
 
 /-- We now define some example languages. We start with the simplest
