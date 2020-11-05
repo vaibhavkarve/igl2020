@@ -223,6 +223,19 @@ def expanded_lang (L : lang) (M : struc L) : lang :=
    .. L}
 
 
+/-- Define expanded structures. -/
+def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
+  {univ := M.univ,
+   F := λ n f, sorry,
+   R := M.R,
+   C := by {
+   intros c,
+   unfold expanded_lang at c,
+   unfold lang.C at c,
+   sorry
+}
+}
+
 /-- Type is a structure of the ordered set language-/
 def type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
   struc (ordered_set_lang) :=
