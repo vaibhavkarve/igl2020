@@ -76,9 +76,20 @@ def app_fin {α : Type} {n : ℕ} (f : Func α (n+1)) (v : fin (n+1) → α) : �
   app_vec f (vector.of_fn v)
 
 
-/-- We can apply a Func to a vector of elements of the incorrect size as well.-/
-def app_vec_partial {α : Type} {n m : ℕ} (h : m ≤ n) (f : Func α n)
-  (v : vector α m) : Func α (n-m) := sorry
+
+/-- We can apply a Func to a vector of elements of the incorrect size as well.
+TODO: Turn this into patter-matched term-style definition.
+-/
+def app_vec_partial {α : Type} {n m : ℕ} (h : m ≤ n) (f : Func α (n+1))
+  (v : vector α (m+1)) : Func α (n-m) :=
+begin
+  induction m with m mih,
+   { exact f v.head},
+  have nat_ineq : n-m.succ+1 = n-m := by omega,
+  have f' : Func α (n-m) := mih (by omega) v.tail,
+  rw ← nat_ineq at f',
+  exact f' v.head,
+end
 
 
 
