@@ -417,7 +417,7 @@ namespace example_terms
 
 
   /-- t = f(g(c, f(v₅))) is a term on language L1.-/
-  def t₁ : fterm L1 0 := app (func f) (con c)            -- f(v₅)
+  def t₁ : fterm L1 0 := app (func f) (con c)            -- f(c)
   def t₂ : fterm L1 0 := app (app (func g) (con c)) t₁   -- g(c)(t₁)
   def t₃ : fterm L1 0 := app (func f) t₂                 -- f(t₂)
   def t : fterm L1 0 := app (func f)
@@ -443,20 +443,30 @@ end example_terms
 with exactly one term. A lemma will show if the term is variable
 free, then the image of the function is variable free. Can be
 generalized to subsitute each variable with its own term. -/
-def term_sub {L : lang} {m : ℕ} (t' : term L m) : Π n, term L n → term L n
+def term_sub {L : lang}(t' : term L 0) : Π n, term L n → term L n
 | 0 (con c)    := con c
-| 0 (var n)    := sorry -- This used to be t'. What should it be now?
-| n (func f)   := sorry
-| n (app t t₀) := sorry -- This used to be [app n f (term_sub_list ts)].
+| 0 (var n)    := t'
+| n (func f)   := func f
+| n (app t t₀) := app (term_sub (n+1) t) (term_sub 0 t₀)
 
+/--Alternative definition where we only allow the substitution to
+occur over only one variable.-/
 
-theorem term_sub_free {n m : ℕ} (t' : term L n) (t : term L m)
-  : var_free t' → var_free (term_sub t' m t) :=
-begin
-  sorry 
-end
+def term_sub_for_var {L : lang}(t' : term L 0)(k : ℕ) : 
+  Π n, term L n → term L n
+| 0 (con c)    := con c
+| 0 (var n)    := if k = n then t' else var n
+| n (func f)   := func f
+| n (app t t₀) := app (term_sub_for_var (n+1) t) (term_sub_for_var 0 t₀)
 
+open example_terms
 
+def t₄ : term L1 0 := app (func f) (var 5) -- f(v₅)
+def t₅ : term L1 0 := app (app (func g) (con c)) (var 4) -- g(c, v₄)
+#reduce term_sub t₅ 0 t₄ -- f(g(c, v₄))
+#reduce term_sub (var 3) 0 t₄ -- f(v₃)
+#reduce term_sub_for_var (var 3) 4 0 t₄ -- f(v₅)
+#reduce term_sub_for_var (var 3) 5 0 t₄ -- f(v₃)
 
 /-! -----------------------------------------------------------------
 -- 5. Formulas and Sentences
@@ -565,7 +575,6 @@ def expanded_lang (L : lang) (M : struc L) : lang :=
 def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
   sorry
 
-
 inductive elements_of_domain (M : struc L) : Type
 | mk : M.univ → elements_of_domain
 | mk₁ : L.C → elements_of_domain
@@ -573,7 +582,7 @@ inductive elements_of_domain (M : struc L) : Type
 def models {L : lang} (M : struc L) : sentence L →  Prop
 | ⟨⊤', h⟩           := true
 | ⟨⊥', h⟩           := false
-| ⟨(t₁ =' t₂), h⟩   := sorry  -- prove here that h is a proof of false
+| ⟨(t₁ =' t₂), h⟩   := sorry
 | ⟨formula.rel r ts, h⟩ := sorry
 | ⟨¬' ϕ, h⟩             := sorry -- ¬models(ϕ)
 | ⟨ϕ₁ ∧' ϕ₂, h⟩        := sorry -- models(ϕ₁) ∧ models (ϕ₂)
