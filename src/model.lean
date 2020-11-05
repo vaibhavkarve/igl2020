@@ -294,7 +294,7 @@ structure embedding {L : lang} (M N : struc L) : Type :=
 (η : M.univ → N.univ)                        -- map of underlying domains
 (η_inj : function.injective η)                -- should be one-to-one
 (η_F : ∀ n f v,                              -- preserves action of each function
-     η (app_vec (M.F n f) v) = app_vec (N.F n f) (vector.map η v))
+     η (app_vec (M.F (n+1) f) v) = app_vec (N.F (n+1) f) (vector.map η v))
 (η_R : ∀ n r v,                              -- preserves each relation
      v ∈ (M.R n r) ↔ (vector.map η v) ∈ (N.R n r))
 (η_C : ∀ c,                                   -- preserves each constant
