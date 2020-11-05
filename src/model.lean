@@ -388,7 +388,7 @@ instance term.inhabited {L : lang} : inhabited (term L 0) :=
   2. Σ denotes Sum of types. Represents ∃ at type level.
      Disjoint union of types (co-product in category of Set/Types).-/
 
-/-- Variables in a of term returned as a finite set.-/
+/-- Variables in a of term returned as a finite set. -/
 @[reducible] def vars_in_term {L : lang} : Π {n : ℕ}, term L n → finset ℕ
 | 0 (con c)    := ∅
 | 0 (var v)    := {v}
@@ -396,6 +396,8 @@ instance term.inhabited {L : lang} : inhabited (term L 0) :=
 | _ (app t t₀) := vars_in_term t ∪ vars_in_term t₀
 
 
+/-- The number of variables in a term is computed as the size of
+the finset given by vars_in_term. -/
 @[reducible] def number_of_vars {L : lang} : Π (n : ℕ), term L n → ℕ
 | 0 (con c)    := 0
 | 0 (var v)    := 1
@@ -408,7 +410,7 @@ def fterm_interpretation {L: lang} (M : struc L) :
   Π {n : ℕ} (t : fterm L n), Func M.univ n
 | 0 (con c) := M.C c
 | n (func f) := M.F n f
-| _ (app t t₀) := app_elem (fterm_interpretation t) (by linarith) (fterm_interpretation t₀)
+| _ (app t t₀) := (fterm_interpretation t) (fterm_interpretation t₀)
 
 
 /-! 4.1 Examples of Terms
