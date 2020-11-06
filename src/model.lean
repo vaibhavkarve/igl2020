@@ -211,30 +211,6 @@ instance struc.inhabited {L : lang} : inhabited (struc L) :=
   }
 
 
-/-- Define an expanded language, given a struc M.
-
-Idea: For every element of M.univ, we will add a new constant to the
-language.
-
-In Lou's book (more general): we start instead with C ⊂ M.univ, and then add
-only elements of C as constants to the language. -/
-def expanded_lang (L : lang) (M : struc L) : lang :=
-  {F := λ n, if n=0 then M.univ ⊕ L.F 0 else L.F n,
-   .. L}
-
-
-/-- Define expanded structures. -/
-def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
-  {univ := M.univ,
-   F := λ n f, sorry,
-   R := M.R,
-   C := by {
-   intros c,
-   unfold expanded_lang at c,
-   unfold lang.C at c,
-   sorry
-}
-}
 
 /-- Type is a structure of the ordered set language-/
 def type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
@@ -620,17 +596,33 @@ end example_sentences
 -- 6. Satisfiability and Models
 -- ----------------------------------------------------------------/
 
-/-- We know interpret what it means for sentences to be true
-    inside of our L-structures.
+/-- Define an expanded language, given a struc M.
 
- Expand the language to introduce a constant for each element
- of the domain.-/
+Idea: For every element of M.univ, we will add a new constant to the
+language.
 
+In Lou's book (more general): we start instead with C ⊂ M.univ, and then add
+only elements of C as constants to the language. -/
 def expanded_lang (L : lang) (M : struc L) : lang :=
-  sorry
+  {F := λ n, if n=0 then M.univ ⊕ L.F 0 else L.F n,
+   .. L}
 
+
+/-- Define expanded structures. -/
 def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
-  sorry
+  {univ := M.univ,
+   F := λ n f, sorry,
+   R := M.R,
+   C := by {
+   intros c,
+   unfold expanded_lang at c,
+   unfold lang.C at c,
+   sorry}
+}
+
+/-- We know interpret what it means for sentences to be true
+    inside of our L-structures. -/
+
 
 inductive elements_of_domain (M : struc L) : Type
 | mk : M.univ → elements_of_domain
