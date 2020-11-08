@@ -611,22 +611,29 @@ def expanded_lang (L : lang) (M : struc L) : lang :=
 /-- Define expanded structures. -/
 def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
   {univ := M.univ,
-   F := λ n f, sorry,
+   C := by {intro c,
+   cases c,
+   exact c,
+   exact M.F 0 c,
+   },
+
+   F := by {intros n f,
+   unfold expanded_lang at f,
+   cases n,
+   cases f,
+   rw Func,
+   exact f,
+   rw Func,
+   exact M.F 0 f,
+   simp at f,
+   sorry},
    R := M.R,
-   C := by {
-   intros c,
-   unfold expanded_lang at c,
-   unfold lang.C at c,
-   sorry}
 }
 
-/-- We know interpret what it means for sentences to be true
+/-- We now interpret what it means for sentences to be true
     inside of our L-structures. -/
 
 
-inductive elements_of_domain (M : struc L) : Type
-| mk : M.univ → elements_of_domain
-| mk₁ : L.C → elements_of_domain
 
 def models {L : lang} (M : struc L) : sentence L →  Prop
 | ⟨⊤', h⟩           := true
