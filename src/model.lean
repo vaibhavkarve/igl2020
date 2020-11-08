@@ -425,18 +425,6 @@ def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
   card M ≤ card N := cardinal.mk_le_of_injective η.η_inj
 
-def is_subtype_of (A B : Type) : Prop :=
-  ∃ p : B → Prop, A = subtype p
-
--- structure substruc {L : lang} (N M: struc (L)) extends (struc L) := sorry
-
-structure inclusion_map {L: lang} (M N : struc L) extends (embedding M N) : Type :=
-(sub_type_prop : is_subtype_of M.univ N.univ)
-(η_id : ∀ x : M.univ, η x = x)
-
-structure substructure (L : lang) (M N: struc L) :=
-(f_incl : inclusion_map (M N))
-
 /-! -----------------------------------------------------------------
 -- 4. Terms
 -- ----------------------------------------------------------------/
