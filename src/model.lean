@@ -603,31 +603,24 @@ language.
 
 In Lou's book (more general): we start instead with C ⊂ M.univ, and then add
 only elements of C as constants to the language. -/
-def expanded_lang (L : lang) (M : struc L) : lang :=
+@[reducible] def expanded_lang (L : lang) (M : struc L) : lang :=
   {F := λ n, if n=0 then M.univ ⊕ L.F 0 else L.F n,
    .. L}
 
 
 /-- Define expanded structures. -/
 def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
-  {univ := M.univ,
-   F := λ n f, sorry,
-   R := M.R,
-   C := by {
-   intros c,
-   unfold expanded_lang at c,
-   unfold lang.C at c,
-   sorry}
-}
+  {C := λ c, sum.cases_on c id (M.F 0),
+   F := λ n f, by {dsimp only at f,
+                   split_ifs at f with h₁ h₂,
+                   rw h₁,
+                   exact sum.cases_on f id (M.F 0),
+                   exact M.F n f},
+   .. M}
 
-/-- We know interpret what it means for sentences to be true
+
+/-- We now interpret what it means for sentences to be true
     inside of our L-structures. -/
-
-
-inductive elements_of_domain (M : struc L) : Type
-| mk : M.univ → elements_of_domain
-| mk₁ : L.C → elements_of_domain
-
 def models {L : lang} (M : struc L) : sentence L →  Prop
 | ⟨⊤', h⟩           := true
 | ⟨⊥', h⟩           := false
