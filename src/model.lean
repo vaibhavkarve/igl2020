@@ -22,7 +22,7 @@ import set_theory.cardinal
 terms of type α.-/
 @[reducible] def Func (α : Type) : ℕ → Type
 | 0 := α
-| (nat.succ n) := α → Func n
+| (n+1) := α → Func n
 
 /-- Create a type of ALL functions with finite arity. Here we use Σ to
 sum up the types. Sum for types :: union for sets.-/
@@ -38,47 +38,58 @@ This serves 2 purposes:
    when an arbitrary α term is needed.
 
 We show that (Funcs α) is inhabited by constructing a 0-level Func
-that returns an arbitrary α.
--/
+that returns an arbitrary α. -/
 instance Funcs.inhabited {α : Type} [inhabited α] : inhabited (Funcs α) :=
  {default := ⟨0, default α⟩}
 
 
-def mk_Func_of_vec {α : Type} {n : ℕ} (f : vector α n → α) : Func α n :=
-  nat.rec             -- induction on n
-  (λ f, f vector.nil) -- if n=0
-  (λ (m : ℕ)          -- if n = m+1
-     (m_ih : (vector α m → α) → Func α m) -- induction hypothesis for m
-     (f' : vector α m.succ → α) (a : α),   -- intro f and a
-     m_ih (λ v, f' (vector.cons a v)))      -- apply induction hyp to (a :: v)
-  n f                  -- prove for n and f
+/-- Define a constructor for Func. It takes in a total function `f` and turns
+it into a partial function of the same arity.
+
+1. This constructor can only make functions of arity ≥ 1.
+2. This constructor makes a recursive call to itself. -/
+def mk_Func_of_total {α : Type} : Π {n : ℕ}, (vector α (n+1) → α) → Func α (n+1)
+| 0     := λ f a, f ⟨[a], by norm_num⟩                -- this produces a 1-ary func
+| (n+1) := λ f a, mk_Func_of_total (λ v, f (a :: v))  -- an (n+2)-ary function
 
 
 /-- We can apply a Func to an element. This will give us a lower-level
-function.-/
-def app_elem {α : Type} {n : ℕ} (f : Func α n) (h : 0 < n) (a : α) : Func α (n-1) :=
-begin
-  cases n,
-    {exfalso, linarith},
-  exact f a
-end
+function.
 
-/-- We can apply a Func to a vector of elements of the right size.-/
-def app_vec {α : Type} {n : ℕ} (f : Func α n) (v : vector α n) : α :=
-begin
-  induction n with n n_ih,
-    exact f,
-  exact n_ih (app_elem f (by norm_num) v.head) v.tail,
-end
+**Deprecation warning**: this function will be removed from future iterations.-/
+def app_elem {α : Type} {n : ℕ} (f : Func α (n+1)) (a : α) : Func α n := f a
 
-/-- We can apply a Func to a function on `fin n`.-/
-def app_fin {α : Type} {n : ℕ} (f : Func α n) (v : fin n → α) : α :=
+
+/-- A Func can be applied to a vector of elements of the right size.
+1. In the base case, apply a 1-ary function to a single element to yield the
+   image under said 1-ary function.
+2. In the recursive case, we can apply an (n+2)-ary function to (n+2) elements
+   by applying it to the head and then recursively calling the result on the
+   remaining (n+1)-sized tail. -/
+def app_vec {α : Type} : Π {n : ℕ}, Func α (n+1) → vector α (n+1) → α
+| 0     := λ f v, f v.head
+| (n+1) := λ f v, app_vec (f v.head) (v.tail)
+
+
+/-- Apply a Func to a function on `fin n`.-/
+def app_fin {α : Type} {n : ℕ} (f : Func α (n+1)) (v : fin (n+1) → α) : α :=
   app_vec f (vector.of_fn v)
 
 
-/-- We can apply a Func to a vector of elements of the incorrect size as well.-/
-def app_vec_partial {α : Type} {n m : ℕ} (h : m ≤ n) (f : Func α n)
-  (v : vector α m) : Func α (n-m) := sorry
+
+/-- We can apply a Func to a vector of elements of the incorrect size as well.
+TODO: Turn this into patter-matched term-style definition.
+-/
+def app_vec_partial {α : Type} {n m : ℕ} (h : m ≤ n) (f : Func α (n+1))
+  (v : vector α (m+1)) : Func α (n-m) :=
+begin
+  induction m with m mih,
+   { exact f v.head},
+  have nat_ineq : n-m.succ+1 = n-m := by omega,
+  have f' : Func α (n-m) := mih (by omega) v.tail,
+  rw ← nat_ineq at f',
+  exact f' v.head,
+end
 
 
 
@@ -91,19 +102,21 @@ along with the arity of each function and each relation.-/
 structure lang : Type 1 :=
 (F : ℕ → Type)    -- functions. ℕ keeps track of arity.
 (R : ℕ → Type)    -- relations
-(C : Type)          -- constants
+
+/-- Constants of a language are simply its 0-ary functions. -/
+def lang.C (L : lang) : Type := L.F 0
 
 
 /-- We now define some example languages. We start with the simplest
 possible language, the language of pure sets. This language has no
 functions, relations or constants.-/
 def set_lang: lang := {F := function.const ℕ empty,
-                       R := function.const ℕ empty,
-                       C := empty}
+                       R := function.const ℕ empty}
                        
 /-- Having defined a set_lang, we now use it to declare that lang is an
 inhabited type.-/
 instance lang.inhabited : inhabited lang := {default := set_lang}
+
 
 /-- The language of ordered sets is the language or sets with a binary
   ordering relation {<}.-/
@@ -124,8 +137,10 @@ def semigroup_lang : lang := magma_lang
    1. u × (v × w) = (u × v) × w
    2. u × 1 = u
    3. 1 × u = u. -/
-def monoid_lang : lang := {F := λ n : ℕ, if n=2 then unit else empty, 
-                           C := unit, ..set_lang}
+def monoid_lang : lang := {F := λ n : ℕ,
+                                if n=0 then unit else        -- one constant
+                                if n=2 then unit else empty, -- one binary op.
+                           ..set_lang}
 
 /-- A group is a {×, ⁻¹, 1}-structure which satisfies the identities
  1. u × (v × w) = (u × v) × w
@@ -133,9 +148,11 @@ def monoid_lang : lang := {F := λ n : ℕ, if n=2 then unit else empty,
  3. 1 × u = u
  4. u × u−1 = 1
  5. u−1 × u = 1 -/
-def group_lang : lang := {F := λ n : ℕ, if n = 2 then unit
-                                        else if n = 1 then unit else empty,
-                          C := unit, ..set_lang}
+def group_lang : lang := {F := λ n : ℕ,
+                               if n=0 then unit else        -- one constant
+                               if n=1 then unit else        -- one unary op.
+                               if n=2 then unit else empty, -- one binary op.
+                          ..set_lang}
 
 /-- A semiring is a {×, +, 0, 1}-structure which satisfies the identities
   1. u + (v + w) = (u + v) + w
@@ -145,8 +162,11 @@ def group_lang : lang := {F := λ n : ℕ, if n = 2 then unit
   6. u × 1 = u, 1 × u = u
   7. u × (v + w) = (u × v) + (u × w)
   8. (v + w) × u = (v × u) + (w × u)-/
-def semiring_lang : lang := {F := λ n : ℕ, if n = 2 then fin 2 else empty,
-                              C := fin 2, ..magma_lang}
+def semiring_lang : lang := {F := λ n : ℕ,
+                                  if n = 0 then fin 2 else          -- two constants
+                                  if n = 2 then fin 2 else empty,   -- two binary ops.
+                          ..magma_lang}
+
 
 /-- A ring is a {×,+,−,0,1}-structure which satisfies the identities
    1. u + (v + w) = (u + v) + w
@@ -157,12 +177,16 @@ def semiring_lang : lang := {F := λ n : ℕ, if n = 2 then fin 2 else empty,
    6. u × 1 = u, 1 × u = u
    7. u × (v + w) = (u × v) + (u × w)
    8. (v + w) × u = (v × u) + (w × u)-/
-def ring_lang : lang := {F := λ n : ℕ, if n = 2 then fin 2 else if n = 1 then fin 1 else empty,
-                          C := fin 2, ..magma_lang}
+def ring_lang : lang := {F := λ n : ℕ, 
+                              if n = 0 then fin 2 else        -- two constants
+                              if n = 1 then fin 1 else        -- one unary op.
+                              if n = 2 then fin 2 else empty, -- two binary ops.                             
+                        ..magma_lang}
 
 /-- An ordered ring is a ring along with a binary ordering relation {<}.-/
-def ordered_ring_lang : lang := {R := λ n : ℕ, if n=2 then unit else empty,
-                                  ..ring_lang}
+def ordered_ring_lang : lang := {R := λ n : ℕ,                
+                                if n = 2 then unit else empty,  -- one binary relation
+                                ..ring_lang}
 
 
 /-! -----------------------------------------------------------------
@@ -171,7 +195,11 @@ def ordered_ring_lang : lang := {R := λ n : ℕ, if n=2 then unit else empty,
 
 
 /-- We now define an L-structure to be interpretations of functions,
- relations and constants. -/
+ relations and constants.
+
+TODO: For now, we add in explicit interpretation of the constants as well
+as (L.F 0). But in fact we should keep one or the other, not both.
+-/
 structure struc (L : lang) : Type 1 :=
 (univ : Type)                                   -- universe/domain
 (F (n : ℕ) (f : L.F n) : Func univ n)          -- interpretation of each function
@@ -189,9 +217,9 @@ def type_is_struc_of_set_lang {A : Type} : struc (set_lang) :=
 
 instance struc.inhabited {L : lang} : inhabited (struc L) :=
   {default := {univ := unit,  -- The domain must have at least one term
-               F := λ _ _, mk_Func_of_vec (function.const _ ()),
+               F := λ _ _, mk_Func_of_total (function.const _ unit.star) unit.star,
                R := λ _ _, ∅,
-               C := function.const _ ()}
+               C := function.const _ unit.star}
   }
 
 /-- Type is a structure of the ordered set language-/
@@ -239,113 +267,105 @@ def monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
   struc (monoid_lang) := 
   {univ := A,
    F := by {intros n f,
+            cases n, cases f,
+              {exact 1},
             iterate {cases n, cases f},
             exact monoid.mul,
             cases f},
    R := λ _ r, empty.elim r,
    C := λ c, 1}
 
+
 /-- Group is a structure of the group language-/
 def group_is_struc_of_group_lang {A : Type} [group A] :
   struc (group_lang) := 
-begin
-  fconstructor,
-  { exact A },
-  { intros n f v,
-    cases n,
-    cases f,
-    cases n,
-    {exact group.inv (v.nth 0)},
-    cases n,
-    {exact group.mul (v.nth 0) (v.nth 1)},
-    cases f,
-  },
-  { intros _ r,
-      cases r },
-    { intro c,
-      exact 1},
-end
+  {univ := A,
+   F := by {intros n f,
+            iterate {cases n, cases f},
+              exact 1,
+            iterate {cases n, cases f},
+              exact group.inv,
+            iterate {cases n, cases f},
+              exact group.mul,
+            cases f},
+    R := λ _ r, empty.elim r,
+    C := λ c, 1}
+
 
 /-- Semiring is a structure of the language of semirings-/
 def semiring_is_struc_of_semiring_lang {A : Type} [semiring A] :
   struc (semiring_lang) := 
-begin
-  fconstructor,
-  { exact A },
-  { intros n f v,
-    iterate 2 {cases n, cases f},  
-    cases n,
-    cases f,
-      {exact semiring.mul (v.nth 0) (v.nth 1)},
-      {exact semiring.add (v.nth 0) (v.nth 1)},
-  },
-  { intros n r,
-      cases r },
-  { 
-    intros c,
-    cases c,
-    exact semiring.zero,
-  },
-end
+  {univ := A,
+   F := by {intros n f,
+            iterate {cases n, cases f},
+            cases f_val,
+              exact semiring.zero,
+              exact semiring.one,
+            iterate {cases n, cases f},
+            cases f_val,
+              exact semiring.add,
+              exact semiring.mul,
+            cases f},
+   R := λ _ r, empty.elim r,
+   C := by {intros c,
+            cases c,
+            cases c_val,
+            exact semiring.zero,
+            exact semiring.one}
+  }
+
 
 /-- Ring is a structure of the language of rings-/
 def ring_is_struc_of_ring_lang {A : Type} [ring A] :
-  struc (ring_lang) := 
-begin
-  fconstructor,
-  { exact A},
-  { intros n f v,
-    cases n,
-    cases f,
-    cases n,
-    cases f,
-    exact ring.neg (v.nth 0),
-    cases n,
-    cases f,
-      exact ring.add (v.nth 0) (v.nth 1),
-      exact ring.mul (v.nth 0) (v.nth 1),
-  },
-  { intros n r,
-    cases r },
-  {
-    intros c,
-    cases c,
-    exact ring.zero,
-  },
-end
+  struc (ring_lang) :=
+  {univ := A,
+   F := by {intros n f,
+            iterate {cases n, cases f},
+            cases f_val,
+              exact ring.zero,
+              exact ring.one,
+            iterate {cases n, cases f},
+              exact ring.neg,
+            iterate {cases n, cases f},
+            cases f_val,
+              exact ring.add,
+              exact ring.mul,
+            cases f},
+   R := λ _ r, empty.elim r,
+   C := by {intros c,
+            cases c,
+            cases c_val,
+            exact ring.zero,            
+            exact ring.one}
+  }
+
   
 /-- Ordered ring is a structure of the language of ordered rings-/
 def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
   : struc(ordered_ring_lang) := 
-begin
-  fconstructor,
-  { exact A },
-  { intros n f v,
-    cases n,
-    cases f,
-    cases n,
-    cases f,
-    exact ordered_ring.neg (v.nth 0),
-    cases n,
-    cases f,
-      exact ordered_ring.add (v.nth 0) (v.nth 1),
-      exact ordered_ring.mul (v.nth 0) (v.nth 1),
-  },
-  { intros n r v,
-    cases n, 
-    cases r,
-    cases n,
-    cases r,
-      exact ordered_ring.lt (v.nth 0) (v.nth 1),
-  },
-  {
-    intros c,
-    cases c,
-    exact ordered_ring.zero,
-  },
-end
-
-
+  {univ := A,
+   F := by {intros n f,
+            iterate {cases n, cases f},
+            cases f_val,
+              exact ring.zero,
+              exact ring.one,
+            iterate {cases n, cases f},
+              exact ring.neg,
+            iterate {cases n, cases f},
+            cases f_val,
+              exact ring.add,
+              exact ring.mul,
+            cases f},
+   R := by {intros n r v,
+            iterate {cases n, cases r},
+            exact (v.nth 0 < v.nth 1),
+            cases r},
+   C := by {intros c,
+            cases c,
+            cases c_val,
+            exact ring.zero,            
+            exact ring.one}
+  }
 
 /-! -----------------------------------------------------------------
 -- 3. Embeddings between Structures
@@ -358,7 +378,7 @@ structure embedding {L : lang} (M N : struc L) : Type :=
 (η : M.univ → N.univ)                        -- map of underlying domains
 (η_inj : function.injective η)                -- should be one-to-one
 (η_F : ∀ n f v,                              -- preserves action of each function
-     η (app_vec (M.F n f) v) = app_vec (N.F n f) (vector.map η v))
+     η (app_vec (M.F (n+1) f) v) = app_vec (N.F (n+1) f) (vector.map η v))
 (η_R : ∀ n r v,                              -- preserves each relation
      v ∈ (M.R n r) ↔ (vector.map η v) ∈ (N.R n r))
 (η_C : ∀ c,                                   -- preserves each constant
@@ -464,7 +484,7 @@ instance term.inhabited {L : lang} : inhabited (term L 0) :=
   2. Σ denotes Sum of types. Represents ∃ at type level.
      Disjoint union of types (co-product in category of Set/Types).-/
 
-/-- Variables in a of term returned as a finite set.-/
+/-- Variables in a of term returned as a finite set. -/
 @[reducible] def vars_in_term {L : lang} : Π {n : ℕ}, term L n → finset ℕ
 | 0 (con c)    := ∅
 | 0 (var v)    := {v}
@@ -472,6 +492,8 @@ instance term.inhabited {L : lang} : inhabited (term L 0) :=
 | _ (app t t₀) := vars_in_term t ∪ vars_in_term t₀
 
 
+/-- The number of variables in a term is computed as the size of
+the finset given by vars_in_term. -/
 @[reducible] def number_of_vars {L : lang} : Π (n : ℕ), term L n → ℕ
 | 0 (con c)    := 0
 | 0 (var v)    := 1
@@ -485,7 +507,7 @@ def fterm_interpretation {L: lang} (M : struc L) :
   Π {n : ℕ} (t : fterm L n), Func M.univ n
 | 0 (con c) := M.C c
 | n (func f) := M.F n f
-| _ (app t t₀) := app_elem (fterm_interpretation t) (by linarith) (fterm_interpretation t₀)
+| _ (app t t₀) := (fterm_interpretation t) (fterm_interpretation t₀)
 
 
 /-! 4.1 Examples of Terms
@@ -498,26 +520,32 @@ namespace example_terms
   - one binary function g,
   - and one constant symbol c.-/
 
-  def L1 : lang := {F := λ n, if n=1 then unit else if n=2 then unit else empty,
-                    R := function.const ℕ empty,
-                    C := unit}
+  def L1 : lang := {F := λ n,
+                         if n=0 then unit else        -- one constant
+                         if n=1 then unit else        -- one unary op.
+                         if n=2 then unit else empty, -- one binrary op.
+                    R := function.const ℕ empty}
+  /-- f is a unary operation in L1. -/
   def f : L1.F 1 := unit.star
+  /-- g is a binary operation in L1. -/
   def g : L1.F 2 := unit.star
-  def c : L1.C   := unit.star
+  /-- c is a constant in L1. -/
+  def c : L1.C := unit.star
 
+  /-- M1 is a structure on L1. -/
   def M1 : struc L1 :=
   {univ := ℕ,
    F := by {intros n f,
-            cases n, { cases f},            -- if n=0
+            cases n, { exact 1},               -- if n=0 (must match with M1.C)
             cases n, { exact λ x : ℕ, 100*x}, -- if n=1
-            cases n, { exact (+)},          -- if n=2
-            cases f},                       -- if n>2
+            cases n, { exact (+)},             -- if n=2
+            cases f},                          -- if n>2
    R := λ _ f _, by {cases f},
    C := function.const L1.C 1}
 
 
   /-- t = f(g(c, f(v₅))) is a term on language L1.-/
-  def t₁ : fterm L1 0 := app (func f) (con c)            -- f(v₅)
+  def t₁ : fterm L1 0 := app (func f) (con c)            -- f(c)
   def t₂ : fterm L1 0 := app (app (func g) (con c)) t₁   -- g(c)(t₁)
   def t₃ : fterm L1 0 := app (func f) t₂                 -- f(t₂)
   def t : fterm L1 0 := app (func f)
@@ -543,44 +571,30 @@ end example_terms
 with exactly one term. A lemma will show if the term is variable
 free, then the image of the function is variable free. Can be
 generalized to subsitute each variable with its own term. -/
-def term_sub {L : lang} {m : ℕ} (t' : term L m) : Π n, term L n → term L n
+def term_sub {L : lang}(t' : term L 0) : Π n, term L n → term L n
 | 0 (con c)    := con c
-| 0 (var n)    := sorry -- This used to be t'. What should it be now?
-| n (func f)   := sorry
-| n (app t t₀) := sorry -- This used to be [app n f (term_sub_list ts)].
+| 0 (var n)    := t'
+| n (func f)   := func f
+| n (app t t₀) := app (term_sub (n+1) t) (term_sub 0 t₀)
 
+/--Alternative definition where we only allow the substitution to
+occur over only one variable.-/
 
-theorem term_sub_free {n m : ℕ} (t' : term L n) (t : term L m)
-  : var_free t' → var_free (term_sub t' m t) :=
-begin
-  intro H,
-  cases t,
+def term_sub_for_var {L : lang}(t' : term L 0)(k : ℕ) : 
+  Π n, term L n → term L n
+| 0 (con c)    := con c
+| 0 (var n)    := if k = n then t' else var n
+| n (func f)   := func f
+| n (app t t₀) := app (term_sub_for_var (n+1) t) (term_sub_for_var 0 t₀)
 
-  -- case for constant t
-  unfold var_free,
-  unfold term_sub,
-  unfold number_of_vars_t,
+open example_terms
 
-  -- case for variable t
-  unfold var_free,
-  unfold term_sub,
-  apply H,
-
-  -- case for application on more terms
-  unfold var_free,
-  unfold term_sub,
-  unfold number_of_vars_t,
-  induction t_ts with h,
-    unfold term_sub_list,
-    unfold number_of_vars_list_t,
-    unfold term_sub_list,
-    unfold number_of_vars_list_t,    
-    simp,
-    rw t_ts_ih,
-    simp,
-end
-
-
+def t₄ : term L1 0 := app (func f) (var 5) -- f(v₅)
+def t₅ : term L1 0 := app (app (func g) (con c)) (var 4) -- g(c, v₄)
+#reduce term_sub t₅ 0 t₄ -- f(g(c, v₄))
+#reduce term_sub (var 3) 0 t₄ -- f(v₃)
+#reduce term_sub_for_var (var 3) 4 0 t₄ -- f(v₅)
+#reduce term_sub_for_var (var 3) 5 0 t₄ -- f(v₃)
 
 /-! -----------------------------------------------------------------
 -- 5. Formulas and Sentences
@@ -689,7 +703,6 @@ def expanded_lang (L : lang) (M : struc L) : lang :=
 def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
   sorry
 
-
 inductive elements_of_domain (M : struc L) : Type
 | mk : M.univ → elements_of_domain
 | mk₁ : L.C → elements_of_domain
@@ -697,11 +710,10 @@ inductive elements_of_domain (M : struc L) : Type
 def models {L : lang} (M : struc L) : sentence L →  Prop
 | ⟨⊤', h⟩           := true
 | ⟨⊥', h⟩           := false
-| ⟨(t₁ =' t₂), h⟩   := sorry  -- prove here that h is a proof of false
+| ⟨(t₁ =' t₂), h⟩   := sorry
 | ⟨formula.rel r ts, h⟩ := sorry
 | ⟨¬' ϕ, h⟩             := sorry -- ¬models(ϕ)
 | ⟨ϕ₁ ∧' ϕ₂, h⟩        := sorry -- models(ϕ₁) ∧ models (ϕ₂)
 | ⟨ϕ₁ ∨' ϕ₂, h⟩        := sorry -- models(ϕ₁) ∨ models (ϕ₂)
 | ⟨∃' v ϕ, h⟩          := sorry --∃(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
 | ⟨∀' v ϕ, h⟩          := sorry --∀(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
-
