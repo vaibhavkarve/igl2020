@@ -186,6 +186,10 @@ def ordered_ring_lang : lang := {R := λ n : ℕ,
                                 if n = 2 then unit else empty,  -- one binary relation
                                 ..ring_lang}
 
+/-- The DLO language contains exactly one relation: <, and no functions or constants-/
+def DLO_lang : lang := {R := λ n : ℕ,                
+                        if n = 2 then unit else empty,  -- one binary relation
+                        ..set_lang}
 
 /-! -----------------------------------------------------------------
 -- 2. Structures and Examples
