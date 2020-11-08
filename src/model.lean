@@ -610,31 +610,17 @@ only elements of C as constants to the language. -/
 
 /-- Define expanded structures. -/
 def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
-  {univ := M.univ,
-   C := by {intro c,
-   cases c,
-   exact c,
-   exact M.F 0 c,
-   },
+  {C := λ c, sum.cases_on c id (M.F 0),
+   F := λ n f, by {dsimp only at f,
+                   split_ifs at f with h₁ h₂,
+                   rw h₁,
+                   exact sum.cases_on f id (M.F 0),
+                   exact M.F n f},
+   .. M}
 
-   F := by {intros n f,
-   unfold expanded_lang at f,
-   cases n,
-   cases f,
-   rw Func,
-   exact f,
-   rw Func,
-   exact M.F 0 f,
-   simp at f,
-   sorry},
-   R := M.R,
-}
 
 /-- We now interpret what it means for sentences to be true
     inside of our L-structures. -/
-
-
-
 def models {L : lang} (M : struc L) : sentence L →  Prop
 | ⟨⊤', h⟩           := true
 | ⟨⊥', h⟩           := false
