@@ -731,4 +731,5 @@ def models {L : lang} (M : struc L) : sentence L →  Prop
 -- 4. ∀x ∃y x < y;
 -- 5. ∀x ∃y y < x;
 -- 6. ∀x ∀y (x < y → ∃z (x < z ∧ z < y)).
+--
 -- Reference: Page 356 in http://builds.openlogicproject.org/open-logic-complete.pdf
