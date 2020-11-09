@@ -727,3 +727,16 @@ def models {L : lang} (M : struc L) : sentence L →  Prop
 | ⟨ϕ₁ ∨' ϕ₂, h⟩        := sorry -- models(ϕ₁) ∨ models (ϕ₂)
 | ⟨∃' v ϕ, h⟩          := sorry --∃(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
 | ⟨∀' v ϕ, h⟩          := sorry --∀(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
+
+
+-- TODO: Define a dense linear ordering without endpoints. A dense linear ordering without endpoints is a structure M for
+-- the language containg a single 2-place predicate symbol < satisfying the following sentences:
+-- 1. ∀x x < x;
+-- 2. ∀x ∀y ∀z (x < y → (y < z → x < z));
+-- 3. ∀x ∀y (x < y ∨ x = y ∨ y < x);
+-- 4. ∀x ∃y x < y;
+-- 5. ∀x ∃y y < x;
+-- 6. ∀x ∀y (x < y → ∃z (x < z ∧ z < y)).
+-- Reference: Page 356 in http://builds.openlogicproject.org/open-logic-complete.pdf
+
+
