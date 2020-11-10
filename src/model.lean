@@ -129,39 +129,6 @@ def magma_lang : lang := {F := λ n : ℕ, if n=2 then unit else empty,
                           ..set_lang}
 
 
-<<<<<<< HEAD
---A semigroup is a {×}-structure
-def semigroup_lang : lang := { ..magma_lang}
-
--- A monoid is a {×, 1}-structure 
-def monoid_lang : lang := { C := unit, ..semigroup_lang}
-
--- A group is a {×, ⁻¹, 1}-structure 
-def group_functions : ℕ → Type
-| 1 := unit   -- one unary function
-| 2 := unit   -- one binary function
-| _ := empty
-def group_lang : lang := {F := group_functions, ..monoid_lang}
-
--- A semiring is a {×, +, 0, 1}-structure 
-def semiring_functions : ℕ → Type
-| 2 := bool   -- two binary functions
-| _ := empty
-def semiring_lang : lang := {F := semiring_functions, C := bool, ..group_lang}
-
--- A ring is a {×,+,−,0,1}-structure
-def ring_functions : ℕ → Type
-| 1 := unit   -- one unary function
-| 2 := bool   -- two binary functions
-| _ := empty
-def ring_lang : lang := {F := ring_functions, ..semiring_lang}
-
--- An ordered ring is a {×,+,−,<,0,1}-structure
-def ordered_ring_relations : ℕ → Type
-| 2 := unit   -- one binary relation
-| _ := empty
-def ordered_ring_lang : lang := {R := ordered_ring_relations, ..ring_lang}
-=======
 /-- A semigroup is a {×}-structure which satisfies the identity
   u × (v × w) = (u × v) × w.  Note that identities are not relations!-/
 def semigroup_lang : lang := magma_lang
@@ -235,7 +202,6 @@ The  language contains exactly one relation: <, and no functions or constants-/
 def DLO_lang : lang := {R := λ n : ℕ,                
                         if n = 2 then unit else empty,  -- one binary relation
                         ..set_lang}
->>>>>>> master
 
 
 /-! -----------------------------------------------------------------
@@ -250,18 +216,11 @@ TODO: For now, we add in explicit interpretation of the constants as well
 as (L.F 0). But in fact we should keep one or the other, not both.
 -/
 structure struc (L : lang) : Type 1 :=
-<<<<<<< HEAD
-(univ : Type)                                    -- universe/domain
-(F (n : ℕ) (f : L.F n) : vector univ n → univ)   -- interpretation of each function
-(R (n : ℕ) (r : L.R n) : set (vector univ n))    -- interpretation of each relation
-(C : L.C → univ)                                -- interpretation of each constant
-=======
 (univ : Type)                                   -- universe/domain
 (F (n : ℕ) (f : L.F n) : Func univ n)          -- interpretation of each function
 (R (n : ℕ) (r : L.R n) : set (vector univ n))  -- interpretation of each relation
 (C : L.C → univ)                               -- interpretation of each constant
 
->>>>>>> master
 
 /-- Type is a structure of the set language-/
 def type_is_struc_of_set_lang {A : Type} : struc (set_lang) :=
@@ -283,21 +242,6 @@ instance struc.inhabited {L : lang} : inhabited (struc L) :=
 /-- Type is a structure of the ordered set language-/
 def type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
   struc (ordered_set_lang) :=
-<<<<<<< HEAD
-begin
-  fconstructor,
-   { exact A},
-   { intros _ f,
-     cases f},
-   { intros n r v,
-     iterate 2 {cases n, cases r},                         -- n<2: r n = empty 
-     cases n,
-      exact v.nth 0 < v.nth 1,                             -- n=2: r n = {<}
-      cases r,                                             -- n>2: r n = empty
-   },
-   { intros c,
-     cases c},
-=======
   {univ := A,
    F := λ _ f, empty.elim f,
    R := by {intros n r v,
@@ -306,7 +250,6 @@ begin
             cases r},
    C := λ c, empty.elim c}
 
->>>>>>> master
 
 
 -- ∈ ℕ 
@@ -317,27 +260,6 @@ class magma (α : Type) :=
 
 lemma free_magma_is_struc_of_magma_lang {A : Type} [magma A] :
   struc (magma_lang) :=
-<<<<<<< HEAD
-begin
-  fconstructor,
-  { exact A},
-  { 
-    intros n f v,
-    iterate 2 {cases n, cases f},                          -- n<2 → f n = empty
-    cases n,
-     exact magma.mul (v.nth 0) (v.nth 1),                  -- n=2 → f n = {×}
-     cases f,                                              -- n>2 → f n = empty
-  },
-  { 
-    intros n r,
-    cases r 
-  },
-  { 
-    intro c, 
-    cases c      -- C = empty
-  }
-end
-=======
   {univ := A,
    F := by {intros n f,
             iterate {cases n, cases f}, -- if n=0,1
@@ -346,133 +268,9 @@ end
    R := λ _ r, empty.elim r,
    C := λ c, empty.elim c}
 
->>>>>>> master
 
 lemma semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
   struc (semigroup_lang) :=
-<<<<<<< HEAD
-begin
-  fconstructor,
-  { exact A},
-  { 
-    intros n f v,
-    iterate 2 {cases n, cases f},                          -- n<2 → f n = empty
-    cases n,
-    { exact semigroup.mul (v.nth 0) (v.nth 1)},            -- n=2 → f n = {×}
-    { cases f},                                            -- n>2 → f n empty
-  },
-  { 
-    intros n r,
-    cases r 
-  },
-  { 
-    intro c,     -- C = empty
-    cases c
-  }
-end
-
-lemma monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
-  struc (monoid_lang) :=
-begin
-  fconstructor,
-  { exact A},
-  { 
-    intros n f v,
-    iterate 2 {cases n, cases f},                          -- n<2 → f n = empty
-    cases n,
-    { exact monoid.mul (v.nth 0) (v.nth 1)},               -- n=2 → f n = {×}
-    { cases f},                                            -- n>2 → f n = empty
-  },
-  { 
-    intros n r,
-    cases r 
-  },
-  {
-    intro c, 
-    exact 1,     -- C = {1}
-  }
-end
-
-lemma group_is_struc_of_group_lang {A : Type} [group A] :
-  struc (group_lang) := 
-begin
-  fconstructor,
-  { exact A},
-  { 
-    intros n f v,
-    cases n,
-     cases f,                                              -- n=0 → f n = empty
-    cases n,
-    { exact group.inv (v.nth 0)},                          -- n=1 → f n = {⁻¹}
-    cases n,
-    { exact group.mul (v.nth 0) (v.nth 1)},                -- n=2 → f n = {×}
-    { cases f},                                            -- n>2 → f n = empty
-  },
-  { 
-    intros n r,
-    cases r 
-  },
-  { 
-    intro c,
-    exact 1,     -- C = {1}
-  }
-end
-
-lemma semiring_is_struc_of_semiring_lang {A : Type} [semiring A] :
-  struc (semiring_lang) := 
-begin
-  fconstructor,
-  { exact A},
-  { 
-    intros n f v,
-    iterate 2 {cases n, cases f},                          -- n<2: f n = empty
-    cases n, 
-     cases f,                                              -- n=2: f n = {×, +}
-     { exact semiring.mul (v.nth 0) (v.nth 1)},            -- × 
-     { exact semiring.add (v.nth 0) (v.nth 1)},            -- +
-     cases f,                                              -- n>2: f n = empty
-  },
-  { 
-    intros n r,
-    cases r 
-  },
-  {
-    intro c,
-    cases c,     -- C = {0, 1}
-    { exact 0},
-    { exact 1}
-  }
-end
-
-lemma ring_is_struc_of_ring_lang {A : Type} [ring A] :
-  struc (ring_lang) := 
-begin
-  fconstructor,
-  { exact A},
-  { 
-    intros n f v,
-    cases n,
-     cases f,                                              -- n=0: f n = empty
-    cases n,
-     exact ring.neg (v.nth 0),                             -- n=1: f n = {-}
-    cases n, 
-     cases f,                                              -- n=2: f n = {×, +}
-     { exact ring.mul (v.nth 0) (v.nth 1)},                -- × 
-     { exact ring.add (v.nth 0) (v.nth 1)},                -- +
-     cases f,                                              -- n>2: f n = empty
-  },
-  { 
-    intros n r,
-    cases r 
-  },
-  {
-    intro c,
-    cases c,     --C = {0, 1}
-    { exact 0},
-    { exact 1}
-  }
-end
-=======
   {univ := A,
    F := by {intros n f,
             iterate {cases n, cases f},
@@ -560,7 +358,7 @@ def ring_is_struc_of_ring_lang {A : Type} [ring A] :
   }
 
   
-/-- Ordered ring is a structure of the language of ordered rings-/
+/-- Ordered ring is a structure of the language of ordered rings
 def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
   : struc(ordered_ring_lang) := 
   {univ := A,
@@ -586,14 +384,13 @@ def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
             exact ring.zero,            
             exact ring.one}
   }
-
+-/
 
 /-- A type with linear order is a structure on dense-linear-order language.-/
 def LO_is_struc_of_DLO_lang {A : Type} [linear_order A] : struc (DLO_lang) :=
   {univ := A,
    R := sorry,
    .. type_is_struc_of_set_lang}
->>>>>>> master
 
 lemma ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A] :
   struc (ordered_ring_lang) :=
@@ -681,15 +478,7 @@ def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 /-- If η: M → N is an embedding, then the cardinality of N is at least
   the cardinality of M.-/
 lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
-<<<<<<< HEAD
-  card M ≤ card N :=
-begin
-  apply cardinal.mk_le_of_injective,
-  exact η.η_inj,
-end
-=======
   card M ≤ card N := cardinal.mk_le_of_injective η.η_inj
->>>>>>> master
 
 /-! -----------------------------------------------------------------
 -- 4. Terms
@@ -983,29 +772,3 @@ def models {L : lang} (M : struc L) : sentence L →  Prop
 | ⟨∃' v ϕ, h⟩          := sorry --∃(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
 | ⟨∀' v ϕ, h⟩          := sorry --∀(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
 
-<<<<<<< HEAD
-def vars_in_formula (f : formula L) : finset ℕ := sorry
-def term_interpretation' (M : struc L) (t : term L)
-   (v : finset ℕ := vars_in_term_t t)  -- finset of vars in t
-   (a : vector M.univ v.card) : M.univ := sorry
-
-def formula_interpretation' (M : struc L) (f : formula L) (v : finset ℕ := vars_in_formula f)  -- finset of vars in f
-   (a : vector M.univ v.card) : bool := sorry
-    
-def is_definable (L : lang) (M : struc L) (X : set M.univ) : Prop := sorry
-
--- also needs to extend dense linear order (more relations than just <) ?
--- sublanguages
-
-def is_o_minimal (M : struc dense_linear_order) : Prop :=
-{
-  ∀ X : set M.univ, is_definable dense_linear_order M X →
-  ∃n : ℕ, ∃ v : vector (M.univ × M.univ) n, ∃ X₀ : finset M.univ, 
-  let S : list (set M.univ) := sorry /- the list of all n open intervals in v -/ in 
-  X = sorry -- union of X₀ and each open interval in the list S
-}
-
-#check @list.foldr
-#check @set.Union 
-=======
->>>>>>> master
