@@ -178,18 +178,29 @@ def semiring_lang : lang := {F := λ n : ℕ,
 def ring_lang : lang := {F := λ n : ℕ, 
                               if n = 0 then fin 2 else        -- two constants
                               if n = 1 then fin 1 else        -- one unary op.
-                              if n = 2 then fin 2 else empty, -- two binary ops.                             
+                              if n = 2 then fin 2 else empty, -- two binary ops.
                         ..magma_lang}
 
 /-- An ordered ring is a ring along with a binary ordering relation {<}.-/
 def ordered_ring_lang : lang := {R := λ n : ℕ,                
-                                if n = 2 then unit else empty,  -- one binary relation
+                                if n = 2 then unit else empty,  -- one binary rel.
                                 ..ring_lang}
 
-/-- The DLO language contains exactly one relation: <, and no functions or constants-/
+
+/-- A dense linear ordering without endpoints is a language containg a
+    single binary relation symbol < satisfying the following sentences:
+-- 1. ∀x x < x;
+-- 2. ∀x ∀y ∀z (x < y → (y < z → x < z));
+-- 3. ∀x ∀y (x < y ∨ x = y ∨ y < x);
+-- 4. ∀x ∃y x < y;
+-- 5. ∀x ∃y y < x;
+-- 6. ∀x ∀y (x < y → ∃z (x < z ∧ z < y)).
+
+The  language contains exactly one relation: <, and no functions or constants-/
 def DLO_lang : lang := {R := λ n : ℕ,                
                         if n = 2 then unit else empty,  -- one binary relation
                         ..set_lang}
+
 
 /-! -----------------------------------------------------------------
 -- 2. Structures and Examples
@@ -255,6 +266,7 @@ def magma_is_struc_of_magma_lang {A : Type} [magma A] :
             cases f},        -- if n≥3
    R := λ _ r, empty.elim r,
    C := λ c, empty.elim c}
+
 
 /-- Semigroup is a structure of the language of semigroups-/
 def semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
@@ -372,6 +384,14 @@ def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
             exact ring.zero,            
             exact ring.one}
   }
+
+
+/-- A type with linear order is a structure on dense-linear-order language.-/
+def LO_is_struc_of_DLO_lang {A : Type} [linear_order A] : struc (DLO_lang) :=
+  {univ := A,
+   R := sorry,
+   .. type_is_struc_of_set_lang}
+
 
 /-! -----------------------------------------------------------------
 -- 3. Embeddings between Structures
@@ -721,15 +741,3 @@ def models {L : lang} (M : struc L) : sentence L →  Prop
 | ⟨∃' v ϕ, h⟩          := sorry --∃(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
 | ⟨∀' v ϕ, h⟩          := sorry --∀(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
 
-
--- TODO: Define a dense linear ordering without endpoints.
--- A dense linear ordering without endpoints is a structure M for
--- the language containg a single 2-place predicate symbol < satisfying the following sentences:
--- 1. ∀x x < x;
--- 2. ∀x ∀y ∀z (x < y → (y < z → x < z));
--- 3. ∀x ∀y (x < y ∨ x = y ∨ y < x);
--- 4. ∀x ∃y x < y;
--- 5. ∀x ∃y y < x;
--- 6. ∀x ∀y (x < y → ∃z (x < z ∧ z < y)).
---
--- Reference: Page 356 in http://builds.openlogicproject.org/open-logic-complete.pdf
