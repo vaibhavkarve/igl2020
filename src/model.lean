@@ -178,18 +178,19 @@ def semiring_lang : lang := {F := λ n : ℕ,
 def ring_lang : lang := {F := λ n : ℕ, 
                               if n = 0 then fin 2 else        -- two constants
                               if n = 1 then fin 1 else        -- one unary op.
-                              if n = 2 then fin 2 else empty, -- two binary ops.                             
+                              if n = 2 then fin 2 else empty, -- two binary ops.
                         ..magma_lang}
 
 /-- An ordered ring is a ring along with a binary ordering relation {<}.-/
 def ordered_ring_lang : lang := {R := λ n : ℕ,                
-                                if n = 2 then unit else empty,  -- one binary relation
+                                if n = 2 then unit else empty,  -- one binary rel.
                                 ..ring_lang}
 
 /-- The DLO language contains exactly one relation: <, and no functions or constants-/
 def DLO_lang : lang := {R := λ n : ℕ,                
                         if n = 2 then unit else empty,  -- one binary relation
                         ..set_lang}
+
 
 /-! -----------------------------------------------------------------
 -- 2. Structures and Examples
@@ -255,6 +256,7 @@ def magma_is_struc_of_magma_lang {A : Type} [magma A] :
             cases f},        -- if n≥3
    R := λ _ r, empty.elim r,
    C := λ c, empty.elim c}
+
 
 /-- Semigroup is a structure of the language of semigroups-/
 def semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
