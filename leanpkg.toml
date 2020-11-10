@@ -1,8 +1,8 @@
 [package]
 name = "igl2020"
 version = "0.1"
-lean_version = "leanprover-community/lean:3.20.0"
+lean_version = "leanprover-community/lean:3.21.0"
 path = "src"
 
 [dependencies]
-mathlib = {git = "https://github.com/leanprover-community/mathlib", rev = "73f119e04c35a4ab10eae68345472d78e5c4f6c7"}
+mathlib = {git = "https://github.com/leanprover-community/mathlib", rev = "df4500242eb6aa6ee20b315b185b0f97a9b359c5"}

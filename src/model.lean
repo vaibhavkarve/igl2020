@@ -8,9 +8,9 @@ import set_theory.cardinal
 3. We define embedding between two structures on the same language.
 4. We define terms.
    4.1 We give some examples of terms.
-   4.2 (WIP) We define a function for term substitution and prove a theorem.
-   4.3 (WIP) We give an interpretation of terms in structures.
-5. (WIP) We define formulas.
+   4.2 We define a function for term substitution and prove a theorem.
+   4.3 We give an interpretation of terms in structures.
+5. We define formulas.
 -/
 
 
@@ -160,7 +160,11 @@ def group_lang : lang := {F := λ n : ℕ,
   6. u × 1 = u, 1 × u = u
   7. u × (v + w) = (u × v) + (u × w)
   8. (v + w) × u = (v × u) + (w × u)-/
-def semiring_lang : lang := sorry
+def semiring_lang : lang := {F := λ n : ℕ,
+                                  if n = 0 then fin 2 else          -- two constants
+                                  if n = 2 then fin 2 else empty,   -- two binary ops.
+                          ..magma_lang}
+
 
 /-- A ring is a {×,+,−,0,1}-structure which satisfies the identities
    1. u + (v + w) = (u + v) + w
@@ -171,11 +175,21 @@ def semiring_lang : lang := sorry
    6. u × 1 = u, 1 × u = u
    7. u × (v + w) = (u × v) + (u × w)
    8. (v + w) × u = (v × u) + (w × u)-/
-def ring_lang : lang := sorry
+def ring_lang : lang := {F := λ n : ℕ, 
+                              if n = 0 then fin 2 else        -- two constants
+                              if n = 1 then fin 1 else        -- one unary op.
+                              if n = 2 then fin 2 else empty, -- two binary ops.                             
+                        ..magma_lang}
 
 /-- An ordered ring is a ring along with a binary ordering relation {<}.-/
-def ordered_ring_lang : lang := sorry
+def ordered_ring_lang : lang := {R := λ n : ℕ,                
+                                if n = 2 then unit else empty,  -- one binary relation
+                                ..ring_lang}
 
+/-- The DLO language contains exactly one relation: <, and no functions or constants-/
+def DLO_lang : lang := {R := λ n : ℕ,                
+                        if n = 2 then unit else empty,  -- one binary relation
+                        ..set_lang}
 
 /-! -----------------------------------------------------------------
 -- 2. Structures and Examples
@@ -267,23 +281,97 @@ def monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
    R := λ _ r, empty.elim r,
    C := λ c, 1}
 
+
 /-- Group is a structure of the group language-/
 def group_is_struc_of_group_lang {A : Type} [group A] :
-  struc (group_lang) := sorry
+  struc (group_lang) := 
+  {univ := A,
+   F := by {intros n f,
+            iterate {cases n, cases f},
+              exact 1,
+            iterate {cases n, cases f},
+              exact group.inv,
+            iterate {cases n, cases f},
+              exact group.mul,
+            cases f},
+    R := λ _ r, empty.elim r,
+    C := λ c, 1}
+
 
 /-- Semiring is a structure of the language of semirings-/
 def semiring_is_struc_of_semiring_lang {A : Type} [semiring A] :
-  struc (semiring_lang) := sorry
+  struc (semiring_lang) := 
+  {univ := A,
+   F := by {intros n f,
+            iterate {cases n, cases f},
+            cases f_val,
+              exact semiring.zero,
+              exact semiring.one,
+            iterate {cases n, cases f},
+            cases f_val,
+              exact semiring.add,
+              exact semiring.mul,
+            cases f},
+   R := λ _ r, empty.elim r,
+   C := by {intros c,
+            cases c,
+            cases c_val,
+            exact semiring.zero,
+            exact semiring.one}
+  }
+
 
 /-- Ring is a structure of the language of rings-/
 def ring_is_struc_of_ring_lang {A : Type} [ring A] :
-  struc (ring_lang) := sorry
+  struc (ring_lang) :=
+  {univ := A,
+   F := by {intros n f,
+            iterate {cases n, cases f},
+            cases f_val,
+              exact ring.zero,
+              exact ring.one,
+            iterate {cases n, cases f},
+              exact ring.neg,
+            iterate {cases n, cases f},
+            cases f_val,
+              exact ring.add,
+              exact ring.mul,
+            cases f},
+   R := λ _ r, empty.elim r,
+   C := by {intros c,
+            cases c,
+            cases c_val,
+            exact ring.zero,            
+            exact ring.one}
+  }
+
   
 /-- Ordered ring is a structure of the language of ordered rings-/
 def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
-  : struc(ordered_ring_lang) := sorry
-
-
+  : struc(ordered_ring_lang) := 
+  {univ := A,
+   F := by {intros n f,
+            iterate {cases n, cases f},
+            cases f_val,
+              exact ring.zero,
+              exact ring.one,
+            iterate {cases n, cases f},
+              exact ring.neg,
+            iterate {cases n, cases f},
+            cases f_val,
+              exact ring.add,
+              exact ring.mul,
+            cases f},
+   R := by {intros n r v,
+            iterate {cases n, cases r},
+            exact (v.nth 0 < v.nth 1),
+            cases r},
+   C := by {intros c,
+            cases c,
+            cases c_val,
+            exact ring.zero,            
+            exact ring.one}
+  }
 
 /-! -----------------------------------------------------------------
 -- 3. Embeddings between Structures
@@ -354,7 +442,7 @@ inductive term : ℕ → Type
 | con : L.C → term 0
 | var : ℕ → term 0
 | func {n : ℕ} : L.F n → term n
-| app {n : ℕ} : term (n+1) → term 0 → term n
+| app {n : ℕ} : term (n + 1) → term 0 → term (n)
 open term
 
 /-- We define an fterm (free-term) as begin similar to a term, but without
@@ -406,6 +494,7 @@ the finset given by vars_in_term. -/
 | _ (func f)   := 0
 | _ (app t t₀) := (vars_in_term  t ∪ vars_in_term t₀).card
 
+set_option trace.inductive
 
 /-- Recursively define term interpretation for variable-free terms. -/
 def fterm_interpretation {L: lang} (M : struc L) :
@@ -631,3 +720,16 @@ def models {L : lang} (M : struc L) : sentence L →  Prop
 | ⟨ϕ₁ ∨' ϕ₂, h⟩        := sorry -- models(ϕ₁) ∨ models (ϕ₂)
 | ⟨∃' v ϕ, h⟩          := sorry --∃(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
 | ⟨∀' v ϕ, h⟩          := sorry --∀(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
+
+
+-- TODO: Define a dense linear ordering without endpoints.
+-- A dense linear ordering without endpoints is a structure M for
+-- the language containg a single 2-place predicate symbol < satisfying the following sentences:
+-- 1. ∀x x < x;
+-- 2. ∀x ∀y ∀z (x < y → (y < z → x < z));
+-- 3. ∀x ∀y (x < y ∨ x = y ∨ y < x);
+-- 4. ∀x ∃y x < y;
+-- 5. ∀x ∃y y < x;
+-- 6. ∀x ∀y (x < y → ∃z (x < z ∧ z < y)).
+--
+-- Reference: Page 356 in http://builds.openlogicproject.org/open-logic-complete.pdf
