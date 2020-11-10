@@ -389,7 +389,11 @@ def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
 /-- A type with linear order is a structure on dense-linear-order language.-/
 def LO_is_struc_of_DLO_lang {A : Type} [linear_order A] : struc (DLO_lang) :=
   {univ := A,
-   R := sorry,
+   R := by {intros n r v,
+            iterate {cases n, cases r},
+            exact (v.nth 0 < v.nth 1),
+            cases r,
+          },
    .. type_is_struc_of_set_lang}
 
 
