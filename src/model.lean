@@ -1,6 +1,6 @@
-import tactic
-import data.real.basic
-import set_theory.cardinal
+--import tactic
+--import data.real.basic
+--import set_theory.cardinal
 /-!
 0. We define functions of arity (n : ℕ) and their API.
 1. We define languages and give examples.
@@ -508,13 +508,13 @@ instance term.inhabited {L : lang} : inhabited (term L 0) :=
 
 /-- The number of variables in a term is computed as the size of
 the finset given by vars_in_term. -/
-@[reducible] def number_of_vars {L : lang} : Π (n : ℕ), term L n → ℕ
+@[reducible] def number_of_vars {L : lang} : Π {n : ℕ}, term L n → ℕ
 | 0 (con c)    := 0
 | 0 (var v)    := 1
 | _ (func f)   := 0
-| _ (app t t₀) := (vars_in_term  t ∪ vars_in_term t₀).card
+| _ (app t t₀) := number_of_vars t + number_of_vars t₀
 
-set_option trace.inductive
+
 
 /-- Recursively define term interpretation for variable-free terms. -/
 def fterm_interpretation {L: lang} (M : struc L) :
@@ -522,6 +522,68 @@ def fterm_interpretation {L: lang} (M : struc L) :
 | 0 (con c) := M.C c
 | n (func f) := M.F n f
 | _ (app t t₀) := (fterm_interpretation t) (fterm_interpretation t₀)
+
+
+
+
+def combine_Funcs {α : Type} (n m : ℕ) : Func α (n+1) → Func α (m+1) → Func α (n+m+1) :=
+begin
+  intros f₁ f₂,
+  apply @mk_Func_of_total α (n+m+1),
+  intros v,
+  replace f₁ := app_vec f₁,
+  replace f₂ := app_vec f₂,
+  cases v,
+  have x := list.split_at (n+1) v_val,
+  have v₁ := x.1,
+  have v₂ := x.2,
+  replace v₁ : vector α (n+1) := ⟨v₁, sorry⟩,
+  replace v₂ : vector α (m+1) := ⟨v₂, sorry⟩,
+  
+  have vₙ := vector.take n v,
+  have x : min n (n+m+1) = n,
+  unfold min,
+  split_ifs,
+  refl,
+  omega,
+  rw x at vₙ,
+  cases n,
+  simp at *,
+  exact fₙ,
+  exact app_vec fₙ vₙ,
+  sorry
+end
+
+
+/-- Recursively define term interpretation for all terms. -/
+def term_interpretation {L: lang} (M : struc L) :
+  Π {n : ℕ} (t : term L n), Func M.univ (n + number_of_vars t)
+| 0 (con c) := M.C c
+| 0 (var v) := id
+| n (func f) := by {apply M.F,
+                    cases n,
+                    exact f,
+                    exact f}
+| 0 _ := sorry
+| (N+1) (app t t₀) := by {
+                      
+                      have Mt := term_interpretation t,
+                      have Mt₀ := term_interpretation t₀,
+                      unfold number_of_vars,
+                      apply app_elem,
+   have x := @combine_Funcs M.univ (N + 1 + number_of_vars t) (number_of_vars t₀-1),
+   have h : Func M.univ (N+1+number_of_vars t+1) = Func M.univ (N+1+1+number_of_vars t),
+   ring,
+   rw h at *,
+   replace x := x Mt,
+   
+   
+                      
+                      
+                      
+                      
+sorry}
+
 
 
 /-! 4.1 Examples of Terms
@@ -616,8 +678,8 @@ def t₅ : term L1 0 := app (app (func g) (con c)) (var 4) -- g(c, v₄)
 
 
 inductive formula (L : lang)
-| t : formula
-| f : formula
+| tt : formula
+| ff : formula
 | eq  : term L 0 → term L 0 → formula
 | rel : Π {n : ℕ}, L.R n → vector (term L 0) n → formula
 | neg : formula → formula
@@ -633,17 +695,16 @@ infix    `∧'` :  70 := formula.and
 infix    `∨'` :  70 := formula.or
 notation `∃'` : 110 := formula.exi
 notation `∀'` : 110 := formula.all
-notation `⊤'` : 110 := formula.t
-notation `⊥'` : 110 := formula.f
+notation `⊤'` : 110 := formula.tt
+notation `⊥'` : 110 := formula.ff
 
-/--Helper function for variables from list of terms-/
-
+/-- Helper function for variables from list of terms-/
 def vars_in_list {L : lang} : list (term L 0) → finset ℕ
 |[] := ∅
 |(t :: ts) := vars_in_term t ∪ vars_in_list ts
 
-/-- Extracts set of variables from the formula-/
 
+/-- Extracts set of variables from the formula-/
 def vars_in_formula {L : lang}: formula L → finset ℕ 
 | ⊤'                 := ∅
 | ⊥'                 := ∅
@@ -654,6 +715,7 @@ def vars_in_formula {L : lang}: formula L → finset ℕ
 | (ϕ₁ ∨' ϕ₂)  := vars_in_formula ϕ₁ ∪ vars_in_formula ϕ₂
 | (∃' v ϕ)    := vars_in_formula ϕ ∪ {v}
 | (∀' v ϕ)    := vars_in_formula ϕ ∪ {v}
+
 
 /-- A variable occurs freely in a formula if it is not quantified
 over.-/
@@ -668,8 +730,10 @@ def is_var_free (n : ℕ) {L : lang}: formula L → Prop
 | (∃' v ϕ)    := v ≠ n ∧ is_var_free ϕ
 | (∀' v ϕ)    := v ≠ n ∧ is_var_free ϕ
 
+
 /-- If the variable does not occur freely, we say that it is bound.-/
 def var_is_bound {L : lang} (n : ℕ) (ϕ : formula L) : Prop := ¬ is_var_free n ϕ
+
 
 /-- We use the following to define sentences within Lean-/
 def is_sentence {L : lang} (ϕ : formula L) : Prop :=
@@ -733,7 +797,7 @@ def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
 def models {L : lang} (M : struc L) : sentence L →  Prop
 | ⟨⊤', h⟩           := true
 | ⟨⊥', h⟩           := false
-| ⟨(t₁ =' t₂), h⟩   := sorry
+| ⟨(t₁ =' t₂), h⟩   := fterm_interpretation
 | ⟨formula.rel r ts, h⟩ := sorry
 | ⟨¬' ϕ, h⟩             := sorry -- ¬models(ϕ)
 | ⟨ϕ₁ ∧' ϕ₂, h⟩        := sorry -- models(ϕ₁) ∧ models (ϕ₂)
