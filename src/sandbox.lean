@@ -120,6 +120,7 @@ def max' {α : Type} [decidable_linear_order α] : list α → option α
 #eval max [1, 3, 20, 5, 10]
 #eval max' [1, 3, 20, 5, 10]
 
+#print list
 end recursion
 
 
