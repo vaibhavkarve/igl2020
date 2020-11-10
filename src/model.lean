@@ -581,6 +581,7 @@ def term_sub_for_var {L : lang}(t' : term L 0)(k : ℕ) :
 | n (func f)   := func f
 | n (app t t₀) := app (term_sub_for_var (n+1) t) (term_sub_for_var 0 t₀)
 
+
 open example_terms
 
 def t₄ : term L1 0 := app (func f) (var 5) -- f(v₅)
