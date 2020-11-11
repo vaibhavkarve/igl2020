@@ -465,25 +465,6 @@ inductive term : ℕ → Type
 | app {n : ℕ} : term (n + 1) → term 0 → term (n)
 open term
 
-/-- We define an fterm (free-term) as begin similar to a term, but without
-the `var` constructor.-/
-inductive fterm : ℕ → Type
-| con : L.C → fterm 0
-| func {n : ℕ} : L.F n → fterm n
-| app {n : ℕ} : fterm (n+1) → fterm 0 → fterm n
-open fterm
-
-
-/-- We define a coercion instance from fterm to term. This is to be understood
-as "every fterm is also a term".  This is called "type-casting" in other
-languages. Once we define the coercion, lean will put in the coercion maps wherever
-needed to make the types agree.
--/
-def fterm_to_term_coe {L : lang} : Π {n : ℕ}, fterm L n → term L n
-| 0 (con c) :=  con c
-| _ (func f) := func f
-| _ (app t t₀) := app (fterm_to_term_coe t) (fterm_to_term_coe t₀)
-instance fterm_to_term {n : ℕ} : has_coe (fterm L n) (term L n) := ⟨fterm_to_term_coe⟩
 
 /-- Every language L is guaranteed to have a 0-level term because
 variable terms can be formed without reference to L. In fact, every
@@ -515,74 +496,12 @@ the finset given by vars_in_term. -/
 | _ (app t t₀) := number_of_vars t + number_of_vars t₀
 
 
-
-/-- Recursively define term interpretation for variable-free terms. -/
-def fterm_interpretation {L: lang} (M : struc L) :
-  Π {n : ℕ} (t : fterm L n), Func M.univ n
+def term_interpretation {L: lang} (M : struc L) (var_assign : ℕ → M.univ) :
+  Π {n : ℕ}, term L n →  Func M.univ n
 | 0 (con c) := M.C c
+| 0 (var v) := var_assign v
 | n (func f) := M.F n f
-| _ (app t t₀) := (fterm_interpretation t) (fterm_interpretation t₀)
-
-
-
-
-def combine_Funcs {α : Type} (n m : ℕ) : Func α (n+1) → Func α (m+1) → Func α (n+m+1) :=
-begin
-  intros f₁ f₂,
-  apply @mk_Func_of_total α (n+m+1),
-  intros v,
-  replace f₁ := app_vec f₁,
-  replace f₂ := app_vec f₂,
-  cases v,
-  have x := list.split_at (n+1) v_val,
-  have v₁ := x.1,
-  have v₂ := x.2,
-  replace v₁ : vector α (n+1) := ⟨v₁, sorry⟩,
-  replace v₂ : vector α (m+1) := ⟨v₂, sorry⟩,
-  
-  have vₙ := vector.take n v,
-  have x : min n (n+m+1) = n,
-  unfold min,
-  split_ifs,
-  refl,
-  omega,
-  rw x at vₙ,
-  cases n,
-  simp at *,
-  exact fₙ,
-  exact app_vec fₙ vₙ,
-  sorry
-end
-
-
-/-- Recursively define term interpretation for all terms. -/
-def term_interpretation {L: lang} (M : struc L) :
-  Π {n : ℕ} (t : term L n), Func M.univ (n + number_of_vars t)
-| 0 (con c) := M.C c
-| 0 (var v) := id
-| n (func f) := by {apply M.F,
-                    cases n,
-                    exact f,
-                    exact f}
-| 0 _ := sorry
-| (N+1) (app t t₀) := by {
-                      
-                      have Mt := term_interpretation t,
-                      have Mt₀ := term_interpretation t₀,
-                      unfold number_of_vars,
-                      apply app_elem,
-   have x := @combine_Funcs M.univ (N + 1 + number_of_vars t) (number_of_vars t₀-1),
-   have h : Func M.univ (N+1+number_of_vars t+1) = Func M.univ (N+1+1+number_of_vars t),
-   ring,
-   rw h at *,
-   replace x := x Mt,
-   
-   
-                      
-                      
-                      
-                      
-sorry}
+| n (app t t₀) := (term_interpretation t) (term_interpretation t₀)
 
 
 
@@ -621,21 +540,22 @@ namespace example_terms
 
 
   /-- t = f(g(c, f(v₅))) is a term on language L1.-/
-  def t₁ : fterm L1 0 := app (func f) (con c)            -- f(c)
-  def t₂ : fterm L1 0 := app (app (func g) (con c)) t₁   -- g(c)(t₁)
-  def t₃ : fterm L1 0 := app (func f) t₂                 -- f(t₂)
-  def t : fterm L1 0 := app (func f)
+  def t₁ : term L1 0 := app (func f) (var 5)            -- f(c)
+  def t₂ : term L1 0 := app (app (func g) (con c)) t₁   -- g(c)(t₁)
+  def t₃ : term L1 0 := app (func f) t₂                 -- f(t₂)
+  def t : term L1 0 := app (func f)
                            $ app (app (func g) (con c))
                                  $ app (func f) (con c)
+  def va : ℕ → M1.univ := function.const ℕ (M1.C c)
 
-  #reduce fterm_interpretation M1 (func f)  -- f is interpreted as x ↦ 100x
-  #reduce fterm_interpretation M1 (func g)  -- g is interpreted (x, y) ↦ x+y
-  #reduce fterm_interpretation M1 (con c)   -- c is interpreted as (1 : ℕ)
-  #eval fterm_interpretation M1 t₁     -- f(c) is interpreted as 100 
-  #eval fterm_interpretation M1 t₂     -- g(c, t₁) is interpreted as 101
-  #eval fterm_interpretation M1 t₃     -- f(g(c, f(c))) is interpreted as 10100
-  #eval fterm_interpretation M1 t      -- same as t₃
-  
+  #reduce term_interpretation M1 va (func f)  -- f is interpreted as x ↦ 100x
+  #reduce term_interpretation M1 va (func g)  -- g is interpreted (x, y) ↦ x+y
+  #reduce term_interpretation M1 va (con c)   -- c is interpreted as (1 : ℕ)
+  #eval term_interpretation M1 va t₁          -- f(c) is interpreted as 100
+  #eval term_interpretation M1 va t₂          -- g(c, t₁) is interpreted as 101
+  #eval term_interpretation M1 va t₃          -- f(g(c, f(c))) is interpreted as 10100
+  #eval term_interpretation M1 va t           -- same as t₃
+
 
 end example_terms
 
@@ -656,7 +576,7 @@ def term_sub {L : lang}(t' : term L 0) : Π n, term L n → term L n
 /--Alternative definition where we only allow the substitution to
 occur over only one variable.-/
 
-def term_sub_for_var {L : lang}(t' : term L 0)(k : ℕ) : 
+def term_sub_for_var {L : lang}(t' : term L 0)(k : ℕ) :
   Π n, term L n → term L n
 | 0 (con c)    := con c
 | 0 (var n)    := if k = n then t' else var n
@@ -705,7 +625,7 @@ def vars_in_list {L : lang} : list (term L 0) → finset ℕ
 
 
 /-- Extracts set of variables from the formula-/
-def vars_in_formula {L : lang}: formula L → finset ℕ 
+def vars_in_formula {L : lang}: formula L → finset ℕ
 | ⊤'                 := ∅
 | ⊥'                 := ∅
 | (t₁='t₂)           := vars_in_term t₁ ∪ vars_in_term t₂
@@ -746,7 +666,7 @@ def sentence (L : lang) : Type := {ϕ : formula L // is_sentence ϕ}
 namespace example_sentences
   open example_terms
   def ψ₁ : formula L1 := t₁ =' (var 5) -- f(c) = v₅
-  def ψ₂ : formula L1 := ¬' (var 4 =' t₃ ) -- g(c, t₁) =/= v₄ 
+  def ψ₂ : formula L1 := ¬' (var 4 =' t₃ ) -- g(c, t₁) =/= v₄
   def ψ₃ : formula L1 := ∃' 3 ψ₁ -- ∃v₃  f(v₅) = v₅
   def ψ₄ : formula L1 := ∀' 4 (∀' 5 ψ₂) -- ∀v₄∀v₅ g(c, f(v₄)) =/= v₅
 
@@ -794,14 +714,13 @@ def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
 
 /-- We now interpret what it means for sentences to be true
     inside of our L-structures. -/
-def models {L : lang} (M : struc L) : sentence L →  Prop
-| ⟨⊤', h⟩           := true
-| ⟨⊥', h⟩           := false
-| ⟨(t₁ =' t₂), h⟩   := fterm_interpretation
-| ⟨formula.rel r ts, h⟩ := sorry
-| ⟨¬' ϕ, h⟩             := sorry -- ¬models(ϕ)
-| ⟨ϕ₁ ∧' ϕ₂, h⟩        := sorry -- models(ϕ₁) ∧ models (ϕ₂)
-| ⟨ϕ₁ ∨' ϕ₂, h⟩        := sorry -- models(ϕ₁) ∨ models (ϕ₂)
-| ⟨∃' v ϕ, h⟩          := sorry --∃(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
-| ⟨∀' v ϕ, h⟩          := sorry --∀(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
-
+def models {L : lang} (M : struc L) : (ℕ → M.univ) → formula L →  Prop
+| va ⊤'           := true
+| va ⊥'           := false
+| va (t₁ =' t₂)   := (term_interpretation M va t₁) = (term_interpretation M va t₂)
+| va (formula.rel r ts) := sorry
+| va ¬' ϕ             :=  ¬ models va ϕ
+| va (ϕ₁ ∧' ϕ₂)      := models va (ϕ₁) ∧ models va (ϕ₂)
+| va (ϕ₁ ∨' ϕ₂)      := models va (ϕ₁) ∨ models va (ϕ₂)
+| va (∃' v ϕ)        := ∃ (x : M.univ), models (λ n, if n=v then x else va n) ϕ
+| va (∀' v ϕ)        := ∀ (x : M.univ), models (λ n, if n=v then x else va n) ϕ
