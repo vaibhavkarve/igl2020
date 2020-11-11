@@ -1,6 +1,6 @@
---import tactic
---import data.real.basic
---import set_theory.cardinal
+import tactic
+import data.real.basic
+import set_theory.cardinal
 /-!
 0. We define functions of arity (n : ℕ) and their API.
 1. We define languages and give examples.
@@ -50,7 +50,7 @@ it into a partial function of the same arity.
 2. This constructor makes a recursive call to itself. -/
 def mk_Func_of_total {α : Type} : Π {n : ℕ}, (vector α (n+1) → α) → Func α (n+1)
 | 0     := λ f a, f ⟨[a], by norm_num⟩                -- this produces a 1-ary func
-| (n+1) := λ f a, mk_Func_of_total (λ v, f (a :: v))  -- an (n+2)-ary function
+| (n+1) := λ f a, mk_Func_of_total (λ v, f (vector.cons a v))  -- an (n+2)-ary function
 
 
 /-- We can apply a Func to an element. This will give us a lower-level
@@ -110,7 +110,7 @@ possible language, the language of pure sets. This language has no
 functions, relations or constants.-/
 def set_lang: lang := {F := function.const ℕ empty,
                        R := function.const ℕ empty}
-                       
+
 /-- Having defined a set_lang, we now use it to declare that lang is an
 inhabited type.-/
 instance lang.inhabited : inhabited lang := {default := set_lang}
