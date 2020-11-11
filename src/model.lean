@@ -712,9 +712,9 @@ def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
    .. M}
 
 
-/-- We now interpret what it means for sentences to be true
-    inside of our L-structures. -/
-def models {L : lang} (M : struc L) : (ℕ → M.univ) → formula L →  Prop
+/-- We now interpret what it means for a formula to be true/modeled in
+an L-structure. -/
+def models {L : lang} {M : struc L} : (ℕ → M.univ) → formula L →  Prop
 | va ⊤'           := true
 | va ⊥'           := false
 | va (t₁ =' t₂)   := (term_interpretation M va t₁) = (term_interpretation M va t₂)
