@@ -175,14 +175,14 @@ def semiring_lang : lang := {F := λ n : ℕ,
    6. u × 1 = u, 1 × u = u
    7. u × (v + w) = (u × v) + (u × w)
    8. (v + w) × u = (v × u) + (w × u)-/
-def ring_lang : lang := {F := λ n : ℕ, 
+def ring_lang : lang := {F := λ n : ℕ,
                               if n = 0 then fin 2 else        -- two constants
                               if n = 1 then fin 1 else        -- one unary op.
                               if n = 2 then fin 2 else empty, -- two binary ops.
                         ..magma_lang}
 
 /-- An ordered ring is a ring along with a binary ordering relation {<}.-/
-def ordered_ring_lang : lang := {R := λ n : ℕ,                
+def ordered_ring_lang : lang := {R := λ n : ℕ,
                                 if n = 2 then unit else empty,  -- one binary rel.
                                 ..ring_lang}
 
@@ -197,7 +197,7 @@ def ordered_ring_lang : lang := {R := λ n : ℕ,
 -- 6. ∀x ∀y (x < y → ∃z (x < z ∧ z < y)).
 
 The  language contains exactly one relation: <, and no functions or constants-/
-def DLO_lang : lang := {R := λ n : ℕ,                
+def DLO_lang : lang := {R := λ n : ℕ,
                         if n = 2 then unit else empty,  -- one binary relation
                         ..set_lang}
 
@@ -282,7 +282,7 @@ def semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
 
 /-- Monoid is a structure of the language of monoids-/
 def monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
-  struc (monoid_lang) := 
+  struc (monoid_lang) :=
   {univ := A,
    F := by {intros n f,
             cases n, cases f,
@@ -296,7 +296,7 @@ def monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
 
 /-- Group is a structure of the group language-/
 def group_is_struc_of_group_lang {A : Type} [group A] :
-  struc (group_lang) := 
+  struc (group_lang) :=
   {univ := A,
    F := by {intros n f,
             iterate {cases n, cases f},
@@ -312,7 +312,7 @@ def group_is_struc_of_group_lang {A : Type} [group A] :
 
 /-- Semiring is a structure of the language of semirings-/
 def semiring_is_struc_of_semiring_lang {A : Type} [semiring A] :
-  struc (semiring_lang) := 
+  struc (semiring_lang) :=
   {univ := A,
    F := by {intros n f,
             iterate {cases n, cases f},
@@ -353,14 +353,14 @@ def ring_is_struc_of_ring_lang {A : Type} [ring A] :
    C := by {intros c,
             cases c,
             cases c_val,
-            exact ring.zero,            
+            exact ring.zero,
             exact ring.one}
   }
 
-  
+
 /-- Ordered ring is a structure of the language of ordered rings-/
 def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
-  : struc(ordered_ring_lang) := 
+  : struc(ordered_ring_lang) :=
   {univ := A,
    F := by {intros n f,
             iterate {cases n, cases f},
@@ -381,7 +381,7 @@ def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
    C := by {intros c,
             cases c,
             cases c_val,
-            exact ring.zero,            
+            exact ring.zero,
             exact ring.one}
   }
 
