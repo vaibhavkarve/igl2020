@@ -50,7 +50,7 @@ it into a partial function of the same arity.
 2. This constructor makes a recursive call to itself. -/
 def mk_Func_of_total {α : Type} : Π {n : ℕ}, (vector α (n+1) → α) → Func α (n+1)
 | 0     := λ f a, f ⟨[a], by norm_num⟩                -- this produces a 1-ary func
-| (n+1) := λ f a, mk_Func_of_total (λ v, f (a :: v))  -- an (n+2)-ary function
+| (n+1) := λ f a, mk_Func_of_total (λ v, f (vector.cons a v))  -- an (n+2)-ary function
 
 
 /-- We can apply a Func to an element. This will give us a lower-level
@@ -110,7 +110,7 @@ possible language, the language of pure sets. This language has no
 functions, relations or constants.-/
 def set_lang: lang := {F := function.const ℕ empty,
                        R := function.const ℕ empty}
-                       
+
 /-- Having defined a set_lang, we now use it to declare that lang is an
 inhabited type.-/
 instance lang.inhabited : inhabited lang := {default := set_lang}
@@ -175,14 +175,14 @@ def semiring_lang : lang := {F := λ n : ℕ,
    6. u × 1 = u, 1 × u = u
    7. u × (v + w) = (u × v) + (u × w)
    8. (v + w) × u = (v × u) + (w × u)-/
-def ring_lang : lang := {F := λ n : ℕ, 
+def ring_lang : lang := {F := λ n : ℕ,
                               if n = 0 then fin 2 else        -- two constants
                               if n = 1 then fin 1 else        -- one unary op.
                               if n = 2 then fin 2 else empty, -- two binary ops.
                         ..magma_lang}
 
 /-- An ordered ring is a ring along with a binary ordering relation {<}.-/
-def ordered_ring_lang : lang := {R := λ n : ℕ,                
+def ordered_ring_lang : lang := {R := λ n : ℕ,
                                 if n = 2 then unit else empty,  -- one binary rel.
                                 ..ring_lang}
 
@@ -197,7 +197,7 @@ def ordered_ring_lang : lang := {R := λ n : ℕ,
 -- 6. ∀x ∀y (x < y → ∃z (x < z ∧ z < y)).
 
 The  language contains exactly one relation: <, and no functions or constants-/
-def DLO_lang : lang := {R := λ n : ℕ,                
+def DLO_lang : lang := {R := λ n : ℕ,
                         if n = 2 then unit else empty,  -- one binary relation
                         ..set_lang}
 
@@ -282,7 +282,7 @@ def semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
 
 /-- Monoid is a structure of the language of monoids-/
 def monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
-  struc (monoid_lang) := 
+  struc (monoid_lang) :=
   {univ := A,
    F := by {intros n f,
             cases n, cases f,
@@ -296,7 +296,7 @@ def monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
 
 /-- Group is a structure of the group language-/
 def group_is_struc_of_group_lang {A : Type} [group A] :
-  struc (group_lang) := 
+  struc (group_lang) :=
   {univ := A,
    F := by {intros n f,
             iterate {cases n, cases f},
@@ -312,7 +312,7 @@ def group_is_struc_of_group_lang {A : Type} [group A] :
 
 /-- Semiring is a structure of the language of semirings-/
 def semiring_is_struc_of_semiring_lang {A : Type} [semiring A] :
-  struc (semiring_lang) := 
+  struc (semiring_lang) :=
   {univ := A,
    F := by {intros n f,
             iterate {cases n, cases f},
@@ -353,14 +353,14 @@ def ring_is_struc_of_ring_lang {A : Type} [ring A] :
    C := by {intros c,
             cases c,
             cases c_val,
-            exact ring.zero,            
+            exact ring.zero,
             exact ring.one}
   }
 
-  
+
 /-- Ordered ring is a structure of the language of ordered rings-/
 def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
-  : struc(ordered_ring_lang) := 
+  : struc(ordered_ring_lang) :=
   {univ := A,
    F := by {intros n f,
             iterate {cases n, cases f},
@@ -381,7 +381,7 @@ def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
    C := by {intros c,
             cases c,
             cases c_val,
-            exact ring.zero,            
+            exact ring.zero,
             exact ring.one}
   }
 
@@ -469,25 +469,6 @@ inductive term : ℕ → Type
 | app {n : ℕ} : term (n + 1) → term 0 → term (n)
 open term
 
-/-- We define an fterm (free-term) as begin similar to a term, but without
-the `var` constructor.-/
-inductive fterm : ℕ → Type
-| con : L.C → fterm 0
-| func {n : ℕ} : L.F n → fterm n
-| app {n : ℕ} : fterm (n+1) → fterm 0 → fterm n
-open fterm
-
-
-/-- We define a coercion instance from fterm to term. This is to be understood
-as "every fterm is also a term".  This is called "type-casting" in other
-languages. Once we define the coercion, lean will put in the coercion maps wherever
-needed to make the types agree.
--/
-def fterm_to_term_coe {L : lang} : Π {n : ℕ}, fterm L n → term L n
-| 0 (con c) :=  con c
-| _ (func f) := func f
-| _ (app t t₀) := app (fterm_to_term_coe t) (fterm_to_term_coe t₀)
-instance fterm_to_term {n : ℕ} : has_coe (fterm L n) (term L n) := ⟨fterm_to_term_coe⟩
 
 /-- Every language L is guaranteed to have a 0-level term because
 variable terms can be formed without reference to L. In fact, every
@@ -512,20 +493,20 @@ instance term.inhabited {L : lang} : inhabited (term L 0) :=
 
 /-- The number of variables in a term is computed as the size of
 the finset given by vars_in_term. -/
-@[reducible] def number_of_vars {L : lang} : Π (n : ℕ), term L n → ℕ
+@[reducible] def number_of_vars {L : lang} : Π {n : ℕ}, term L n → ℕ
 | 0 (con c)    := 0
 | 0 (var v)    := 1
 | _ (func f)   := 0
-| _ (app t t₀) := (vars_in_term  t ∪ vars_in_term t₀).card
+| _ (app t t₀) := number_of_vars t + number_of_vars t₀
 
-set_option trace.inductive
 
-/-- Recursively define term interpretation for variable-free terms. -/
-def fterm_interpretation {L: lang} (M : struc L) :
-  Π {n : ℕ} (t : fterm L n), Func M.univ n
+def term_interpretation {L: lang} (M : struc L) (var_assign : ℕ → M.univ) :
+  Π {n : ℕ}, term L n →  Func M.univ n
 | 0 (con c) := M.C c
+| 0 (var v) := var_assign v
 | n (func f) := M.F n f
-| _ (app t t₀) := (fterm_interpretation t) (fterm_interpretation t₀)
+| n (app t t₀) := (term_interpretation t) (term_interpretation t₀)
+
 
 
 /-! 4.1 Examples of Terms
@@ -563,21 +544,22 @@ namespace example_terms
 
 
   /-- t = f(g(c, f(v₅))) is a term on language L1.-/
-  def t₁ : fterm L1 0 := app (func f) (con c)            -- f(c)
-  def t₂ : fterm L1 0 := app (app (func g) (con c)) t₁   -- g(c)(t₁)
-  def t₃ : fterm L1 0 := app (func f) t₂                 -- f(t₂)
-  def t : fterm L1 0 := app (func f)
+  def t₁ : term L1 0 := app (func f) (var 5)            -- f(c)
+  def t₂ : term L1 0 := app (app (func g) (con c)) t₁   -- g(c)(t₁)
+  def t₃ : term L1 0 := app (func f) t₂                 -- f(t₂)
+  def t : term L1 0 := app (func f)
                            $ app (app (func g) (con c))
                                  $ app (func f) (con c)
+  def va : ℕ → M1.univ := function.const ℕ (M1.C c)
 
-  #reduce fterm_interpretation M1 (func f)  -- f is interpreted as x ↦ 100x
-  #reduce fterm_interpretation M1 (func g)  -- g is interpreted (x, y) ↦ x+y
-  #reduce fterm_interpretation M1 (con c)   -- c is interpreted as (1 : ℕ)
-  #eval fterm_interpretation M1 t₁     -- f(c) is interpreted as 100 
-  #eval fterm_interpretation M1 t₂     -- g(c, t₁) is interpreted as 101
-  #eval fterm_interpretation M1 t₃     -- f(g(c, f(c))) is interpreted as 10100
-  #eval fterm_interpretation M1 t      -- same as t₃
-  
+  #reduce term_interpretation M1 va (func f)  -- f is interpreted as x ↦ 100x
+  #reduce term_interpretation M1 va (func g)  -- g is interpreted (x, y) ↦ x+y
+  #reduce term_interpretation M1 va (con c)   -- c is interpreted as (1 : ℕ)
+  #eval term_interpretation M1 va t₁          -- f(c) is interpreted as 100
+  #eval term_interpretation M1 va t₂          -- g(c, t₁) is interpreted as 101
+  #eval term_interpretation M1 va t₃          -- f(g(c, f(c))) is interpreted as 10100
+  #eval term_interpretation M1 va t           -- same as t₃
+
 
 end example_terms
 
@@ -598,7 +580,7 @@ def term_sub {L : lang}(t' : term L 0) : Π n, term L n → term L n
 /--Alternative definition where we only allow the substitution to
 occur over only one variable.-/
 
-def term_sub_for_var {L : lang}(t' : term L 0)(k : ℕ) : 
+def term_sub_for_var {L : lang}(t' : term L 0)(k : ℕ) :
   Π n, term L n → term L n
 | 0 (con c)    := con c
 | 0 (var n)    := if k = n then t' else var n
@@ -621,8 +603,8 @@ def t₅ : term L1 0 := app (app (func g) (con c)) (var 4) -- g(c, v₄)
 
 
 inductive formula (L : lang)
-| t : formula
-| f : formula
+| tt : formula
+| ff : formula
 | eq  : term L 0 → term L 0 → formula
 | rel : Π {n : ℕ}, L.R n → vector (term L 0) n → formula
 | neg : formula → formula
@@ -638,18 +620,17 @@ infix    `∧'` :  70 := formula.and
 infix    `∨'` :  70 := formula.or
 notation `∃'` : 110 := formula.exi
 notation `∀'` : 110 := formula.all
-notation `⊤'` : 110 := formula.t
-notation `⊥'` : 110 := formula.f
+notation `⊤'` : 110 := formula.tt
+notation `⊥'` : 110 := formula.ff
 
-/--Helper function for variables from list of terms-/
-
+/-- Helper function for variables from list of terms-/
 def vars_in_list {L : lang} : list (term L 0) → finset ℕ
 |[] := ∅
 |(t :: ts) := vars_in_term t ∪ vars_in_list ts
 
-/-- Extracts set of variables from the formula-/
 
-def vars_in_formula {L : lang}: formula L → finset ℕ 
+/-- Extracts set of variables from the formula-/
+def vars_in_formula {L : lang}: formula L → finset ℕ
 | ⊤'                 := ∅
 | ⊥'                 := ∅
 | (t₁='t₂)           := vars_in_term t₁ ∪ vars_in_term t₂
@@ -659,6 +640,7 @@ def vars_in_formula {L : lang}: formula L → finset ℕ
 | (ϕ₁ ∨' ϕ₂)  := vars_in_formula ϕ₁ ∪ vars_in_formula ϕ₂
 | (∃' v ϕ)    := vars_in_formula ϕ ∪ {v}
 | (∀' v ϕ)    := vars_in_formula ϕ ∪ {v}
+
 
 /-- A variable occurs freely in a formula if it is not quantified
 over.-/
@@ -673,8 +655,10 @@ def is_var_free (n : ℕ) {L : lang}: formula L → Prop
 | (∃' v ϕ)    := v ≠ n ∧ is_var_free ϕ
 | (∀' v ϕ)    := v ≠ n ∧ is_var_free ϕ
 
+
 /-- If the variable does not occur freely, we say that it is bound.-/
 def var_is_bound {L : lang} (n : ℕ) (ϕ : formula L) : Prop := ¬ is_var_free n ϕ
+
 
 /-- We use the following to define sentences within Lean-/
 def is_sentence {L : lang} (ϕ : formula L) : Prop :=
@@ -687,7 +671,7 @@ def sentence (L : lang) : Type := {ϕ : formula L // is_sentence ϕ}
 namespace example_sentences
   open example_terms
   def ψ₁ : formula L1 := t₁ =' (var 5) -- f(c) = v₅
-  def ψ₂ : formula L1 := ¬' (var 4 =' t₃ ) -- g(c, t₁) =/= v₄ 
+  def ψ₂ : formula L1 := ¬' (var 4 =' t₃ ) -- g(c, t₁) =/= v₄
   def ψ₃ : formula L1 := ∃' 3 ψ₁ -- ∃v₃  f(v₅) = v₅
   def ψ₄ : formula L1 := ∀' 4 (∀' 5 ψ₂) -- ∀v₄∀v₅ g(c, f(v₄)) =/= v₅
 
@@ -735,14 +719,13 @@ def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
 
 /-- We now interpret what it means for sentences to be true
     inside of our L-structures. -/
-def models {L : lang} (M : struc L) : sentence L →  Prop
-| ⟨⊤', h⟩           := true
-| ⟨⊥', h⟩           := false
-| ⟨(t₁ =' t₂), h⟩   := sorry
-| ⟨formula.rel r ts, h⟩ := sorry
-| ⟨¬' ϕ, h⟩             := sorry -- ¬models(ϕ)
-| ⟨ϕ₁ ∧' ϕ₂, h⟩        := sorry -- models(ϕ₁) ∧ models (ϕ₂)
-| ⟨ϕ₁ ∨' ϕ₂, h⟩        := sorry -- models(ϕ₁) ∨ models (ϕ₂)
-| ⟨∃' v ϕ, h⟩          := sorry --∃(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
-| ⟨∀' v ϕ, h⟩          := sorry --∀(x ∈ M.univ) models (expanded_struc (L M) term_sub(x v ϕ))
-
+def models {L : lang} (M : struc L) : (ℕ → M.univ) → formula L →  Prop
+| va ⊤'           := true
+| va ⊥'           := false
+| va (t₁ =' t₂)   := (term_interpretation M va t₁) = (term_interpretation M va t₂)
+| va (formula.rel r ts) := sorry
+| va ¬' ϕ             :=  ¬ models va ϕ
+| va (ϕ₁ ∧' ϕ₂)      := models va (ϕ₁) ∧ models va (ϕ₂)
+| va (ϕ₁ ∨' ϕ₂)      := models va (ϕ₁) ∨ models va (ϕ₂)
+| va (∃' v ϕ)        := ∃ (x : M.univ), models (λ n, if n=v then x else va n) ϕ
+| va (∀' v ϕ)        := ∀ (x : M.univ), models (λ n, if n=v then x else va n) ϕ
