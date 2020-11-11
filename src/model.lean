@@ -717,9 +717,9 @@ def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
    .. M}
 
 
-/-- We now interpret what it means for sentences to be true
-    inside of our L-structures. -/
-def models {L : lang} (M : struc L) : (ℕ → M.univ) → formula L →  Prop
+/-- We now interpret what it means for a formula to be true/modeled in
+an L-structure. -/
+def models {L : lang} {M : struc L} : (ℕ → M.univ) → formula L →  Prop
 | va ⊤'           := true
 | va ⊥'           := false
 | va (t₁ =' t₂)   := (term_interpretation M va t₁) = (term_interpretation M va t₂)
@@ -729,3 +729,23 @@ def models {L : lang} (M : struc L) : (ℕ → M.univ) → formula L →  Prop
 | va (ϕ₁ ∨' ϕ₂)      := models va (ϕ₁) ∨ models va (ϕ₂)
 | va (∃' v ϕ)        := ∃ (x : M.univ), models (λ n, if n=v then x else va n) ϕ
 | va (∀' v ϕ)        := ∀ (x : M.univ), models (λ n, if n=v then x else va n) ϕ
+
+
+/-- Suppose that s₁ and s₂ are variable assignment functions into a structure M
+such that s₁(v) = s₂(v) for every free variable v in the formula ϕ.
+Then M ⊨ ϕ[s₁] iff M ⊨ ϕ[s₂]. -/
+lemma iff_models_of_identical_var_assign (s₁ s₂ : ℕ → M.univ) (ϕ : formula L)
+  (h : ∀ v : ℕ, s₁ v = s₂ v) : (models s₁ ϕ ↔ models s₂ ϕ) :=
+begin
+  sorry
+end
+
+
+/--If σ is a sentence in the language L and M is an L-structure, either M ⊨ σ[s]
+for all assignment functions s, of M ⊨ σ[s] for no assignment function s. -/
+lemma models_all_or_none_sentences (σ : sentence L) :
+  xor (∀ va : ℕ → M.univ, models va σ.val)
+      (∀ va' : ℕ → M.univ, ¬ models va' σ.val) :=
+begin
+  sorry
+end
