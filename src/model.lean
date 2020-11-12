@@ -623,6 +623,14 @@ notation `∀'` : 110 := formula.all
 notation `⊤'` : 110 := formula.tt
 notation `⊥'` : 110 := formula.ff
 
+def impl {L : lang} (φ₁ : formula L)(φ₂ : formula L) := ¬'φ₁ ∨' φ₂
+
+infix `→'` : 80 := impl
+
+def bicond {L: lang} (φ₁ : formula L)(φ₂ : formula L) := (φ₁ →' φ₂) ∧' (φ₂ →' φ₁)
+
+infix `↔'` : 80 := bicond
+
 /-- Helper function for variables from list of terms-/
 def vars_in_list {L : lang} : list (term L 0) → finset ℕ
 |[] := ∅
@@ -719,11 +727,11 @@ def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
 
 /-- We now interpret what it means for a formula to be true/modeled in
 an L-structure. -/
-def models {L : lang} {M : struc L} : (ℕ → M.univ) → formula L →  Prop
+def models {L : lang} (M : struc L) : (ℕ → M.univ) → formula L →  Prop
 | va ⊤'           := true
 | va ⊥'           := false
 | va (t₁ =' t₂)   := (term_interpretation M va t₁) = (term_interpretation M va t₂)
-| va (formula.rel _ r ts) := sorry
+| va (formula.rel _ r ts) := vector.map (term_interpretation M va) ts ∈ M.R ts.length r
 | va ¬' ϕ             :=  ¬ models va ϕ
 | va (ϕ₁ ∧' ϕ₂)      := models va (ϕ₁) ∧ models va (ϕ₂)
 | va (ϕ₁ ∨' ϕ₂)      := models va (ϕ₁) ∨ models va (ϕ₂)
@@ -751,5 +759,57 @@ begin
 end
 
 
-/-- Example formula : x<y in the DLO language. -/
-example : formula DLO_lang := formula.rel 2 () ⟨[var 1, var 2], rfl⟩
+/--We now define a model to be a structure that models a set
+of sentences and show (ℚ, <) models the axioms for DLO.-/
+
+structure Model {L : lang}(axs : set(formula L)) : Type 1 :=
+(M : struc L)
+(va : ℕ → M.univ)
+(satis : ∀ (σ : axs), models M va σ)
+
+namespace DLO_Model
+
+def Q_struc : struc DLO_lang :={
+  univ := ℚ,
+  R := by{intros n f, 
+            cases n, exact ∅, cases n, exact ∅,
+            cases n, exact {v : vector ℚ 2 | v.nth 0 < v.nth 1},
+            exact ∅,
+  }, 
+  C := function.const DLO_lang.C 1,
+  F := λ _ f, by {cases f},
+}
+notation `<'` : 110 := formula.rel 2 ()
+
+/-- A dense linear ordering without endpoints is a language containg a
+    single binary relation symbol < satisfying the following sentences:
+-- 1. ∀x x < x;
+-- 2. ∀x ∀y ∀z (x < y → (y < z → x < z));
+-- 3. ∀x ∀y (x < y ∨ x = y ∨ y < x);
+-- 4. ∀x ∃y x < y;
+-- 5. ∀x ∃y y < x;
+-- 6. ∀x ∀y (x < y → ∃z (x < z ∧ z < y)). -/
+
+def φ₁ : formula DLO_lang := <' ⟨[var 1, var 2], rfl⟩ -- x < y
+def φ₂ : formula DLO_lang := <' ⟨[var 2, var 1], rfl⟩ -- y < x
+def φ₃ : formula DLO_lang := <' ⟨[var 2, var 3], rfl⟩ -- y < z
+def φ₄ : formula DLO_lang := <' ⟨[var 3, var 2], rfl⟩ -- z < y
+def φ₅ : formula DLO_lang := <' ⟨[var 1, var 3], rfl⟩ -- x < z
+def φ₆ : formula DLO_lang := <' ⟨[var 1, var 1], rfl⟩ -- x < x
+
+def DLO_axioms : set(formula DLO_lang) := {
+ ∀'1 (∀'2 (¬' φ₁)),
+ ∀'1 (∀'2 (∀'3 (φ₁ →' (φ₃ →' φ₅)))),
+ ∀'1 (∀'2 (∀' 3 ((φ₁ ∨' φ₂) ∨' (var 1 =' var 2)) )),
+ ∀'1 (∃'2 (φ₁)),
+ ∀'1 (∃'2 (φ₂)),
+ ∀'1 (∀'2 (φ₁ →' ∃'3(φ₅ ∧' φ₄) ))  
+}
+
+def Q_Model_DLO : Model (DLO_axioms) := {
+  M := Q_struc,
+  va := by{intro n, change Q_struc.univ with ℚ, exact n},
+  satis := by{sorry}
+}
+
+end DLO_Model
