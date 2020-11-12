@@ -82,13 +82,18 @@ TODO: Turn this into patter-matched term-style definition.
 def app_vec_partial {α : Type} {n m : ℕ} (h : m ≤ n) (f : Func α (n+1))
   (v : vector α (m+1)) : Func α (n-m) :=
 begin
-  induction m with m mih,
+ show_term{ induction m with m mih,
    { exact f v.head},
   have nat_ineq : n-m.succ+1 = n-m := by omega,
   have f' : Func α (n-m) := mih (by omega) v.tail,
   rw ← nat_ineq at f',
-  exact f' v.head,
-end
+  exact f' v.head,}
+end}
+
+def app_vec_partial' {α : Type} : Π {m n : ℕ} (h: m ≤ n), 
+  Func α (n+1) → vector α (m+1) → Func α (n-m)
+| 0     := λ n h f v, f v.head
+| (k+1) := λ n h f v, app_vec_partial' h (f v.head) (v.tail)               
 
 
 /-! -----------------------------------------------------------------
@@ -105,7 +110,7 @@ structure lang : Type 1 :=
 def lang.C (L : lang) : Type := L.F 0
 
 def dense_linear_order: lang := {R := λ n : ℕ, if n=2 then unit else empty,
-                                  F := function.const ℕ empty, C := empty}
+                                  F := function.const ℕ empty}
 
 /-- We now define some example languages. We start with the simplest
 possible language, the language of pure sets. This language has no
@@ -358,7 +363,7 @@ def ring_is_struc_of_ring_lang {A : Type} [ring A] :
   }
 
   
-/-- Ordered ring is a structure of the language of ordered rings
+/-- Ordered ring is a structure of the language of ordered rings-/
 def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
   : struc(ordered_ring_lang) := 
   {univ := A,
@@ -384,7 +389,7 @@ def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
             exact ring.zero,            
             exact ring.one}
   }
--/
+
 
 /-- A type with linear order is a structure on dense-linear-order language.-/
 def LO_is_struc_of_DLO_lang {A : Type} [linear_order A] : struc (DLO_lang) :=
@@ -395,7 +400,7 @@ def LO_is_struc_of_DLO_lang {A : Type} [linear_order A] : struc (DLO_lang) :=
             cases r,
           },
    .. type_is_struc_of_set_lang}
-
+/-
 lemma ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A] :
   struc (ordered_ring_lang) :=
 begin
@@ -426,7 +431,7 @@ begin
     { exact 0},
     { exact 1}
   }
-end
+end-/
 
 /-! -----------------------------------------------------------------
 -- 3. Embeddings between Structures
@@ -549,7 +554,7 @@ the finset given by vars_in_term. -/
 | _ (func f)   := 0
 | _ (app t t₀) := (vars_in_term  t ∪ vars_in_term t₀).card
 
-set_option trace.inductive
+-- set_option trace.inductive
 
 /-- Recursively define term interpretation for variable-free terms. -/
 def fterm_interpretation {L: lang} (M : struc L) :
