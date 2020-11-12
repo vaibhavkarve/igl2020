@@ -758,6 +758,8 @@ begin
   sorry
 end
 
+-- TODO: make notation for models : ⊧ or ⊨
+
 
 /--We now define a model to be a structure that models a set
 of sentences and show (ℚ, <) models the axioms for DLO.-/
@@ -765,17 +767,18 @@ of sentences and show (ℚ, <) models the axioms for DLO.-/
 structure Model {L : lang}(axs : set(formula L)) : Type 1 :=
 (M : struc L)
 (va : ℕ → M.univ)
-(satis : ∀ (σ : axs), models M va σ)
+(satis : ∀ (σ ∈ axs), models M va σ)
+
 
 namespace DLO_Model
 
-def Q_struc : struc DLO_lang :={
+@[reducible] def Q_struc : struc DLO_lang :={
   univ := ℚ,
-  R := by{intros n f, 
-            cases n, exact ∅, cases n, exact ∅,
-            cases n, exact {v : vector ℚ 2 | v.nth 0 < v.nth 1},
-            exact ∅,
-  }, 
+  R := by{intros n f,
+          iterate 2 {cases n, exact ∅},
+          cases n, exact {v : vector ℚ 2 | v.nth 0 < v.nth 1},
+          exact ∅,
+  },
   C := function.const DLO_lang.C 1,
   F := λ _ f, by {cases f},
 }
@@ -798,18 +801,38 @@ def φ₅ : formula DLO_lang := <' ⟨[var 1, var 3], rfl⟩ -- x < z
 def φ₆ : formula DLO_lang := <' ⟨[var 1, var 1], rfl⟩ -- x < x
 
 def DLO_axioms : set(formula DLO_lang) := {
- ∀'1 (∀'2 (¬' φ₁)),
+ ∀'1 (∀'2 (¬' φ₆)),
  ∀'1 (∀'2 (∀'3 (φ₁ →' (φ₃ →' φ₅)))),
  ∀'1 (∀'2 (∀' 3 ((φ₁ ∨' φ₂) ∨' (var 1 =' var 2)) )),
  ∀'1 (∃'2 (φ₁)),
  ∀'1 (∃'2 (φ₂)),
- ∀'1 (∀'2 (φ₁ →' ∃'3(φ₅ ∧' φ₄) ))  
+ ∀'1 (∀'2 (φ₁ →' ∃'3(φ₅ ∧' φ₄) ))
 }
 
 def Q_Model_DLO : Model (DLO_axioms) := {
   M := Q_struc,
-  va := by{intro n, change Q_struc.univ with ℚ, exact n},
-  satis := by{sorry}
+  va := function.const ℕ 0,
+  satis := begin
+intros σ,
+rintro (rfl | rfl | rfl | rfl | rfl | H);
+iterate {unfold models};
+intros,
+ {intros y,
+  cases y,
+  solve_by_elim},
+ sorry,
+ sorry,
+ sorry,
+ sorry,
+ sorry,
+ end
 }
 
+
 end DLO_Model
+
+
+-- TODOs: Definability, o-minimality
+-- x<2 in ℝ defines (-∞, 2)
+-- x=y in ℝ defines a line at 45 degrees.
+-- Non-definable: (ℤ, +). ∃x, x+x=x defines {0}. Cannot define {1}.
