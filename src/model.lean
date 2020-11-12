@@ -606,7 +606,7 @@ inductive formula (L : lang)
 | tt : formula
 | ff : formula
 | eq  : term L 0 → term L 0 → formula
-| rel : Π {n : ℕ}, L.R n → vector (term L 0) n → formula
+| rel : Π (n : ℕ), L.R n → vector (term L 0) n → formula
 | neg : formula → formula
 | and : formula → formula → formula
 | or  : formula → formula → formula
@@ -634,7 +634,7 @@ def vars_in_formula {L : lang}: formula L → finset ℕ
 | ⊤'                 := ∅
 | ⊥'                 := ∅
 | (t₁='t₂)           := vars_in_term t₁ ∪ vars_in_term t₂
-| (formula.rel r ts) := vars_in_list (ts.to_list)
+| (formula.rel _ r ts) := vars_in_list (ts.to_list)
 | (¬' ϕ)       := vars_in_formula ϕ
 | (ϕ₁ ∧' ϕ₂)  := vars_in_formula ϕ₁ ∪ vars_in_formula ϕ₂
 | (ϕ₁ ∨' ϕ₂)  := vars_in_formula ϕ₁ ∪ vars_in_formula ϕ₂
@@ -648,7 +648,7 @@ def is_var_free (n : ℕ) {L : lang}: formula L → Prop
 | ⊤'                 := true
 | ⊥'                 := true
 | (t₁='t₂)           := true
-| (formula.rel r ts) := true
+| (formula.rel _ r ts) := true
 | (¬' ϕ)       := is_var_free ϕ
 | (ϕ₁ ∧' ϕ₂)  := is_var_free ϕ₁ ∧ is_var_free ϕ₂
 | (ϕ₁ ∨' ϕ₂)  := is_var_free ϕ₁ ∧ is_var_free ϕ₂
@@ -723,7 +723,7 @@ def models {L : lang} {M : struc L} : (ℕ → M.univ) → formula L →  Prop
 | va ⊤'           := true
 | va ⊥'           := false
 | va (t₁ =' t₂)   := (term_interpretation M va t₁) = (term_interpretation M va t₂)
-| va (formula.rel r ts) := sorry
+| va (formula.rel _ r ts) := sorry
 | va ¬' ϕ             :=  ¬ models va ϕ
 | va (ϕ₁ ∧' ϕ₂)      := models va (ϕ₁) ∧ models va (ϕ₂)
 | va (ϕ₁ ∨' ϕ₂)      := models va (ϕ₁) ∨ models va (ϕ₂)
@@ -749,3 +749,7 @@ lemma models_all_or_none_sentences (σ : sentence L) :
 begin
   sorry
 end
+
+
+/-- Example formula : x<y in the DLO language. -/
+example : formula DLO_lang := formula.rel 2 () ⟨[var 1, var 2], rfl⟩
