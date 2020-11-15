@@ -740,6 +740,31 @@ def models {L : lang} {M : struc L} : (ℕ → M.univ) → formula L →  Prop
 
 
 /-- Suppose that s₁ and s₂ are variable assignment functions into a structure M
+such that s₁(v) = s₂(v) for every free variable v in the term t.
+Then t is interpreted to the same element under both s₁ and s₂. -/
+lemma eq_term_interpretation_of_identical_var_assign {L : lang} {M : struc L}
+  (s₁ s₂ : ℕ → M.univ) (t : term L 0) (h : ∀ v : ℕ, s₁ v = s₂ v) :
+  (term_interpretation M s₁ t = term_interpretation M s₂ t) :=
+begin
+  -- We will proceed with induction on the term t.
+  induction t with c v n f₀ n t t₀ t_ih t₀_ih,
+  { -- the case where t is a constant c is definitionally true.
+    refl},
+  { -- the case where t is a variable is obvious once we use hypothesis h.
+    unfold term_interpretation,
+    rw h},
+  { -- the case where t is a function of arity n is obvious once we split
+    -- n into the zero and nonzero cases.
+    cases n; refl},
+  -- This leaves the case where t is an application of t to t₀.
+  -- We start by splitting n over the zero and nonzero cases.
+  cases n;
+   { -- In each case, we rewrite using the induction hypotheses and
+     -- the conclusion follows.
+     unfold term_interpretation,
+     rw [t_ih, t₀_ih]},
+end
+/-- Suppose that s₁ and s₂ are variable assignment functions into a structure M
 such that s₁(v) = s₂(v) for every free variable v in the formula ϕ.
 Then M ⊨ ϕ[s₁] iff M ⊨ ϕ[s₂]. -/
 lemma iff_models_of_identical_var_assign (s₁ s₂ : ℕ → M.univ) (ϕ : formula L)
