@@ -502,9 +502,9 @@ the finset given by vars_in_term. -/
 
 def term_interpretation {L: lang} (M : struc L) (var_assign : ℕ → M.univ) :
   Π {n : ℕ}, term L n →  Func M.univ n
-| 0 (con c) := M.C c
-| 0 (var v) := var_assign v
-| n (func f) := M.F n f
+| 0 (con c)    := M.C c
+| 0 (var v)    := var_assign v
+| n (func f)   := M.F n f
 | n (app t t₀) := (term_interpretation t) (term_interpretation t₀)
 
 
@@ -638,7 +638,7 @@ def vars_in_list {L : lang} : list (term L 0) → finset ℕ
 
 
 /-- Extracts set of variables from the formula-/
-def vars_in_formula {L : lang}: formula L → finset ℕ
+def vars_in_formula {L : lang} : formula L → finset ℕ
 | ⊤'                 := ∅
 | ⊥'                 := ∅
 | (t₁='t₂)           := vars_in_term t₁ ∪ vars_in_term t₂
@@ -652,7 +652,7 @@ def vars_in_formula {L : lang}: formula L → finset ℕ
 
 /-- A variable occurs freely in a formula if it is not quantified
 over.-/
-def is_var_free (n : ℕ) {L : lang}: formula L → Prop
+def is_var_free (n : ℕ) {L : lang} : formula L → Prop
 | ⊤'                 := true
 | ⊥'                 := true
 | (t₁='t₂)           := true
@@ -727,7 +727,7 @@ def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
 
 /-- We now interpret what it means for a formula to be true/modeled in
 an L-structure. -/
-def models {L : lang} (M : struc L) : (ℕ → M.univ) → formula L →  Prop
+def models {L : lang} {M : struc L} : (ℕ → M.univ) → formula L →  Prop
 | va ⊤'           := true
 | va ⊥'           := false
 | va (t₁ =' t₂)   := (term_interpretation M va t₁) = (term_interpretation M va t₂)
