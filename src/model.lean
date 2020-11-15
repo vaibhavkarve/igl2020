@@ -764,6 +764,30 @@ begin
      unfold term_interpretation,
      rw [t_ih, t₀_ih]},
 end
+
+
+/-- Suppose that s₁ and s₂ are variable assignment functions into a structure
+M such that s₁(v)=s₂(v) for every free variable v. The vector v on n terms is
+satisfied in M under s₁ iff it is also satisfied under s₂. -/
+lemma iff_models_relation_of_identical_var_assign {L : lang} {M : struc L}
+  (n : ℕ)
+  (s₁ s₂ : ℕ → M.univ)
+  (h : ∀ (v : ℕ), s₁ v = s₂ v)
+  (r : L.R n)
+  (v : vector (term L 0) n) :
+  models s₁ (formula.rel n r v) ↔ models s₂ (formula.rel n r v) :=
+begin
+  unfold models,
+  suffices x : vector.map (term_interpretation M s₁) v
+               = vector.map (term_interpretation M s₂) v,
+  rw x,
+  ext1,
+  rwa [vector.nth_map, vector.nth_map,
+       eq_term_interpretation_of_identical_var_assign],
+end
+
+
+
 /-- Suppose that s₁ and s₂ are variable assignment functions into a structure M
 such that s₁(v) = s₂(v) for every free variable v in the formula ϕ.
 Then M ⊨ ϕ[s₁] iff M ⊨ ϕ[s₂]. -/
