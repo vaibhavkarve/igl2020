@@ -794,7 +794,18 @@ Then M ⊨ ϕ[s₁] iff M ⊨ ϕ[s₂]. -/
 lemma iff_models_of_identical_var_assign (s₁ s₂ : ℕ → M.univ) (ϕ : formula L)
   (h : ∀ v : ℕ, s₁ v = s₂ v) : (models s₁ ϕ ↔ models s₂ ϕ) :=
 begin
-  sorry
+  induction ϕ with t₁ t₂,
+  iterate 2 {refl},
+
+  {unfold models,
+   have h₁ := eq_term_interpretation_of_identical_var_assign s₁ s₂ t₁ h,
+   have h₂ := eq_term_interpretation_of_identical_var_assign s₁ s₂ t₂ h,
+   finish},
+
+  apply iff_models_relation_of_identical_var_assign,
+  exact h,
+
+  iterate 5 {unfold models, finish},
 end
 
 
