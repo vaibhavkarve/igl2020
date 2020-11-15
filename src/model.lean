@@ -824,10 +824,10 @@ end
 /--We now define a model to be a structure that models a set
 of sentences and show (ℚ, <) models the axioms for DLO.-/
 
-structure Model {L : lang}(axs : set(formula L)) : Type 1 :=
+structure Model {L : lang} (axs : set(formula L)) : Type 1 :=
 (M : struc L)
 (va : ℕ → M.univ)
-(satis : ∀ (σ ∈ axs), models M va σ)
+(satis : ∀ (σ ∈ axs), models va σ)
 
 
 namespace DLO_Model
@@ -896,3 +896,5 @@ end DLO_Model
 -- x<2 in ℝ defines (-∞, 2)
 -- x=y in ℝ defines a line at 45 degrees.
 -- Non-definable: (ℤ, +). ∃x, x+x=x defines {0}. Cannot define {1}.
+-- Is ℤ definable?
+-- Are even numbers (ℤ, +) ∃ y, x=y+y → (ℤ, +) is not o-minimal.
