@@ -537,9 +537,9 @@ the finset given by vars_in_term. -/
 
 def term_interpretation {L: lang} (M : struc L) (var_assign : ℕ → M.univ) :
   Π {n : ℕ}, term L n →  Func M.univ n
-| 0 (con c) := M.C c
-| 0 (var v) := var_assign v
-| n (func f) := M.F n f
+| 0 (con c)    := M.C c
+| 0 (var v)    := var_assign v
+| n (func f)   := M.F n f
 | n (app t t₀) := (term_interpretation t) (term_interpretation t₀)
 
 
@@ -673,7 +673,7 @@ def vars_in_list {L : lang} : list (term L 0) → finset ℕ
 
 
 /-- Extracts set of variables from the formula-/
-def vars_in_formula {L : lang}: formula L → finset ℕ
+def vars_in_formula {L : lang} : formula L → finset ℕ
 | ⊤'                 := ∅
 | ⊥'                 := ∅
 | (t₁='t₂)           := vars_in_term t₁ ∪ vars_in_term t₂
@@ -687,7 +687,7 @@ def vars_in_formula {L : lang}: formula L → finset ℕ
 
 /-- A variable occurs freely in a formula if it is not quantified
 over.-/
-def is_var_free (n : ℕ) {L : lang}: formula L → Prop
+def is_var_free (n : ℕ) {L : lang} : formula L → Prop
 | ⊤'                 := true
 | ⊥'                 := true
 | (t₁='t₂)           := true
@@ -762,7 +762,7 @@ def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
 
 /-- We now interpret what it means for a formula to be true/modeled in
 an L-structure. -/
-def models {L : lang} (M : struc L) : (ℕ → M.univ) → formula L →  Prop
+def models {L : lang} {M : struc L} : (ℕ → M.univ) → formula L →  Prop
 | va ⊤'           := true
 | va ⊥'           := false
 | va (t₁ =' t₂)   := (term_interpretation M va t₁) = (term_interpretation M va t₂)
@@ -775,12 +775,72 @@ def models {L : lang} (M : struc L) : (ℕ → M.univ) → formula L →  Prop
 
 
 /-- Suppose that s₁ and s₂ are variable assignment functions into a structure M
+such that s₁(v) = s₂(v) for every free variable v in the term t.
+Then t is interpreted to the same element under both s₁ and s₂. -/
+lemma eq_term_interpretation_of_identical_var_assign {L : lang} {M : struc L}
+  (s₁ s₂ : ℕ → M.univ) (t : term L 0) (h : ∀ v : ℕ, s₁ v = s₂ v) :
+  (term_interpretation M s₁ t = term_interpretation M s₂ t) :=
+begin
+  -- We will proceed with induction on the term t.
+  induction t with c v n f₀ n t t₀ t_ih t₀_ih,
+  { -- the case where t is a constant c is definitionally true.
+    refl},
+  { -- the case where t is a variable is obvious once we use hypothesis h.
+    unfold term_interpretation,
+    rw h},
+  { -- the case where t is a function of arity n is obvious once we split
+    -- n into the zero and nonzero cases.
+    cases n; refl},
+  -- This leaves the case where t is an application of t to t₀.
+  -- We start by splitting n over the zero and nonzero cases.
+  cases n;
+   { -- In each case, we rewrite using the induction hypotheses and
+     -- the conclusion follows.
+     unfold term_interpretation,
+     rw [t_ih, t₀_ih]},
+end
+
+
+/-- Suppose that s₁ and s₂ are variable assignment functions into a structure
+M such that s₁(v)=s₂(v) for every free variable v. The vector v on n terms is
+satisfied in M under s₁ iff it is also satisfied under s₂. -/
+lemma iff_models_relation_of_identical_var_assign {L : lang} {M : struc L}
+  (n : ℕ)
+  (s₁ s₂ : ℕ → M.univ)
+  (h : ∀ (v : ℕ), s₁ v = s₂ v)
+  (r : L.R n)
+  (v : vector (term L 0) n) :
+  models s₁ (formula.rel n r v) ↔ models s₂ (formula.rel n r v) :=
+begin
+  unfold models,
+  suffices x : vector.map (term_interpretation M s₁) v
+               = vector.map (term_interpretation M s₂) v,
+  rw x,
+  ext1,
+  rwa [vector.nth_map, vector.nth_map,
+       eq_term_interpretation_of_identical_var_assign],
+end
+
+
+
+/-- Suppose that s₁ and s₂ are variable assignment functions into a structure M
 such that s₁(v) = s₂(v) for every free variable v in the formula ϕ.
 Then M ⊨ ϕ[s₁] iff M ⊨ ϕ[s₂]. -/
 lemma iff_models_of_identical_var_assign (s₁ s₂ : ℕ → M.univ) (ϕ : formula L)
   (h : ∀ v : ℕ, s₁ v = s₂ v) : (models s₁ ϕ ↔ models s₂ ϕ) :=
 begin
-  sorry
+  induction ϕ with t₁ t₂,
+  iterate 2 {refl},
+
+  {unfold models,
+   have h₁ := eq_term_interpretation_of_identical_var_assign s₁ s₂ t₁ h,
+   have h₂ := eq_term_interpretation_of_identical_var_assign s₁ s₂ t₂ h,
+   finish},
+
+  apply iff_models_relation_of_identical_var_assign,
+  exact h,
+
+  iterate 5 {unfold models, finish},
 end
 
 
@@ -793,24 +853,27 @@ begin
   sorry
 end
 
+-- TODO: make notation for models : ⊧ or ⊨
+
 
 /--We now define a model to be a structure that models a set
 of sentences and show (ℚ, <) models the axioms for DLO.-/
 
-structure Model {L : lang}(axs : set(formula L)) : Type 1 :=
+structure Model {L : lang} (axs : set(formula L)) : Type 1 :=
 (M : struc L)
 (va : ℕ → M.univ)
-(satis : ∀ (σ : axs), models M va σ)
+(satis : ∀ (σ ∈ axs), models va σ)
+
 
 namespace DLO_Model
 
-def Q_struc : struc DLO_lang :={
+@[reducible] def Q_struc : struc DLO_lang :={
   univ := ℚ,
-  R := by{intros n f, 
-            cases n, exact ∅, cases n, exact ∅,
-            cases n, exact {v : vector ℚ 2 | v.nth 0 < v.nth 1},
-            exact ∅,
-  }, 
+  R := by{intros n f,
+          iterate 2 {cases n, exact ∅},
+          cases n, exact {v : vector ℚ 2 | v.nth 0 < v.nth 1},
+          exact ∅,
+  },
   C := function.const DLO_lang.C 1,
   F := λ _ f, by {cases f},
 }
@@ -833,18 +896,40 @@ def φ₅ : formula DLO_lang := <' ⟨[var 1, var 3], rfl⟩ -- x < z
 def φ₆ : formula DLO_lang := <' ⟨[var 1, var 1], rfl⟩ -- x < x
 
 def DLO_axioms : set(formula DLO_lang) := {
- ∀'1 (∀'2 (¬' φ₁)),
+ ∀'1 (∀'2 (¬' φ₆)),
  ∀'1 (∀'2 (∀'3 (φ₁ →' (φ₃ →' φ₅)))),
  ∀'1 (∀'2 (∀' 3 ((φ₁ ∨' φ₂) ∨' (var 1 =' var 2)) )),
  ∀'1 (∃'2 (φ₁)),
  ∀'1 (∃'2 (φ₂)),
- ∀'1 (∀'2 (φ₁ →' ∃'3(φ₅ ∧' φ₄) ))  
+ ∀'1 (∀'2 (φ₁ →' ∃'3(φ₅ ∧' φ₄) ))
 }
 
 def Q_Model_DLO : Model (DLO_axioms) := {
   M := Q_struc,
-  va := by{intro n, change Q_struc.univ with ℚ, exact n},
-  satis := by{sorry}
+  va := function.const ℕ 0,
+  satis := begin
+intros σ,
+rintro (rfl | rfl | rfl | rfl | rfl | H);
+iterate {unfold models};
+intros,
+ {intros y,
+  cases y,
+  solve_by_elim},
+ sorry,
+ sorry,
+ sorry,
+ sorry,
+ sorry,
+ end
 }
 
+
 end DLO_Model
+
+
+-- TODOs: Definability, o-minimality
+-- x<2 in ℝ defines (-∞, 2)
+-- x=y in ℝ defines a line at 45 degrees.
+-- Non-definable: (ℤ, +). ∃x, x+x=x defines {0}. Cannot define {1}.
+-- Is ℤ definable?
+-- Are even numbers (ℤ, +) ∃ y, x=y+y → (ℤ, +) is not o-minimal.
