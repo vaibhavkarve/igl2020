@@ -821,20 +821,77 @@ end
 such that s₁(v) = s₂(v) for every free variable v in the formula ϕ.
 Then M ⊨ ϕ[s₁] iff M ⊨ ϕ[s₂]. -/
 lemma iff_models_of_identical_var_assign (s₁ s₂ : ℕ → M.univ) (ϕ : formula L)
-  (h : ∀ v : ℕ, s₁ v = s₂ v) : (models s₁ ϕ ↔ models s₂ ϕ) :=
+  (h : ∀ v ∈ vars_in_formula ϕ, s₁ v = s₂ v) : (models s₁ ϕ ↔ models s₂ ϕ) :=
 begin
-  induction ϕ with t₁ t₂,
-  iterate 2 {refl},
+  induction ϕ with t₁ t₂ n r v ϕ ϕ_ih ϕ₁ ϕ₂ ϕ₁_ih ϕ₂_ih ϕ₁ ϕ₂ ϕ₁_ih ϕ₂_ih n ϕ ϕ_ih n ϕ ϕ_ih,
+
+  refl,
+  refl,
 
   {unfold models,
-   have h₁ := eq_term_interpretation_of_identical_var_assign s₁ s₂ t₁ h,
-   have h₂ := eq_term_interpretation_of_identical_var_assign s₁ s₂ t₂ h,
-   finish},
+   simp only [vars_in_formula, finset.mem_union] at h,
 
-  apply iff_models_relation_of_identical_var_assign,
-  exact h,
+   have h₁ : ∀ v ∈ vars_in_term t₁, s₁ v = s₂ v, sorry,
+   have h₂ : ∀ v ∈ vars_in_term t₂, s₁ v = s₂ v, sorry,
 
-  iterate 5 {unfold models, finish},
+   have h₃ := eq_term_interpretation_of_identical_var_assign s₁ s₂ t₁ h₁,
+   have h₄ := eq_term_interpretation_of_identical_var_assign s₁ s₂ t₂ h₂,
+   sorry},
+
+  {apply iff_models_relation_of_identical_var_assign,
+  intros v',
+  apply h},
+
+  unfold models,
+  apply not_congr,
+  apply ϕ_ih,
+  assumption,
+
+  unfold models,
+  apply and_congr,
+  apply ϕ₁_ih,
+  intros v H,
+  apply h v,
+  unfold vars_in_formula,
+  simp,
+  left,
+  exact H,
+
+  apply ϕ₂_ih,
+  intros v H,
+  apply h v,
+  unfold vars_in_formula,
+  simp,
+  right,
+  exact H,
+
+  unfold models,
+  apply or_congr,
+  apply ϕ₁_ih,
+  intros v H,
+  apply h v,
+  unfold vars_in_formula,
+  simp,
+  left,
+  exact H,
+
+  apply ϕ₂_ih,
+  intros v H,
+  apply h v,
+  unfold vars_in_formula,
+  simp,
+  right,
+  exact H,
+
+  unfold models,
+  apply exists_congr,
+  intros x,
+  sorry,
+
+  unfold models,
+  apply forall_congr,
+  intros x,
+  sorry,
 end
 
 
