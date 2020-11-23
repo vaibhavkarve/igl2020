@@ -928,16 +928,14 @@ structure Model {L : lang} (axs : set(formula L)) : Type 1 :=
 
 namespace DLO_Model
 
-@[reducible] def Q_struc : struc DLO_lang :={
-  univ := ℚ,
-  R := by{intros n f,
-          iterate 2 {cases n, exact ∅},
-          cases n, exact {v : vector ℚ 2 | v.nth 0 < v.nth 1},
-          exact ∅,
-  },
+@[reducible] def Q_struc : struc DLO_lang :=
+ { univ := ℚ,
+   R := λ n f, by {iterate 2 {cases n, exact ∅},
+                   cases n, exact {v : vector ℚ 2 | v.nth 0 < v.nth 1},
+                   exact ∅},
   C := function.const DLO_lang.C 1,
   F := λ _ f, by {cases f},
-}
+ }
 notation `<'` : 110 := formula.rel 2 ()
 
 /-- A dense linear ordering without endpoints is a language containg a
@@ -949,36 +947,53 @@ notation `<'` : 110 := formula.rel 2 ()
 -- 5. ∀x ∃y y < x;
 -- 6. ∀x ∀y (x < y → ∃z (x < z ∧ z < y)). -/
 
-def φ₁ : formula DLO_lang := <' ⟨[var 1, var 2], rfl⟩ -- x < y
-def φ₂ : formula DLO_lang := <' ⟨[var 2, var 1], rfl⟩ -- y < x
-def φ₃ : formula DLO_lang := <' ⟨[var 2, var 3], rfl⟩ -- y < z
-def φ₄ : formula DLO_lang := <' ⟨[var 3, var 2], rfl⟩ -- z < y
-def φ₅ : formula DLO_lang := <' ⟨[var 1, var 3], rfl⟩ -- x < z
-def φ₆ : formula DLO_lang := <' ⟨[var 1, var 1], rfl⟩ -- x < x
+def mk_vec (v₁ v₂ : ℕ) : vector (term DLO_lang 0) 2 := ⟨[var v₁, var v₂], rfl⟩
+def φ₁ : formula DLO_lang := <' $ mk_vec 1 2 -- x < y
+def φ₂ : formula DLO_lang := <' $ mk_vec 2 1 -- y < x
+def φ₃ : formula DLO_lang := <' $ mk_vec 2 3 -- y < z
+def φ₄ : formula DLO_lang := <' $ mk_vec 3 2 -- z < y
+def φ₅ : formula DLO_lang := <' $ mk_vec 1 3 -- x < z
+def φ₆ : formula DLO_lang := <' $ mk_vec 1 1 -- x < x
 
-def DLO_axioms : set(formula DLO_lang) := {
- ∀'1 (∀'2 (¬' φ₆)),
- ∀'1 (∀'2 (∀'3 (φ₁ →' (φ₃ →' φ₅)))),
- ∀'1 (∀'2 (∀' 3 ((φ₁ ∨' φ₂) ∨' (var 1 =' var 2)) )),
- ∀'1 (∃'2 (φ₁)),
- ∀'1 (∃'2 (φ₂)),
- ∀'1 (∀'2 (φ₁ →' ∃'3(φ₅ ∧' φ₄) ))
-}
+def DLO_axioms : set(formula DLO_lang) :=
+ { ∀'1 (∀'2 (¬' φ₆)),
+   ∀'1 (∀'2 (∀'3 (φ₁ →' (φ₃ →' φ₅)))),
+   ∀'1 (∀'2 (∀' 3 ((φ₁ ∨' φ₂) ∨' (var 1 =' var 2)))),
+   ∀'1 (∃'2 (φ₁)),
+   ∀'1 (∃'2 (φ₂)),
+   ∀'1 (∀'2 (φ₁ →' ∃'3(φ₅ ∧' φ₄)))}
 
-def Q_Model_DLO : Model (DLO_axioms) := {
-  M := Q_struc,
-  va := function.const ℕ 0,
-  satis := begin
+def Q_Model_DLO : Model (DLO_axioms) :=
+ { M := Q_struc,
+   va := function.const ℕ 0,
+   satis := begin
 intros σ,
 rintro (rfl | rfl | rfl | rfl | rfl | H);
-iterate {unfold models};
-intros,
- {intros y,
-  cases y,
+iterate {unfold models},
+--intros,
+ {intros x x₁ h,
+  cases h,
   solve_by_elim},
+ { rintros x x₁ x₂ h,
+   simp at *,
+   unfold models at h,
+   cases h,
+   unfold φ₁ at h,
+   unfold models at h,
+   simp at h,
+   cases h,
+   simp at *,
+   dsimp at *,
  sorry,
+ sorry},
  sorry,
- sorry,
+{ intros,
+  use x+1,
+  ring,
+
+
+
+sorry},
  sorry,
  sorry,
  end
