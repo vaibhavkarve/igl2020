@@ -1,6 +1,7 @@
 import tactic
 import data.real.basic
 import set_theory.cardinal
+
 /-!
 0. We define functions of arity (n : ℕ) and their API.
 1. We define languages and give examples.
@@ -500,7 +501,7 @@ the finset given by vars_in_term. -/
 | _ (app t t₀) := number_of_vars t + number_of_vars t₀
 
 
-def term_interpretation {L: lang} (M : struc L) (var_assign : ℕ → M.univ) :
+def term_interpretation {L : lang} (M : struc L)(var_assign : ℕ → M.univ) :
   Π {n : ℕ}, term L n →  Func M.univ n
 | 0 (con c)    := M.C c
 | 0 (var v)    := var_assign v
@@ -555,10 +556,10 @@ namespace example_terms
   #reduce term_interpretation M1 va (func f)  -- f is interpreted as x ↦ 100x
   #reduce term_interpretation M1 va (func g)  -- g is interpreted (x, y) ↦ x+y
   #reduce term_interpretation M1 va (con c)   -- c is interpreted as (1 : ℕ)
-  #eval term_interpretation M1 va t₁          -- f(c) is interpreted as 100
-  #eval term_interpretation M1 va t₂          -- g(c, t₁) is interpreted as 101
-  #eval term_interpretation M1 va t₃          -- f(g(c, f(c))) is interpreted as 10100
-  #eval term_interpretation M1 va t           -- same as t₃
+  #reduce term_interpretation M1 va t₁          -- f(c) is interpreted as 100
+  #reduce term_interpretation M1 va t₂          -- g(c, t₁) is interpreted as 101
+  #reduce term_interpretation M1 va t₃          -- f(g(c, f(c))) is interpreted as 10100
+  #reduce term_interpretation M1 va t           -- same as t₃
 
 
 end example_terms
@@ -588,14 +589,15 @@ def term_sub_for_var {L : lang}(t' : term L 0)(k : ℕ) :
 | n (app t t₀) := app (term_sub_for_var (n+1) t) (term_sub_for_var 0 t₀)
 
 
-open example_terms
+namespace example_terms
+  def t₄ : term L1 0 := app (func f) (var 5) -- f(v₅)
+  def t₅ : term L1 0 := app (app (func g) (con c)) (var 4) -- g(c, v₄)
+  #reduce term_sub t₅ 0 t₄ -- f(g(c, v₄))
+  #reduce term_sub (var 3) 0 t₄ -- f(v₃)
+  #reduce term_sub_for_var (var 3) 4 0 t₄ -- f(v₅)
+  #reduce term_sub_for_var (var 3) 5 0 t₄ -- f(v₃)
 
-def t₄ : term L1 0 := app (func f) (var 5) -- f(v₅)
-def t₅ : term L1 0 := app (app (func g) (con c)) (var 4) -- g(c, v₄)
-#reduce term_sub t₅ 0 t₄ -- f(g(c, v₄))
-#reduce term_sub (var 3) 0 t₄ -- f(v₃)
-#reduce term_sub_for_var (var 3) 4 0 t₄ -- f(v₅)
-#reduce term_sub_for_var (var 3) 5 0 t₄ -- f(v₃)
+end example_terms
 
 /-! -----------------------------------------------------------------
 -- 5. Formulas and Sentences
@@ -623,13 +625,14 @@ notation `∀'` : 110 := formula.all
 notation `⊤'` : 110 := formula.tt
 notation `⊥'` : 110 := formula.ff
 
-def impl {L : lang} (φ₁ : formula L)(φ₂ : formula L) := ¬'φ₁ ∨' φ₂
-
+def impl {L : lang} (φ₁ : formula L) (φ₂ : formula L) := ¬'φ₁ ∨' φ₂
 infix `→'` : 80 := impl
 
-def bicond {L: lang} (φ₁ : formula L)(φ₂ : formula L) := (φ₁ →' φ₂) ∧' (φ₂ →' φ₁)
-
+def bicond {L: lang} (φ₁ : formula L) (φ₂ : formula L) :=
+  (φ₁ →' φ₂) ∧' (φ₂ →' φ₁)
 infix `↔'` : 80 := bicond
+
+
 
 /-- Helper function for variables from list of terms-/
 def vars_in_list {L : lang} : list (term L 0) → finset ℕ
@@ -743,26 +746,43 @@ def models {L : lang} {M : struc L} : (ℕ → M.univ) → formula L →  Prop
 such that s₁(v) = s₂(v) for every free variable v in the term t.
 Then t is interpreted to the same element under both s₁ and s₂. -/
 lemma eq_term_interpretation_of_identical_var_assign {L : lang} {M : struc L}
-  (s₁ s₂ : ℕ → M.univ) (t : term L 0) (h : ∀ v : ℕ, s₁ v = s₂ v) :
+  (s₁ s₂ : ℕ → M.univ) (t : term L 0)
+  (h : ∀ v ∈ vars_in_term t, s₁ v = s₂ v) :
   (term_interpretation M s₁ t = term_interpretation M s₂ t) :=
 begin
   -- We will proceed with induction on the term t.
-  induction t with c v n f₀ n t t₀ t_ih t₀_ih,
-  { -- the case where t is a constant c is definitionally true.
+  -- First we revert the hypothesis h which has `t` in it.
+  -- Without reverting, we will not be able to apply induction on t.
+  revert h,
+  -- We induct on t and then immediately re-introduce hypothesis h in all cases.
+  induction t with c v' n f₀ n t t₀ t_ih t₀_ih; intros h,
+
+  { -- In the case when t is a constant, the result holds definitionally.
     refl},
-  { -- the case where t is a variable is obvious once we use hypothesis h.
-    unfold term_interpretation,
-    rw h},
-  { -- the case where t is a function of arity n is obvious once we split
-    -- n into the zero and nonzero cases.
+
+  { -- In the case when t is a variable v', the result is straigtforward once
+    -- we use the hypothesis h.
+    apply h,
+    simp only [vars_in_term, finset.mem_singleton]},
+
+  { -- In the case when t is a function of arity n, the result is definitionally
+    -- true for n zero and nonzero.
     cases n; refl},
-  -- This leaves the case where t is an application of t to t₀.
-  -- We start by splitting n over the zero and nonzero cases.
-  cases n;
-   { -- In each case, we rewrite using the induction hypotheses and
-     -- the conclusion follows.
-     unfold term_interpretation,
-     rw [t_ih, t₀_ih]},
+
+  { -- In the case when t is an application, we break it into cases when n is
+    -- zero and nonzero.
+    cases n;
+      -- unfold definitions and use the induction hypotheses.
+      unfold term_interpretation;
+      rw [t_ih, t₀_ih];
+      -- The rest follows from hypothesis h.
+      unfold vars_in_term at h;
+      intros v hv;
+      apply h;
+      simp only [finset.mem_union];
+      -- Note the use of the tactic combinator below to dismiss all goals
+      -- simultaneously.
+      {right, assumption} <|> {left, assumption}},
 end
 
 
@@ -772,50 +792,126 @@ satisfied in M under s₁ iff it is also satisfied under s₂. -/
 lemma iff_models_relation_of_identical_var_assign {L : lang} {M : struc L}
   (n : ℕ)
   (s₁ s₂ : ℕ → M.univ)
-  (h : ∀ (v : ℕ), s₁ v = s₂ v)
   (r : L.R n)
-  (v : vector (term L 0) n) :
-  models s₁ (formula.rel n r v) ↔ models s₂ (formula.rel n r v) :=
+  (vec : vector (term L 0) n)
+  (h : ∀ v ∈ vars_in_formula (formula.rel n r vec), s₁ v = s₂ v) :
+  models s₁ (formula.rel n r vec) ↔ models s₂ (formula.rel n r vec) :=
 begin
   unfold models,
-  suffices x : vector.map (term_interpretation M s₁) v
-               = vector.map (term_interpretation M s₂) v,
+  suffices x : vector.map (term_interpretation M s₁) vec
+               = vector.map (term_interpretation M s₂) vec,
   rw x,
   ext1,
-  rwa [vector.nth_map, vector.nth_map,
+  rw [vector.nth_map, vector.nth_map,
        eq_term_interpretation_of_identical_var_assign],
-end
 
+  intros v H,
+  apply h,
+
+  unfold vars_in_formula,
+  cases n,
+   {sorry},  -- this should be the R0 case. Probably can be dismissed by norm_num or linarith
+
+
+  sorry
+end
 
 
 /-- Suppose that s₁ and s₂ are variable assignment functions into a structure M
 such that s₁(v) = s₂(v) for every free variable v in the formula ϕ.
 Then M ⊨ ϕ[s₁] iff M ⊨ ϕ[s₂]. -/
 lemma iff_models_of_identical_var_assign (s₁ s₂ : ℕ → M.univ) (ϕ : formula L)
-  (h : ∀ v : ℕ, s₁ v = s₂ v) : (models s₁ ϕ ↔ models s₂ ϕ) :=
+  (h : ∀ v ∈ vars_in_formula ϕ, s₁ v = s₂ v) : (models s₁ ϕ ↔ models s₂ ϕ) :=
 begin
-  induction ϕ with t₁ t₂,
-  iterate 2 {refl},
+  induction ϕ with t₁ t₂ n r v ϕ ϕ_ih ϕ₁ ϕ₂ ϕ₁_ih ϕ₂_ih ϕ₁ ϕ₂ ϕ₁_ih ϕ₂_ih n ϕ ϕ_ih n ϕ ϕ_ih,
+
+  refl,
+  refl,
 
   {unfold models,
-   have h₁ := eq_term_interpretation_of_identical_var_assign s₁ s₂ t₁ h,
-   have h₂ := eq_term_interpretation_of_identical_var_assign s₁ s₂ t₂ h,
-   finish},
+   simp only [vars_in_formula, finset.mem_union] at h,
 
-  apply iff_models_relation_of_identical_var_assign,
-  exact h,
+   have h₁ : ∀ v ∈ vars_in_term t₁, s₁ v = s₂ v, sorry,
+   have h₂ : ∀ v ∈ vars_in_term t₂, s₁ v = s₂ v, sorry,
 
-  iterate 5 {unfold models, finish},
+   have h₃ := eq_term_interpretation_of_identical_var_assign s₁ s₂ t₁ h₁,
+   have h₄ := eq_term_interpretation_of_identical_var_assign s₁ s₂ t₂ h₂,
+   sorry},
+
+  {apply iff_models_relation_of_identical_var_assign,
+  intros v',
+  apply h},
+
+  unfold models,
+  apply not_congr,
+  apply ϕ_ih,
+  assumption,
+
+  unfold models,
+  apply and_congr,
+  apply ϕ₁_ih,
+  intros v H,
+  apply h v,
+  unfold vars_in_formula,
+  simp,
+  left,
+  exact H,
+
+  apply ϕ₂_ih,
+  intros v H,
+  apply h v,
+  unfold vars_in_formula,
+  simp,
+  right,
+  exact H,
+
+  unfold models,
+  apply or_congr,
+  apply ϕ₁_ih,
+  intros v H,
+  apply h v,
+  unfold vars_in_formula,
+  simp,
+  left,
+  exact H,
+
+  apply ϕ₂_ih,
+  intros v H,
+  apply h v,
+  unfold vars_in_formula,
+  simp,
+  right,
+  exact H,
+
+  unfold models,
+  apply exists_congr,
+  intros x,
+  sorry,
+
+  unfold models,
+  apply forall_congr,
+  intros x,
+  sorry,
 end
 
 
 /--If σ is a sentence in the language L and M is an L-structure, either M ⊨ σ[s]
 for all assignment functions s, of M ⊨ σ[s] for no assignment function s. -/
-lemma models_all_or_none_sentences (σ : sentence L) :
+lemma models_all_or_none_sentences {L: lang} (M : struc L) [inhabited M.univ] (σ : sentence L) :
   xor (∀ va : ℕ → M.univ, models va σ.val)
       (∀ va' : ℕ → M.univ, ¬ models va' σ.val) :=
 begin
-  sorry
+  unfold xor,
+  cases σ with σ₁ σ₂ ,
+  simp,
+  left,
+  split,
+  rotate,
+  use function.const ℕ (default M.univ),
+
+ cases σ₁,
+ unfold models,
+ repeat {sorry},
 end
 
 -- TODO: make notation for models : ⊧ or ⊨
@@ -832,16 +928,14 @@ structure Model {L : lang} (axs : set(formula L)) : Type 1 :=
 
 namespace DLO_Model
 
-@[reducible] def Q_struc : struc DLO_lang :={
-  univ := ℚ,
-  R := by{intros n f,
-          iterate 2 {cases n, exact ∅},
-          cases n, exact {v : vector ℚ 2 | v.nth 0 < v.nth 1},
-          exact ∅,
-  },
+@[reducible] def Q_struc : struc DLO_lang :=
+ { univ := ℚ,
+   R := λ n f, by {iterate 2 {cases n, exact ∅},
+                   cases n, exact {v : vector ℚ 2 | v.nth 0 < v.nth 1},
+                   exact ∅},
   C := function.const DLO_lang.C 1,
   F := λ _ f, by {cases f},
-}
+ }
 notation `<'` : 110 := formula.rel 2 ()
 
 /-- A dense linear ordering without endpoints is a language containg a
@@ -853,36 +947,53 @@ notation `<'` : 110 := formula.rel 2 ()
 -- 5. ∀x ∃y y < x;
 -- 6. ∀x ∀y (x < y → ∃z (x < z ∧ z < y)). -/
 
-def φ₁ : formula DLO_lang := <' ⟨[var 1, var 2], rfl⟩ -- x < y
-def φ₂ : formula DLO_lang := <' ⟨[var 2, var 1], rfl⟩ -- y < x
-def φ₃ : formula DLO_lang := <' ⟨[var 2, var 3], rfl⟩ -- y < z
-def φ₄ : formula DLO_lang := <' ⟨[var 3, var 2], rfl⟩ -- z < y
-def φ₅ : formula DLO_lang := <' ⟨[var 1, var 3], rfl⟩ -- x < z
-def φ₆ : formula DLO_lang := <' ⟨[var 1, var 1], rfl⟩ -- x < x
+def mk_vec (v₁ v₂ : ℕ) : vector (term DLO_lang 0) 2 := ⟨[var v₁, var v₂], rfl⟩
+def φ₁ : formula DLO_lang := <' $ mk_vec 1 2 -- x < y
+def φ₂ : formula DLO_lang := <' $ mk_vec 2 1 -- y < x
+def φ₃ : formula DLO_lang := <' $ mk_vec 2 3 -- y < z
+def φ₄ : formula DLO_lang := <' $ mk_vec 3 2 -- z < y
+def φ₅ : formula DLO_lang := <' $ mk_vec 1 3 -- x < z
+def φ₆ : formula DLO_lang := <' $ mk_vec 1 1 -- x < x
 
-def DLO_axioms : set(formula DLO_lang) := {
- ∀'1 (∀'2 (¬' φ₆)),
- ∀'1 (∀'2 (∀'3 (φ₁ →' (φ₃ →' φ₅)))),
- ∀'1 (∀'2 (∀' 3 ((φ₁ ∨' φ₂) ∨' (var 1 =' var 2)) )),
- ∀'1 (∃'2 (φ₁)),
- ∀'1 (∃'2 (φ₂)),
- ∀'1 (∀'2 (φ₁ →' ∃'3(φ₅ ∧' φ₄) ))
-}
+def DLO_axioms : set(formula DLO_lang) :=
+ { ∀'1 (∀'2 (¬' φ₆)),
+   ∀'1 (∀'2 (∀'3 (φ₁ →' (φ₃ →' φ₅)))),
+   ∀'1 (∀'2 (∀' 3 ((φ₁ ∨' φ₂) ∨' (var 1 =' var 2)))),
+   ∀'1 (∃'2 (φ₁)),
+   ∀'1 (∃'2 (φ₂)),
+   ∀'1 (∀'2 (φ₁ →' ∃'3(φ₅ ∧' φ₄)))}
 
-def Q_Model_DLO : Model (DLO_axioms) := {
-  M := Q_struc,
-  va := function.const ℕ 0,
-  satis := begin
+def Q_Model_DLO : Model (DLO_axioms) :=
+ { M := Q_struc,
+   va := function.const ℕ 0,
+   satis := begin
 intros σ,
 rintro (rfl | rfl | rfl | rfl | rfl | H);
-iterate {unfold models};
-intros,
- {intros y,
-  cases y,
+iterate {unfold models},
+--intros,
+ {intros x x₁ h,
+  cases h,
   solve_by_elim},
+ { rintros x x₁ x₂ h,
+   simp at *,
+   unfold models at h,
+   cases h,
+   unfold φ₁ at h,
+   unfold models at h,
+   simp at h,
+   cases h,
+   simp at *,
+   dsimp at *,
  sorry,
+ sorry},
  sorry,
- sorry,
+{ intros,
+  use x+1,
+  ring,
+
+
+
+sorry},
  sorry,
  sorry,
  end
