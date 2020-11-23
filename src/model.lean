@@ -746,26 +746,43 @@ def models {L : lang} {M : struc L} : (ℕ → M.univ) → formula L →  Prop
 such that s₁(v) = s₂(v) for every free variable v in the term t.
 Then t is interpreted to the same element under both s₁ and s₂. -/
 lemma eq_term_interpretation_of_identical_var_assign {L : lang} {M : struc L}
-  (s₁ s₂ : ℕ → M.univ) (t : term L 0) (h : ∀ v : ℕ, s₁ v = s₂ v) :
+  (s₁ s₂ : ℕ → M.univ) (t : term L 0)
+  (h : ∀ v ∈ vars_in_term t, s₁ v = s₂ v) :
   (term_interpretation M s₁ t = term_interpretation M s₂ t) :=
 begin
   -- We will proceed with induction on the term t.
-  induction t with c v n f₀ n t t₀ t_ih t₀_ih,
-  { -- the case where t is a constant c is definitionally true.
+  -- First we revert the hypothesis h which has `t` in it.
+  -- Without reverting, we will not be able to apply induction on t.
+  revert h,
+  -- We induct on t and then immediately re-introduce hypothesis h in all cases.
+  induction t with c v' n f₀ n t t₀ t_ih t₀_ih; intros h,
+
+  { -- In the case when t is a constant, the result holds definitionally.
     refl},
-  { -- the case where t is a variable is obvious once we use hypothesis h.
-    unfold term_interpretation,
-    rw h},
-  { -- the case where t is a function of arity n is obvious once we split
-    -- n into the zero and nonzero cases.
+
+  { -- In the case when t is a variable v', the result is straigtforward once
+    -- we use the hypothesis h.
+    apply h,
+    simp only [vars_in_term, finset.mem_singleton]},
+
+  { -- In the case when t is a function of arity n, the result is definitionally
+    -- true for n zero and nonzero.
     cases n; refl},
-  -- This leaves the case where t is an application of t to t₀.
-  -- We start by splitting n over the zero and nonzero cases.
-  cases n;
-   { -- In each case, we rewrite using the induction hypotheses and
-     -- the conclusion follows.
-     unfold term_interpretation,
-     rw [t_ih, t₀_ih]},
+
+  { -- In the case when t is an application, we break it into cases when n is
+    -- zero and nonzero.
+    cases n;
+      -- unfold definitions and use the induction hypotheses.
+      unfold term_interpretation;
+      rw [t_ih, t₀_ih];
+      -- The rest follows from hypothesis h.
+      unfold vars_in_term at h;
+      intros v hv;
+      apply h;
+      simp only [finset.mem_union];
+      -- Note the use of the tactic combinator below to dismiss all goals
+      -- simultaneously.
+      {right, assumption} <|> {left, assumption}},
 end
 
 
