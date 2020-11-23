@@ -792,20 +792,29 @@ satisfied in M under s₁ iff it is also satisfied under s₂. -/
 lemma iff_models_relation_of_identical_var_assign {L : lang} {M : struc L}
   (n : ℕ)
   (s₁ s₂ : ℕ → M.univ)
-  (h : ∀ (v : ℕ), s₁ v = s₂ v)
   (r : L.R n)
-  (v : vector (term L 0) n) :
-  models s₁ (formula.rel n r v) ↔ models s₂ (formula.rel n r v) :=
+  (vec : vector (term L 0) n)
+  (h : ∀ v ∈ vars_in_formula (formula.rel n r vec), s₁ v = s₂ v) :
+  models s₁ (formula.rel n r vec) ↔ models s₂ (formula.rel n r vec) :=
 begin
   unfold models,
-  suffices x : vector.map (term_interpretation M s₁) v
-               = vector.map (term_interpretation M s₂) v,
+  suffices x : vector.map (term_interpretation M s₁) vec
+               = vector.map (term_interpretation M s₂) vec,
   rw x,
   ext1,
-  rwa [vector.nth_map, vector.nth_map,
+  rw [vector.nth_map, vector.nth_map,
        eq_term_interpretation_of_identical_var_assign],
-end
 
+  intros v H,
+  apply h,
+
+  unfold vars_in_formula,
+  cases n,
+   {sorry},  -- this should be the R0 case. Probably can be dismissed by norm_num or linarith
+
+
+  sorry
+end
 
 
 /-- Suppose that s₁ and s₂ are variable assignment functions into a structure M
