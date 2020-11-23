@@ -1,6 +1,7 @@
 import tactic
 import data.real.basic
 import set_theory.cardinal
+
 /-!
 0. We define functions of arity (n : ℕ) and their API.
 1. We define languages and give examples.
@@ -500,7 +501,7 @@ the finset given by vars_in_term. -/
 | _ (app t t₀) := number_of_vars t + number_of_vars t₀
 
 
-def term_interpretation {L: lang} (M : struc L) (var_assign : ℕ → M.univ) :
+def term_interpretation {L : lang} (M : struc L)(var_assign : ℕ → M.univ) :
   Π {n : ℕ}, term L n →  Func M.univ n
 | 0 (con c)    := M.C c
 | 0 (var v)    := var_assign v
@@ -555,10 +556,10 @@ namespace example_terms
   #reduce term_interpretation M1 va (func f)  -- f is interpreted as x ↦ 100x
   #reduce term_interpretation M1 va (func g)  -- g is interpreted (x, y) ↦ x+y
   #reduce term_interpretation M1 va (con c)   -- c is interpreted as (1 : ℕ)
-  #eval term_interpretation M1 va t₁          -- f(c) is interpreted as 100
-  #eval term_interpretation M1 va t₂          -- g(c, t₁) is interpreted as 101
-  #eval term_interpretation M1 va t₃          -- f(g(c, f(c))) is interpreted as 10100
-  #eval term_interpretation M1 va t           -- same as t₃
+  #reduce term_interpretation M1 va t₁          -- f(c) is interpreted as 100
+  #reduce term_interpretation M1 va t₂          -- g(c, t₁) is interpreted as 101
+  #reduce term_interpretation M1 va t₃          -- f(g(c, f(c))) is interpreted as 10100
+  #reduce term_interpretation M1 va t           -- same as t₃
 
 
 end example_terms
@@ -588,14 +589,15 @@ def term_sub_for_var {L : lang}(t' : term L 0)(k : ℕ) :
 | n (app t t₀) := app (term_sub_for_var (n+1) t) (term_sub_for_var 0 t₀)
 
 
-open example_terms
+namespace example_terms
+  def t₄ : term L1 0 := app (func f) (var 5) -- f(v₅)
+  def t₅ : term L1 0 := app (app (func g) (con c)) (var 4) -- g(c, v₄)
+  #reduce term_sub t₅ 0 t₄ -- f(g(c, v₄))
+  #reduce term_sub (var 3) 0 t₄ -- f(v₃)
+  #reduce term_sub_for_var (var 3) 4 0 t₄ -- f(v₅)
+  #reduce term_sub_for_var (var 3) 5 0 t₄ -- f(v₃)
 
-def t₄ : term L1 0 := app (func f) (var 5) -- f(v₅)
-def t₅ : term L1 0 := app (app (func g) (con c)) (var 4) -- g(c, v₄)
-#reduce term_sub t₅ 0 t₄ -- f(g(c, v₄))
-#reduce term_sub (var 3) 0 t₄ -- f(v₃)
-#reduce term_sub_for_var (var 3) 4 0 t₄ -- f(v₅)
-#reduce term_sub_for_var (var 3) 5 0 t₄ -- f(v₃)
+end example_terms
 
 /-! -----------------------------------------------------------------
 -- 5. Formulas and Sentences
@@ -623,13 +625,14 @@ notation `∀'` : 110 := formula.all
 notation `⊤'` : 110 := formula.tt
 notation `⊥'` : 110 := formula.ff
 
-def impl {L : lang} (φ₁ : formula L)(φ₂ : formula L) := ¬'φ₁ ∨' φ₂
-
+def impl {L : lang} (φ₁ : formula L) (φ₂ : formula L) := ¬'φ₁ ∨' φ₂
 infix `→'` : 80 := impl
 
-def bicond {L: lang} (φ₁ : formula L)(φ₂ : formula L) := (φ₁ →' φ₂) ∧' (φ₂ →' φ₁)
-
+def bicond {L: lang} (φ₁ : formula L) (φ₂ : formula L) :=
+  (φ₁ →' φ₂) ∧' (φ₂ →' φ₁)
 infix `↔'` : 80 := bicond
+
+
 
 /-- Helper function for variables from list of terms-/
 def vars_in_list {L : lang} : list (term L 0) → finset ℕ
