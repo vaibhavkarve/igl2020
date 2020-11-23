@@ -897,11 +897,21 @@ end
 
 /--If σ is a sentence in the language L and M is an L-structure, either M ⊨ σ[s]
 for all assignment functions s, of M ⊨ σ[s] for no assignment function s. -/
-lemma models_all_or_none_sentences (σ : sentence L) :
+lemma models_all_or_none_sentences {L: lang} (M : struc L) [inhabited M.univ] (σ : sentence L) :
   xor (∀ va : ℕ → M.univ, models va σ.val)
       (∀ va' : ℕ → M.univ, ¬ models va' σ.val) :=
 begin
-  sorry
+  unfold xor,
+  cases σ with σ₁ σ₂ ,
+  simp,
+  left,
+  split,
+  rotate,
+  use function.const ℕ (default M.univ),
+
+ cases σ₁,
+ unfold models,
+ repeat {sorry},
 end
 
 -- TODO: make notation for models : ⊧ or ⊨
