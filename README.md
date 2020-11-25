@@ -2,6 +2,12 @@
 Lean project for Fall 2020 Illinois Geometry Lab @ University of
 Illinois at Urbana-Champaign.
 
+## Aim
+We formalize languages, structures, terms, formulae, sentences,
+first-order logic, **Model theory**, and **O-minimality** in the Lean
+theorem prover.
+
+
 ## Participants
 1. Eion Blanchard
 2. Scott Harman
