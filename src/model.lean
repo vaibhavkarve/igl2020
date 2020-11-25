@@ -83,14 +83,18 @@ TODO: Turn this into patter-matched term-style definition.
 def app_vec_partial {α : Type} {n m : ℕ} (h : m ≤ n) (f : Func α (n+1))
   (v : vector α (m+1)) : Func α (n-m) :=
 begin
-  induction m with m mih,
+ show_term{ induction m with m mih,
    { exact f v.head},
   have nat_ineq : n-m.succ+1 = n-m := by omega,
   have f' : Func α (n-m) := mih (by omega) v.tail,
   rw ← nat_ineq at f',
-  exact f' v.head,
-end
+  exact f' v.head,}
+end}
 
+def app_vec_partial' {α : Type} : Π {m : ℕ} (n : ℕ),
+  m ≤ n → Func α (n+1) → vector α (m+1) → Func α (n-m)
+| 0     := λ n h f v, f v.head
+| (m+1) := λ n h f v, app_vec_partial' (n-1) (_ : m ≤ n-1) (f v.head (by omega)) (v.tail)               
 
 /-! -----------------------------------------------------------------
 -- 1. Languages and Examples
@@ -105,6 +109,8 @@ structure lang : Type 1 :=
 /-- Constants of a language are simply its 0-ary functions. -/
 def lang.C (L : lang) : Type := L.F 0
 
+def dense_linear_order: lang := {R := λ n : ℕ, if n=2 then unit else empty,
+                                  F := function.const ℕ empty}
 
 /-- We now define some example languages. We start with the simplest
 possible language, the language of pure sets. This language has no
@@ -251,14 +257,13 @@ def type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
 
 
 
-
+-- ∈ ℕ 
 /-- We need to define a magma, because it looks like it is not defined
   in Mathlib.-/
 class magma (α : Type) :=
 (mul : α → α → α)
 
-/-- Magma is a structure of the magma language-/
-def magma_is_struc_of_magma_lang {A : Type} [magma A] :
+lemma free_magma_is_struc_of_magma_lang {A : Type} [magma A] :
   struc (magma_lang) :=
   {univ := A,
    F := by {intros n f,
@@ -269,8 +274,7 @@ def magma_is_struc_of_magma_lang {A : Type} [magma A] :
    C := λ c, empty.elim c}
 
 
-/-- Semigroup is a structure of the language of semigroups-/
-def semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
+lemma semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
   struc (semigroup_lang) :=
   {univ := A,
    F := by {intros n f,
@@ -396,7 +400,38 @@ def LO_is_struc_of_DLO_lang {A : Type} [linear_order A] : struc (DLO_lang) :=
             cases r,
           },
    .. type_is_struc_of_set_lang}
-
+/-
+lemma ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A] :
+  struc (ordered_ring_lang) :=
+begin
+  fconstructor,
+  { exact A},
+  { 
+    intros n f v,
+    cases n,
+     cases f,                                              -- n=0: f n = empty
+    cases n,
+     exact ordered_ring.neg (v.nth 0),                     -- n=1: f n = {-}
+    cases n, 
+     cases f,                                              -- n=2: f n = {×, +}
+     { exact ordered_ring.mul (v.nth 0) (v.nth 1)},        -- × 
+     { exact ordered_ring.add (v.nth 0) (v.nth 1)},        -- +
+     cases f,                                              -- n>2: f n = empty
+  },
+  {
+    intros n r v,
+    iterate 2 {cases n, cases r},                          -- n<2: r n = empty
+    cases n,
+     exact ordered_ring.lt (v.nth 0) (v.nth 1),            -- n=2: r n = {<}
+     cases r,                                              -- n>2: r n = empty
+  },
+  {
+    intro c,
+    cases c,     --C = {0, 1}
+    { exact 0},
+    { exact 1}
+  }
+end-/
 
 /-! -----------------------------------------------------------------
 -- 3. Embeddings between Structures
@@ -987,14 +1022,28 @@ iterate {unfold models},
  sorry,
  sorry},
  sorry,
-{ intros,
-  use x+1,
-  ring,
-
-
-
-sorry},
- sorry,
+ intros,
+  {
+    use x+1,
+    fconstructor,
+    suffices h : x ≤ x+1,
+    exact h,
+    norm_num,
+    suffices h : ¬(x+1≤x),
+    exact h,
+    linarith,
+  },
+ intros,
+  {
+    use x-1,
+    fconstructor,
+    suffices h : x-1 ≤ x,
+    exact h,
+    linarith,
+    suffices h : ¬(x≤x-1),
+    exact h,
+    linarith,
+  },
  sorry,
  end
 }
