@@ -15,7 +15,7 @@ theorem prover.
 4. Vaibhav Karve
 5. Nikil Ravi
 6. Joel Schargorodsky
-7. Kyle Thompson
+7. Kay Thompson
 8. Noble Wulffraat
 9. Tianfan Xu
 10. Fenglong Zhao
