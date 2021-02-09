@@ -1,6 +1,7 @@
 # igl2020
-Lean project for Fall 2020 Illinois Geometry Lab @ University of
-Illinois at Urbana-Champaign.
+Lean project for Illinois Geometry Lab @ University of Illinois at
+Urbana-Champaign.  This project started in Fall 2020 and is continuing in Spring
+2021.
 
 ## Aim
 We formalize languages, structures, terms, formulae, sentences,
@@ -9,16 +10,18 @@ theorem prover.
 
 
 ## Participants
-1. Eion Blanchard
-2. Scott Harman
-3. Philipp Hieronymi
-4. Vaibhav Karve
-5. Nikil Ravi
-6. Joel Schargorodsky
-7. Kay Thompson
-8. Noble Wulffraat
-9. Tianfan Xu
-10. Fenglong Zhao
+1. Tyler Behme
+2. Eion Blanchard
+3. Scott Harman
+4. Philipp Hieronymi
+5. Vaibhav Karve
+6. Nikil Ravi
+7. Joel Schargorodsky
+8. Kay Thompson
+9. Noble Wulffraat
+10. Tianfan Xu
+11. Andrew Yin
+12. Fenglong Zhao
 
 ## Installation
 Install `leanproject` from this
@@ -37,5 +40,5 @@ get updated versions of all the files in this repository, you can run
 standard git commands like `git pull` as often as you want.
 
 ## Files
-All working code can be found in the `src` folder. No changes will be
-made to files outside the `src` folder.
+All working code can be found in the `src/` folder. No changes will be
+made to files outside the `src/` folder.
