@@ -82,7 +82,7 @@ jobs:
     - name: 🔑 Install SSH Client
       uses: webfactory/ssh-agent@v0.4.1
       with:
-        ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+        ssh-private-key: ${{ secrets.GITHUBWEBSITESECRET }}
 
     - name: 🚀 Deploy
       uses: JamesIves/github-pages-deploy-action@3.7.1
