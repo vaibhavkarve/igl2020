@@ -79,15 +79,6 @@ jobs:
           -c "import print_docs; del print_docs.extra_doc_files[:]; print_docs.copy_yaml_files = lambda p: None; print_docs.library_link_roots['igl2020'] = 'https://github.com/vaibhavkarve/igl2020/blob/$GITHUB_SHA/src/'; print_docs.main()" \
           -r .. -w 'https://vaibhavkarve.github.io/igl2020-docs/' -t built-docs
 
-    - name: 🚀 Deploy to website
-      uses: easingthemes/ssh-deploy@v2.1.5
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
-        ARGS: "-rltgoDzvO"
-        REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
-        REMOTE_USER: ${{ secrets.REMOTE_USER }}
-        TARGET: ${{ secrets.REMOTE_TARGET }}
-
     - name: 🔑 Install SSH Client
       uses: webfactory/ssh-agent@v0.4.1
       with:
