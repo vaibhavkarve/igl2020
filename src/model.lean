@@ -92,10 +92,13 @@ begin
 end
 
 
-def app_vec_partial' {α : Type} : Π {m : ℕ} (n : ℕ),
+def app_vec_partial' {α : Type} : Π (m n : ℕ),
   m ≤ n → Func α (n+1) → vector α (m+1) → Func α (n-m)
-| 0     := λ n h f v, f v.head
-| (m+1) := λ n h f v, app_vec_partial' (n-1) (_ : m ≤ n-1) (f v.head (by omega)) (v.tail)               
+| 0     0     := λ h f v, f v.head
+| (m+1) 0     := sorry
+| 0     (n+1) := sorry
+| (m+1) (n+1) := sorry
+--| (m+1) (n+1) := λ h f v, app_vec_partial' (_ : m ≤ n-1) (f v.head (by omega)) (v.tail)
 
 /-! -----------------------------------------------------------------
 -- 1. Languages and Examples
@@ -258,7 +261,7 @@ def type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
 
 
 
--- ∈ ℕ 
+-- ∈ ℕ
 /-- We need to define a magma, because it looks like it is not defined
   in Mathlib.-/
 class magma (α : Type) :=
@@ -407,15 +410,15 @@ lemma ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A] :
 begin
   fconstructor,
   { exact A},
-  { 
+  {
     intros n f v,
     cases n,
      cases f,                                              -- n=0: f n = empty
     cases n,
      exact ordered_ring.neg (v.nth 0),                     -- n=1: f n = {-}
-    cases n, 
+    cases n,
      cases f,                                              -- n=2: f n = {×, +}
-     { exact ordered_ring.mul (v.nth 0) (v.nth 1)},        -- × 
+     { exact ordered_ring.mul (v.nth 0) (v.nth 1)},        -- ×
      { exact ordered_ring.add (v.nth 0) (v.nth 1)},        -- +
      cases f,                                              -- n>2: f n = empty
   },
@@ -1052,7 +1055,18 @@ iterate {unfold models},
 
 end DLO_Model
 
+-- TODO: Completeness of the DLO_theory
+-- Everything that is true in ℚ can be proved from DLO_axioms.
 
+-- Alternate statement: If something is true for ℚ then it is true for every
+-- model for DLO_axioms.  (because they all have the same theory).
+
+-- TODO: Vaught's theorem
+
+-- Alternate Branch of Work: Godel encoding?
+-- Map from ℕ to the long strings enconding prime factorization.
+
+-- TODO: Quantifier elimination in DLO_theory
 -- TODOs: Definability, o-minimality
 -- x<2 in ℝ defines (-∞, 2)
 -- x=y in ℝ defines a line at 45 degrees.
