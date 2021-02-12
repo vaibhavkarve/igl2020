@@ -1,8 +1,9 @@
 #+title: Prerequisite type theory
-#+subtitle: Quick type theory reference for understanding the model theory formalization
+#+MACRO: NEWLINE @@latex:\\@@ @@html:<br>@@
+#+subtitle: Quick type theory reference for understanding the model theory formalization {{{NEWLINE}}} [[file:model.html][model.lean]]\nbsp{}\nbsp{}\nbsp{}\nbsp{}
 #+options: toc:1 H:2
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="stylesheet.css" />
-#+subtitle: [[file:model.html][model.lean]]\nbsp{}\nbsp{}\nbsp{}\nbsp{}
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://gongzhitaao.org/orgcss/org.css"/>
+
 
 
 * TODO Types and terms
