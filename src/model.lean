@@ -198,6 +198,8 @@ def ordered_ring_lang : lang := {R := λ n : ℕ,
                                 ..ring_lang}
 
 
+
+
 /-- A dense linear ordering without endpoints is a language containg a
     single binary relation symbol < satisfying the following sentences:
 -- 1. ∀x x < x;
@@ -261,11 +263,12 @@ def type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
 
 
 
--- ∈ ℕ
+--
 /-- We need to define a magma, because it looks like it is not defined
   in Mathlib.-/
 class magma (α : Type) :=
 (mul : α → α → α)
+
 
 lemma free_magma_is_struc_of_magma_lang {A : Type} [magma A] :
   struc (magma_lang) :=
@@ -404,14 +407,16 @@ def LO_is_struc_of_DLO_lang {A : Type} [linear_order A] : struc (DLO_lang) :=
             cases r,
           },
    .. type_is_struc_of_set_lang}
-/-
+
+
+/- TODO: Fix this proof.
 lemma ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A] :
   struc (ordered_ring_lang) :=
 begin
   fconstructor,
   { exact A},
   {
-    intros n f v,
+    intros n f,
     cases n,
      cases f,                                              -- n=0: f n = empty
     cases n,
@@ -611,7 +616,7 @@ end example_terms
 with exactly one term. A lemma will show if the term is variable
 free, then the image of the function is variable free. Can be
 generalized to subsitute each variable with its own term. -/
-def term_sub {L : lang}(t' : term L 0) : Π n, term L n → term L n
+def term_sub {L : lang} (t' : term L 0) : Π n, term L n → term L n
 | 0 (con c)    := con c
 | 0 (var n)    := t'
 | n (func f)   := func f
@@ -620,7 +625,7 @@ def term_sub {L : lang}(t' : term L 0) : Π n, term L n → term L n
 /--Alternative definition where we only allow the substitution to
 occur over only one variable.-/
 
-def term_sub_for_var {L : lang}(t' : term L 0)(k : ℕ) :
+def term_sub_for_var {L : lang} (t' : term L 0) (k : ℕ) :
   Π n, term L n → term L n
 | 0 (con c)    := con c
 | 0 (var n)    := if k = n then t' else var n
@@ -1055,7 +1060,7 @@ iterate {unfold models},
 
 end DLO_Model
 
--- TODO: Completeness of the DLO_theory
+-- TODO: [Hard] Completeness of the DLO_theory
 -- Everything that is true in ℚ can be proved from DLO_axioms.
 
 -- Alternate statement: If something is true for ℚ then it is true for every
@@ -1073,3 +1078,46 @@ end DLO_Model
 -- Non-definable: (ℤ, +). ∃x, x+x=x defines {0}. Cannot define {1}.
 -- Is ℤ definable?
 -- Are even numbers (ℤ, +) ∃ y, x=y+y → (ℤ, +) is not o-minimal.
+
+/-- Definatbility
+    =============
+-/
+
+
+
+
+
+
+
+/-- Godel Encoding/Numbering
+    =======================
+
+Section 5.5 in Lou's notes.
+-/
+
+-- Scott is going to attempt the impossible.
+def godel_encoding (L : lang) : formula L → ℕ
+| formula.tt :=  sorry
+| formula.ff :=  sorry
+| _ := sorry
+--| formula.eq  := sorry
+--| formula.rel := sorry
+--| formula.neg := sorry
+--| formula.and := sorry
+--| formula.or  := sorry
+--| formula.exi := sorry
+--| formula.all := sorry
+
+
+/-- Completeness of Language
+    ========================
+
+All sentences are formulas.
+-/
+def is_complete {L : lang} (S : set (formula L)) : Prop := sorry
+def is_countable (L : lang) : Prop := sorry
+def sentence_to_formula {L : lang} : sentence L → formula L := sorry
+def all_models_are_iso_as_structures {L : lang} (S : set (formula L)) : Prop :=
+  sorry
+theorem Vaught {L : lang} (S : set (formula L)) (M : Model S) :
+  is_countable L → all_models_are_iso_as_structures S → is_complete S := sorry
