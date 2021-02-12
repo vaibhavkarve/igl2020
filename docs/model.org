@@ -1,0 +1,117 @@
+#+title: model.lean
+#+subtitle: Model theory formalized in Lean
+#+options: H:2
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="stylesheet.css" />
+#+subtitle: \nbsp\nbsp\nbsp\nbsp\nbsp[[file:type_theory.html][Link to file: type theory]]
+
+
+* TODO Arity \(n\) functions and their API
+
+* Languages
+** Definition and implementation
+A /language/ is given by specifying "functions'', "relations" and "constants"
+along with the arity of each function and each relation. Note that languages are
+purely syntactic -- they have no sematics (i.e. meaning assigned to them).
+
+The words "functions", "relations", and "constant" are written in quotes here
+to emphasize that these are just the names we give to these pieces of data. We
+could equivalently have called them F, R, and C. They do not yet behave like
+actual functions, relations and constants because we have not added any semantic
+information to them. For now, they are merely symbols in our language.
+
+In lean, we use *structure* to bundle data (think of it like classes in Python).
+So, we bundle functions and relations in a structure and call it a language.
+
+Implementation details --
+1. Constants are included in the mathematical definition of languages but not in
+   out immediate implementation of =lang= (see subsection that follows for an
+   explanation).
+2. The definition says that every function and relation is supposed to have an
+   arity.  In our implementation, we invert this and instead stipulate that
+   every arity (i.e. every natural number) has a type assiciated with it. What
+   type is that? The type corresponding to \((n : ℕ)\) is the type of all
+   \(n\)-arity functions in our language.
+3. Thus, \(F : ℕ → Type\) is the function that returns a type for each natural
+   number. Similarly for \(R\).
+4. We also note that since each =lang= contains an =F= and an =R= that
+   themselves return types, the type of =lang= itself is =Type 1=, which one
+   universe higher than =Type=.  In other words, =Type= is too small to contain
+   =lang=, so languages must live in a higher universe.  This is a small detail
+   that does not affect the rest of treatment of model theory in any way.
+
+** Constants
+We define the constants in a language to simply be the \(0\)-arity functions
+i.e. =L.F 0=. (Think of constants as simply a convenient way to refer to
+\(0\)-arity functions). They do not add any new information to the =lang=
+already defined above.
+1. This uses the fact that natural numbers in Lean begin at \(0\), not \(1\).
+2. This is the reason why we did not need to include constants in out
+   implementation of languages.
+
+** DLO language
+The language that is of primary interest to us is the language of dense linear
+ordering.
+
+A /dense linear ordering (without endpoints)/ (DLO) is a language containing a
+single binary relation symbol \((\le)\) satisfying some axioms. The exact axioms
+are not important at the moment since axioms are semantic statements, while we
+are interested only in syntactic statements right now.
+
+Thus, a DLO's =lang= is a language with no constant, no functions and only one
+binary relation. (Refer to the type theory primer for the meaning of =empty=,
+=unit= etc.).
+
+** =lang= is an inhabited type
+We can now declare that =lang= is an inhabited (read: nonempty) type since we
+know that =DLO_lang= is a =lang=. This declaration is made using Lean's
+=instance= keyword. This declaration automatically makes the nonemptiness of
+=lang= available as a fact to Lean's typeclass resolver if needed.
+
+* Structures
+Given a language \(L\), an /\(L\)-structure/ is a bundle of the following 4
+pieces of data.
+
+1. A set called the universe or domain. We implement this as a type rather than
+   a set because Lean is based on type theory.
+
+2. For every symbolic function of arity \(n\) in \(L\), we must have a
+   corresponding real function of arity \(n\) acting on the univere of \(M\). To
+   implement this, we map every =(f : L.F n)= to =Func univ v=. Since we need a
+   name for this map, we name it =F=. Thanks to namespaces in lean, the full
+   name for this map is =struc.F= or =M.F= where \(M\) is a =struc=, and hence
+   there is no chance of mixing this up with =lang.F= or =L.F=.
+
+3. For every symbolic relation of arity \(n\) in \(L\), we must have a
+   corresponding real relation of arity \(n\) on the univere of \(M\). At this
+   point, it is useful to recall that the proper definition of a relation is as
+   a subset if the domain set. What do I mean?  While we like to think of a
+   binary relation for example as a relation "between" elements of our set, it
+   is in fact better to view it as a subset of the cartesian product of the
+   domain with itself. Pairs belonging to this subset are related while pairs
+   not belonging are not.  Similarly, \(3\)-ary relations are subsets of
+   =univ³=, and so on. Thus we map each element =(r : L.R n)= to =set (vector
+   univ n)=, i.e. we map to a set of length \(n\) vectors of =univ=.
+
+4. For every symbolic constant in \(L\), we must have a corresponding constant
+   in the universe/domain. Since =L.C= is implemented outside of \(L\), we
+   similarly implement =M.C= outside of \(M\). It is implemented merely as the
+   \(0\)-arity function =M.F 0=.
+
+** TODO =struc= is inhabited
+
+* TODO Exbedding between structures
+** Embedding
+** Embeddings are inhabited
+** Isomorphism
+** Isomorphisms are inhabited
+** Cardinality of structure
+* TODO Terms
+** Definition of terms
+** Terms are inhabited
+** Variables in a term in term
+** Number of variables in a term
+** Term interpretation
+* TODO Term substitution
+* TODO Formulas and Sentences
+* TODO Satisfiability and models
+* Bibliography

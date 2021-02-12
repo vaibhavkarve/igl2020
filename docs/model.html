@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2021-02-11 Thu 22:13 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>model.lean</title>
+<meta name="generator" content="Org mode" />
+<meta name="author" content="Vaibhav Karve" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { width: 90%; }
+  /*]]>*/-->
+</style>
+<link rel="stylesheet" type="text/css" href="stylesheet.css" />
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2019 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        displayAlign: "center",
+        displayIndent: "0em",
+
+        "HTML-CSS": { scale: 100,
+                        linebreaks: { automatic: "false" },
+                        webFont: "TeX"
+                       },
+        SVG: {scale: 100,
+              linebreaks: { automatic: "false" },
+              font: "TeX"},
+        NativeMML: {scale: 100},
+        TeX: { equationNumbers: {autoNumber: "AMS"},
+               MultLineWidth: "85%",
+               TagSide: "right",
+               TagIndent: ".8em"
+             }
+});
+</script>
+<script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML"></script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">model.lean
+<br />
+<span class="subtitle">Model theory formalized in Lean &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="type_theory.html">Link to file: type theory</a></span>
+</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#org851202b">1. <span class="todo TODO">TODO</span> Arity \(n\) functions and their API</a></li>
+<li><a href="#org2b7276d">2. Languages</a>
+<ul>
+<li><a href="#org2f136e2">2.1. Definition and implementation</a></li>
+<li><a href="#orgec50f62">2.2. Constants</a></li>
+<li><a href="#org29a1df4">2.3. DLO language</a></li>
+<li><a href="#orgcc8fb28">2.4. <code>lang</code> is an inhabited type</a></li>
+</ul>
+</li>
+<li><a href="#org854a1f3">3. Structures</a>
+<ul>
+<li><a href="#org1fed24b">3.1. <span class="todo TODO">TODO</span> <code>struc</code> is inhabited</a></li>
+</ul>
+</li>
+<li><a href="#orgb6b10e0">4. <span class="todo TODO">TODO</span> Exbedding between structures</a>
+<ul>
+<li><a href="#org962ed98">4.1. Embedding</a></li>
+<li><a href="#org90c0a4f">4.2. Embeddings are inhabited</a></li>
+<li><a href="#org15abb36">4.3. Isomorphism</a></li>
+<li><a href="#org67ec94b">4.4. Isomorphisms are inhabited</a></li>
+<li><a href="#org27c06b8">4.5. Cardinality of structure</a></li>
+</ul>
+</li>
+<li><a href="#orgdfcf692">5. <span class="todo TODO">TODO</span> Terms</a>
+<ul>
+<li><a href="#org00a5315">5.1. Definition of terms</a></li>
+<li><a href="#org8121825">5.2. Terms are inhabited</a></li>
+<li><a href="#org72f06a0">5.3. Variables in a term in term</a></li>
+<li><a href="#org0a4dca7">5.4. Number of variables in a term</a></li>
+<li><a href="#org5d4df0b">5.5. Term interpretation</a></li>
+</ul>
+</li>
+<li><a href="#org944f017">6. <span class="todo TODO">TODO</span> Term substitution</a></li>
+<li><a href="#org5b92f1f">7. <span class="todo TODO">TODO</span> Formulas and Sentences</a></li>
+<li><a href="#org11c552c">8. <span class="todo TODO">TODO</span> Satisfiability and models</a></li>
+<li><a href="#orgc40be48">9. Bibliography</a></li>
+</ul>
+</div>
+</div>
+
+
+<div id="outline-container-org851202b" class="outline-2">
+<h2 id="org851202b"><span class="section-number-2">1</span> <span class="todo TODO">TODO</span> Arity \(n\) functions and their API</h2>
+</div>
+
+<div id="outline-container-org2b7276d" class="outline-2">
+<h2 id="org2b7276d"><span class="section-number-2">2</span> Languages</h2>
+<div class="outline-text-2" id="text-2">
+</div>
+<div id="outline-container-org2f136e2" class="outline-3">
+<h3 id="org2f136e2"><span class="section-number-3">2.1</span> Definition and implementation</h3>
+<div class="outline-text-3" id="text-2-1">
+<p>
+A <i>language</i> is given by specifying "functions'', "relations" and "constants"
+along with the arity of each function and each relation. Note that languages are
+purely syntactic &#x2013; they have no sematics (i.e. meaning assigned to them).
+</p>
+
+<p>
+The words "functions", "relations", and "constant" are written in quotes here
+to emphasize that these are just the names we give to these pieces of data. We
+could equivalently have called them F, R, and C. They do not yet behave like
+actual functions, relations and constants because we have not added any semantic
+information to them. For now, they are merely symbols in our language.
+</p>
+
+<p>
+In lean, we use <b>structure</b> to bundle data (think of it like classes in Python).
+So, we bundle functions and relations in a structure and call it a language.
+</p>
+
+<p>
+Implementation details &#x2013;
+</p>
+<ol class="org-ol">
+<li>Constants are included in the mathematical definition of languages but not in
+out immediate implementation of <code>lang</code> (see subsection that follows for an
+explanation).</li>
+<li>The definition says that every function and relation is supposed to have an
+arity.  In our implementation, we invert this and instead stipulate that
+every arity (i.e. every natural number) has a type assiciated with it. What
+type is that? The type corresponding to \((n : ℕ)\) is the type of all
+\(n\)-arity functions in our language.</li>
+<li>Thus, \(F : ℕ → Type\) is the function that returns a type for each natural
+number. Similarly for \(R\).</li>
+<li>We also note that since each <code>lang</code> contains an <code>F</code> and an <code>R</code> that
+themselves return types, the type of <code>lang</code> itself is <code>Type 1</code>, which one
+universe higher than <code>Type</code>.  In other words, <code>Type</code> is too small to contain
+<code>lang</code>, so languages must live in a higher universe.  This is a small detail
+that does not affect the rest of treatment of model theory in any way.</li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-orgec50f62" class="outline-3">
+<h3 id="orgec50f62"><span class="section-number-3">2.2</span> Constants</h3>
+<div class="outline-text-3" id="text-2-2">
+<p>
+We define the constants in a language to simply be the \(0\)-arity functions
+i.e. <code>L.F 0</code>. (Think of constants as simply a convenient way to refer to
+\(0\)-arity functions). They do not add any new information to the <code>lang</code>
+already defined above.
+</p>
+<ol class="org-ol">
+<li>This uses the fact that natural numbers in Lean begin at \(0\), not \(1\).</li>
+<li>This is the reason why we did not need to include constants in out
+implementation of languages.</li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-org29a1df4" class="outline-3">
+<h3 id="org29a1df4"><span class="section-number-3">2.3</span> DLO language</h3>
+<div class="outline-text-3" id="text-2-3">
+<p>
+The language that is of primary interest to us is the language of dense linear
+ordering.
+</p>
+
+<p>
+A <i>dense linear ordering (without endpoints)</i> (DLO) is a language containing a
+single binary relation symbol \((\le)\) satisfying some axioms. The exact axioms
+are not important at the moment since axioms are semantic statements, while we
+are interested only in syntactic statements right now.
+</p>
+
+<p>
+Thus, a DLO's <code>lang</code> is a language with no constant, no functions and only one
+binary relation. (Refer to the type theory primer for the meaning of <code>empty</code>,
+<code>unit</code> etc.).
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgcc8fb28" class="outline-3">
+<h3 id="orgcc8fb28"><span class="section-number-3">2.4</span> <code>lang</code> is an inhabited type</h3>
+<div class="outline-text-3" id="text-2-4">
+<p>
+We can now declare that <code>lang</code> is an inhabited (read: nonempty) type since we
+know that <code>DLO_lang</code> is a <code>lang</code>. This declaration is made using Lean's
+<code>instance</code> keyword. This declaration automatically makes the nonemptiness of
+<code>lang</code> available as a fact to Lean's typeclass resolver if needed.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org854a1f3" class="outline-2">
+<h2 id="org854a1f3"><span class="section-number-2">3</span> Structures</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+Given a language \(L\), an <i>\(L\)-structure</i> is a bundle of the following 4
+pieces of data.
+</p>
+
+<ol class="org-ol">
+<li>A set called the universe or domain. We implement this as a type rather than
+a set because Lean is based on type theory.</li>
+
+<li>For every symbolic function of arity \(n\) in \(L\), we must have a
+corresponding real function of arity \(n\) acting on the univere of \(M\). To
+implement this, we map every <code>(f : L.F n)</code> to <code>Func univ v</code>. Since we need a
+name for this map, we name it <code>F</code>. Thanks to namespaces in lean, the full
+name for this map is <code>struc.F</code> or <code>M.F</code> where \(M\) is a <code>struc</code>, and hence
+there is no chance of mixing this up with <code>lang.F</code> or <code>L.F</code>.</li>
+
+<li>For every symbolic relation of arity \(n\) in \(L\), we must have a
+corresponding real relation of arity \(n\) on the univere of \(M\). At this
+point, it is useful to recall that the proper definition of a relation is as
+a subset if the domain set. What do I mean?  While we like to think of a
+binary relation for example as a relation "between" elements of our set, it
+is in fact better to view it as a subset of the cartesian product of the
+domain with itself. Pairs belonging to this subset are related while pairs
+not belonging are not.  Similarly, \(3\)-ary relations are subsets of
+<code>univ³</code>, and so on. Thus we map each element <code>(r : L.R n)</code> to <code>set (vector
+   univ n)</code>, i.e. we map to a set of length \(n\) vectors of <code>univ</code>.</li>
+
+<li>For every symbolic constant in \(L\), we must have a corresponding constant
+in the universe/domain. Since <code>L.C</code> is implemented outside of \(L\), we
+similarly implement <code>M.C</code> outside of \(M\). It is implemented merely as the
+\(0\)-arity function <code>M.F 0</code>.</li>
+</ol>
+</div>
+
+<div id="outline-container-org1fed24b" class="outline-3">
+<h3 id="org1fed24b"><span class="section-number-3">3.1</span> <span class="todo TODO">TODO</span> <code>struc</code> is inhabited</h3>
+</div>
+</div>
+
+<div id="outline-container-orgb6b10e0" class="outline-2">
+<h2 id="orgb6b10e0"><span class="section-number-2">4</span> <span class="todo TODO">TODO</span> Exbedding between structures</h2>
+<div class="outline-text-2" id="text-4">
+</div>
+<div id="outline-container-org962ed98" class="outline-3">
+<h3 id="org962ed98"><span class="section-number-3">4.1</span> Embedding</h3>
+</div>
+<div id="outline-container-org90c0a4f" class="outline-3">
+<h3 id="org90c0a4f"><span class="section-number-3">4.2</span> Embeddings are inhabited</h3>
+</div>
+<div id="outline-container-org15abb36" class="outline-3">
+<h3 id="org15abb36"><span class="section-number-3">4.3</span> Isomorphism</h3>
+</div>
+<div id="outline-container-org67ec94b" class="outline-3">
+<h3 id="org67ec94b"><span class="section-number-3">4.4</span> Isomorphisms are inhabited</h3>
+</div>
+<div id="outline-container-org27c06b8" class="outline-3">
+<h3 id="org27c06b8"><span class="section-number-3">4.5</span> Cardinality of structure</h3>
+</div>
+</div>
+<div id="outline-container-orgdfcf692" class="outline-2">
+<h2 id="orgdfcf692"><span class="section-number-2">5</span> <span class="todo TODO">TODO</span> Terms</h2>
+<div class="outline-text-2" id="text-5">
+</div>
+<div id="outline-container-org00a5315" class="outline-3">
+<h3 id="org00a5315"><span class="section-number-3">5.1</span> Definition of terms</h3>
+</div>
+<div id="outline-container-org8121825" class="outline-3">
+<h3 id="org8121825"><span class="section-number-3">5.2</span> Terms are inhabited</h3>
+</div>
+<div id="outline-container-org72f06a0" class="outline-3">
+<h3 id="org72f06a0"><span class="section-number-3">5.3</span> Variables in a term in term</h3>
+</div>
+<div id="outline-container-org0a4dca7" class="outline-3">
+<h3 id="org0a4dca7"><span class="section-number-3">5.4</span> Number of variables in a term</h3>
+</div>
+<div id="outline-container-org5d4df0b" class="outline-3">
+<h3 id="org5d4df0b"><span class="section-number-3">5.5</span> Term interpretation</h3>
+</div>
+</div>
+<div id="outline-container-org944f017" class="outline-2">
+<h2 id="org944f017"><span class="section-number-2">6</span> <span class="todo TODO">TODO</span> Term substitution</h2>
+</div>
+<div id="outline-container-org5b92f1f" class="outline-2">
+<h2 id="org5b92f1f"><span class="section-number-2">7</span> <span class="todo TODO">TODO</span> Formulas and Sentences</h2>
+</div>
+<div id="outline-container-org11c552c" class="outline-2">
+<h2 id="org11c552c"><span class="section-number-2">8</span> <span class="todo TODO">TODO</span> Satisfiability and models</h2>
+</div>
+<div id="outline-container-orgc40be48" class="outline-2">
+<h2 id="orgc40be48"><span class="section-number-2">9</span> Bibliography</h2>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: Vaibhav Karve</p>
+<p class="date">Created: 2021-02-11 Thu 22:13</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
