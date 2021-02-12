@@ -21,10 +21,6 @@ functions, relations or constants.-/
 def set_lang: lang := {F := function.const ℕ empty,
                        R := function.const ℕ empty}
 
-/-- Having defined a set_lang, we now use it to declare that lang is an
-inhabited type.-/
-instance lang.inhabited : inhabited lang := {default := set_lang}
-
 
 /-- The language of ordered sets is the language or sets with a binary
   ordering relation {<}.-/

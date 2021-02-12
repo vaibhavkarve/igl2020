@@ -4,13 +4,12 @@ import set_theory.cardinal
 
 /-!
 0. We define functions of arity (n : ℕ) and their API.
-1. We define languages and give examples.
-2. We define structures and give examples.
+1. We define languages.
+2. We define structures.
 3. We define embedding between two structures on the same language.
 4. We define terms.
-   4.1 We give some examples of terms.
-   4.2 We define a function for term substitution and prove a theorem.
-   4.3 We give an interpretation of terms in structures.
+   4.1 We define a function for term substitution and prove a theorem.
+   4.2 We give an interpretation of terms in structures.
 5. We define formulas.
 -/
 
@@ -101,7 +100,7 @@ def app_vec_partial' {α : Type} : Π (m n : ℕ),
 --| (m+1) (n+1) := λ h f v, app_vec_partial' (_ : m ≤ n-1) (f v.head (by omega)) (v.tail)
 
 /-! -----------------------------------------------------------------
--- 1. Languages and Examples
+-- 1. Languages
 -- ----------------------------------------------------------------/
 
 /-- A language is given by specifying functions, relations and constants
@@ -116,27 +115,31 @@ def lang.C (L : lang) : Type := L.F 0
 
 
 /-- A dense linear ordering without endpoints is a language containg a
-    single binary relation symbol < satisfying the following sentences:
--- 1. ∀x x < x;
--- 2. ∀x ∀y ∀z (x < y → (y < z → x < z));
--- 3. ∀x ∀y (x < y ∨ x = y ∨ y < x);
--- 4. ∀x ∃y x < y;
--- 5. ∀x ∃y y < x;
--- 6. ∀x ∀y (x < y → ∃z (x < z ∧ z < y)).
+    single binary relation symbol ≤ satisfying the following sentences:
+-- 1. ∀x x ≤ x;
+-- 2. ∀x ∀y ∀z (x ≤ y → (y ≤ z → x ≤ z));
+-- 3. ∀x ∀y (x ≤ y ∨ x = y ∨ y ≤ x);
+-- 4. ∀x ∃y x ≤ y;
+-- 5. ∀x ∃y y ≤ x;
+-- 6. ∀x ∀y (x ≤ y → ∃z (x ≤ z ∧ z ≤ y)).
 
-The  language contains exactly one relation: <, and no functions or constants-/
+The  language contains exactly one relation: ≤, and no functions or constants-/
 def DLO_lang : lang := {R := λ n : ℕ,
                         if n = 2 then unit else empty,  -- one binary relation
                         F := function.const ℕ empty}
 
+/-- Having defined a DLO_lang, we now use it to declare that lang is an
+inhabited type.-/
+instance lang.inhabited : inhabited lang := {default := DLO_lang}
+
 
 /-! -----------------------------------------------------------------
--- 2. Structures and Examples
+-- 2. Structures
 -- ----------------------------------------------------------------/
 
 
-/-- We now define an L-structure to be interpretations of functions,
- relations and constants.
+/-- We now define an L-structure to be mapping of functions, relations and
+ constants to appropriate elements of a domain/universe type.
 
 TODO: For now, we add in explicit interpretation of the constants as well
 as (L.F 0). But in fact we should keep one or the other, not both.
@@ -145,15 +148,14 @@ structure struc (L : lang) : Type 1 :=
 (univ : Type)                                   -- universe/domain
 (F (n : ℕ) (f : L.F n) : Func univ n)          -- interpretation of each function
 (R (n : ℕ) (r : L.R n) : set (vector univ n))  -- interpretation of each relation
-(C : L.C → univ)                               -- interpretation of each constant
 
+def struc.C {L : lang} (M : struc L) : L.C → M.univ := M.F 0
 
 
 instance struc.inhabited {L : lang} : inhabited (struc L) :=
   {default := {univ := unit,  -- The domain must have at least one term
                F := λ _ _, mk_Func_of_total (function.const _ unit.star) unit.star,
-               R := λ _ _, ∅,
-               C := function.const _ unit.star}
+               R := λ _ _, ∅}
   }
 
 
@@ -172,8 +174,7 @@ structure embedding {L : lang} (M N : struc L) : Type :=
      η (app_vec (M.F (n+1) f) v) = app_vec (N.F (n+1) f) (vector.map η v))
 (η_R : ∀ n r v,                              -- preserves each relation
      v ∈ (M.R n r) ↔ (vector.map η v) ∈ (N.R n r))
-(η_C : ∀ c,                                   -- preserves each constant
-     η (M.C c) = N.C c)
+(η_C : ∀ c, η (M.C c) = N.C c)               -- preserves constants
 
 
 @[simp] lemma vec_map_id {α : Type} {n : ℕ} (v : vector α n) : vector.map id v = v :=
