@@ -1,9 +1,9 @@
 #+title: model.lean
-#+subtitle: Model theory formalized in Lean
+#+MACRO: NEWLINE @@latex:\\@@ @@html:<br>@@
+#+subtitle: Model theory formalized in Lean {{{NEWLINE}}} [[file:type_theory.html][Link to file: type theory]]
 #+options: H:2
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="stylesheet.css" />
-#+subtitle: \nbsp\nbsp\nbsp\nbsp\nbsp[[file:type_theory.html][Link to file: type theory]]
-
+#+subtitle:
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://gongzhitaao.org/orgcss/org.css"/>
 
 * TODO Arity \(n\) functions and their API
 
