@@ -1,6 +1,7 @@
 import tactic
 import data.real.basic
 import set_theory.cardinal
+import data.nat.prime
 
 /-!
 0. We define functions of arity (n : ℕ) and their API.
@@ -649,6 +650,17 @@ def godel_encoding (L : lang) : formula L → ℕ
 --| formula.exi := sorry
 --| formula.all := sorry
 
+
+
+-- Proof omitted for now. [Schröder–Bernstein theorem]
+axiom nat_to_prime : ℕ → nat.primes
+
+
+-- ⟨a, b⟩ → 2^{a+1}*3^{b+1} and so on
+noncomputable def encoding1 : Π n, vector ℕ n → ℕ
+| 0 v     := 1
+| 1 v     := (nat_to_prime 0)^(v.nth 0 + 1)
+| (n+1) v := (nat_to_prime n)^(v.head + 1) * encoding1 n (v.tail)
 
 /-- Completeness of Language
     ========================
