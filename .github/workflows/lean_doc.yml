@@ -1,5 +1,10 @@
+# Taken from https://github.com/pygae/lean-ga/blob/master/.github/workflows/lean_doc.yml
+
+# Run this workflow every time a new commit pushed to the repository but only on the master branch
 on:
   push:
+    branches:
+      - master
 
 jobs:
   build_docs:
@@ -82,7 +87,8 @@ jobs:
     - name: 🔑 Install SSH Client
       uses: webfactory/ssh-agent@v0.4.1
       with:
-        ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
 
     - name: 🚀 Deploy
       uses: JamesIves/github-pages-deploy-action@3.7.1
