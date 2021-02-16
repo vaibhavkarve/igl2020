@@ -97,4 +97,4 @@ jobs:
         REPOSITORY_NAME: vaibhavkarve/vaibhavkarve.github.io
         BRANCH: lean-doc # The branch the action should deploy to.
         FOLDER: doc-gen/built-docs # The folder the action should deploy.
-        ssh-key: ${{ secrets.DEPLOY_KEY }}
+        SSH: ${{ secrets.DEPLOY_KEY }}
