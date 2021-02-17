@@ -98,3 +98,4 @@ jobs:
         branch: lean-doc # The branch the action should deploy to.
         folder: doc-gen/built-docs # The folder the action should deploy.
         ssh-key: ${{ secrets.DEPLOY_KEY }}
+        target-folder: modeltheoryinlean  # The folder to push contents to.
