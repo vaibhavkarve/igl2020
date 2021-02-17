@@ -90,6 +90,13 @@ jobs:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
 
+    - name: 📁 Checkout website repo
+      uses: actions/checkout@v2
+      with:
+        repository: vaibhavkarve/vaibhavkarve.github.io
+        fetch-depth: 0
+
+
     - name: 🚀 Deploy
       uses: JamesIves/github-pages-deploy-action@4.0.0
       with:
