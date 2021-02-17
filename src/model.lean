@@ -3,21 +3,26 @@ import data.real.basic
 import set_theory.cardinal
 import data.nat.prime
 
-/-! model.lean
+/-!
+# model.lean
 
-In this file,
-0. We define functions of arity (n : ℕ) and their API.
-1. We define languages.
-2. We define structures.
-3. We define embedding between two structures on the same language.
-4. We define terms.
-   - We define a function for term substitution and prove a theorem.
-   - We give an interpretation of terms in structures.
-5. We define formulas.
+In this file, we define
+- functions of arity `(n : ℕ)` and their API.
+- languages
+- structures
+- embedding between two structures on the same language.
+- terms
+  - we define a function for term substitution and prove a theorem.
+  - we give an interpretation of terms in structures.
+- formulas.
+
+## Tags
+
+model-theory, o-minimality
 -/
 
 
-/-! 0. Arity n Functions and their API-/
+/-! Arity n Functions and their API -/
 
 /-- Inductively define a function on n arguments. 0-arity functions are just
 terms of type α.-/
@@ -101,9 +106,7 @@ def app_vec_partial' {α : Type} : Π (m n : ℕ),
 | (m+1) (n+1) := sorry
 --| (m+1) (n+1) := λ h f v, app_vec_partial' (_ : m ≤ n-1) (f v.head (by omega)) (v.tail)
 
-/-! -----------------------------------------------------------------
--- 1. Languages
--- ----------------------------------------------------------------/
+/-! Languages -/
 
 /-- A language is given by specifying functions, relations and constants
 along with the arity of each function and each relation.-/
@@ -135,9 +138,7 @@ inhabited type.-/
 instance lang.inhabited : inhabited lang := {default := DLO_lang}
 
 
-/-! -----------------------------------------------------------------
--- 2. Structures
--- ----------------------------------------------------------------/
+/-! Structures -/
 
 
 /-- We now define an L-structure to be mapping of functions, relations and
@@ -162,9 +163,7 @@ instance struc.inhabited {L : lang} : inhabited (struc L) :=
 
 
 
-/-! -----------------------------------------------------------------
--- 3. Embeddings between Structures
--- ----------------------------------------------------------------/
+/-! Embeddings between Structures -/
 
 
 /-- An L-embedding is a map between two L-structures that is injective
@@ -217,9 +216,8 @@ def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
   card M ≤ card N := cardinal.mk_le_of_injective η.η_inj
 
-/-! -----------------------------------------------------------------
--- 4. Terms
--- ----------------------------------------------------------------/
+/-! Terms -/
+
 variables (L : lang) (M : struc L)
 
 /-- We define terms in a language to be constants, variables, functions or
@@ -299,10 +297,7 @@ def term_sub_for_var {L : lang} (t' : term L 0) (k : ℕ) :
 
 
 
-/-! -----------------------------------------------------------------
--- 5. Formulas and Sentences
--- ----------------------------------------------------------------/
-
+/-!  Formulas and Sentences -/
 
 inductive formula (L : lang)
 | tt : formula
@@ -380,9 +375,7 @@ def sentence (L : lang) : Type := {ϕ : formula L // is_sentence ϕ}
 /-! Examples of formulas and sentences.-/
 
 
-/-! -----------------------------------------------------------------
--- 6. Satisfiability and Models
--- ----------------------------------------------------------------/
+/-! Satisfiability and Models -/
 
 /- Define an expanded language, given a struc M.
 
@@ -653,7 +646,7 @@ def godel_encoding (L : lang) : formula L → ℕ
 
 
 
--- Proof omitted for now. [Schröder–Bernstein theorem]
+-- Proof omitted for now. [Schröder–Bernstein theorem?]
 axiom nat_to_prime : ℕ → nat.primes
 
 
@@ -662,6 +655,11 @@ noncomputable def encoding1 : Π n, vector ℕ n → ℕ
 | 0 v     := 1
 | 1 v     := (nat_to_prime 0)^(v.nth 0 + 1)
 | (n+1) v := (nat_to_prime n)^(v.head + 1) * encoding1 n (v.tail)
+
+
+#reduce list.range 5
+def primes : list ℕ := list.filter nat.prime [1..]
+
 
 /-- Completeness of Language
     ========================
