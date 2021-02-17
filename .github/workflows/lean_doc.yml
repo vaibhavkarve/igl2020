@@ -89,13 +89,12 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-
     - name: 🚀 Deploy
       uses: JamesIves/github-pages-deploy-action@4.0.0
       with:
         single-commit: true
         repository-name: vaibhavkarve/vaibhavkarve.github.io
-        branch: master # The branch the action should deploy to.
+        branch: lean-doc # The branch the action should deploy to.
         folder: doc-gen/built-docs # The folder the action should deploy.
         ssh-key: ${{ secrets.DEPLOY_KEY }}
         target-folder: igl2020-docs  # The folder to push contents to.
