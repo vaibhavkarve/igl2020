@@ -90,19 +90,12 @@ jobs:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
 
-    - name: 📁 Checkout website repo
-      uses: actions/checkout@v2
-      with:
-        repository: vaibhavkarve/vaibhavkarve.github.io
-        fetch-depth: 0
-
-
     - name: 🚀 Deploy
       uses: JamesIves/github-pages-deploy-action@4.0.0
       with:
         single-commit: true
         repository-name: vaibhavkarve/vaibhavkarve.github.io
-        branch: lean-doc # The branch the action should deploy to.
+        branch: master # The branch the action should deploy to.
         folder: doc-gen/built-docs # The folder the action should deploy.
         ssh-key: ${{ secrets.DEPLOY_KEY }}
-        target-folder: modeltheoryinlean  # The folder to push contents to.
+        target-folder: igl2020-docs  # The folder to push contents to.
