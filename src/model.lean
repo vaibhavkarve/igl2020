@@ -3,21 +3,21 @@ import data.real.basic
 import set_theory.cardinal
 import data.nat.prime
 
-/-!
+/-! model.lean
+
+In this file,
 0. We define functions of arity (n : ℕ) and their API.
 1. We define languages.
 2. We define structures.
 3. We define embedding between two structures on the same language.
 4. We define terms.
-   4.1 We define a function for term substitution and prove a theorem.
-   4.2 We give an interpretation of terms in structures.
+   - We define a function for term substitution and prove a theorem.
+   - We give an interpretation of terms in structures.
 5. We define formulas.
 -/
 
 
-/-! -----------------------------------------------------------------
--- 0. Arity n Functions and their API
--- ----------------------------------------------------------------/
+/-! 0. Arity n Functions and their API-/
 
 /-- Inductively define a function on n arguments. 0-arity functions are just
 terms of type α.-/
@@ -25,8 +25,9 @@ terms of type α.-/
 | 0 := α
 | (n+1) := α → Func n
 
-/-- Create a type of ALL functions with finite arity. Here we use Σ to
-sum up the types. Sum for types :: union for sets.-/
+
+/-- Create a type of all functions with finite arity. Here we use Σ to
+sum up the types. Sum for types corresponds to union for sets.-/
 def Funcs (α : Type) : Type := Σ (n : ℕ), Func α n
 
 /-- If α is inhabited (i.e. if it has at least one term), then so is Funcs α.
