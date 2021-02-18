@@ -6,7 +6,6 @@
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://gongzhitaao.org/orgcss/org.css"/>
 
 * TODO Arity \(n\) functions and their API
-
 * Languages
 ** Definition and implementation
 A /language/ is given by specifying "functions'', "relations" and "constants"
@@ -99,7 +98,7 @@ pieces of data.
 
 ** TODO =struc= is inhabited
 
-* TODO Exbedding between structures
+* TODO Embedding between structures
 ** Embedding
 ** Embeddings are inhabited
 ** Isomorphism

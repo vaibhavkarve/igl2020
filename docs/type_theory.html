@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2021-02-12 Fri 11:44 -->
+<!-- 2021-02-18 Thu 11:07 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Prerequisite type theory</title>
@@ -227,6 +227,28 @@ for the JavaScript code in this tag.
  }
 /*]]>*///-->
 </script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        displayAlign: "center",
+        displayIndent: "0em",
+
+        "HTML-CSS": { scale: 100,
+                        linebreaks: { automatic: "false" },
+                        webFont: "TeX"
+                       },
+        SVG: {scale: 100,
+              linebreaks: { automatic: "false" },
+              font: "TeX"},
+        NativeMML: {scale: 100},
+        TeX: { equationNumbers: {autoNumber: "AMS"},
+               MultLineWidth: "85%",
+               TagSide: "right",
+               TagIndent: ".8em"
+             }
+});
+</script>
+<script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML"></script>
 </head>
 <body>
 <div id="content">
@@ -238,49 +260,176 @@ for the JavaScript code in this tag.
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org1967ed6">1. <span class="todo TODO">TODO</span> Types and terms</a></li>
-<li><a href="#org673f129">2. <span class="todo TODO">TODO</span> Types vs. Sets</a></li>
-<li><a href="#org23b327a">3. <span class="todo TODO">TODO</span> Props</a></li>
-<li><a href="#org9286785">4. <span class="todo TODO">TODO</span> Finite types</a></li>
+<li><a href="#org401ed2d">1. Types and terms</a></li>
+<li><a href="#org3451cea">2. Types vs. Sets (and universes)</a></li>
+<li><a href="#orga8261cd">3. Props</a></li>
+<li><a href="#org3ee0edf">4. Finite types</a></li>
 </ul>
 </div>
 </div>
 
 
 
-<div id="outline-container-org1967ed6" class="outline-2">
-<h2 id="org1967ed6"><span class="section-number-2">1</span> <span class="todo TODO">TODO</span> Types and terms</h2>
+<div id="outline-container-org401ed2d" class="outline-2">
+<h2 id="org401ed2d"><span class="section-number-2">1</span> Types and terms</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+A <i>type</i> is a collection of distinct <i>terms</i> (very similar to how a set is a
+collection of distinct values).
+</p>
+
+<p>
+In set theory we write \((a \in A)\). In type theory we will instead write
+\((a : A)\).
+</p>
+</div>
 </div>
 
-<div id="outline-container-org673f129" class="outline-2">
-<h2 id="org673f129"><span class="section-number-2">2</span> <span class="todo TODO">TODO</span> Types vs. Sets</h2>
+<div id="outline-container-org3451cea" class="outline-2">
+<h2 id="org3451cea"><span class="section-number-2">2</span> Types vs. Sets (and universes)</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+Unlike sets, not all types are "on the same level". Each type belongs to a
+universe.
+</p>
+
+<p>
+Most types that we are familiar with are in universe level 0.
+So, following statements are true &#x2013;
+</p>
+<div class="org-src-container">
+<pre class="src src-lean">(<span class="org-constant">5</span> : <span class="org-constant">&#8469;</span>) <span class="org-comment-delimiter">-- </span><span class="org-comment">this says that 5 has type &#8469;</span>
+(<span class="org-constant">&#8469;</span> : <span class="org-type">Type</span> <span class="org-constant">0</span>) <span class="org-comment-delimiter">-- </span><span class="org-comment">this says that &#8469;  has type level 0.</span>
+(<span class="org-constant">&#8469;</span> : <span class="org-type">Type</span>)   <span class="org-comment-delimiter">-- </span><span class="org-comment">The default universe level is always 0.</span>
+(list <span class="org-constant">&#8469;</span> : <span class="org-type">Type</span>) <span class="org-comment-delimiter">-- </span><span class="org-comment">A list of natural numbers has the same type as &#8469; itself</span>
+(list <span class="org-type">Type</span> : <span class="org-type">Type</span> <span class="org-constant">1</span>) <span class="org-comment-delimiter">-- </span><span class="org-comment">A list of types belongs to a higher universe.</span>
+</pre>
 </div>
 
-<div id="outline-container-org23b327a" class="outline-2">
-<h2 id="org23b327a"><span class="section-number-2">3</span> <span class="todo TODO">TODO</span> Props</h2>
+<p>
+Note that <code>(list Type)</code> is a weird object that we will never have to deal with
+in our day-to-day usage of lean.
+</p>
+
+<p>
+<b>Important note:</b> Even though we use types instead of sets in lean, this does
+not mean that lean has no sets! Sets in lean have their own meaning, distinct
+from the sets we are used to in set theory.
+</p>
+</div>
 </div>
 
-<div id="outline-container-org9286785" class="outline-2">
-<h2 id="org9286785"><span class="section-number-2">4</span> <span class="todo TODO">TODO</span> Finite types</h2>
+<div id="outline-container-orga8261cd" class="outline-2">
+<h2 id="orga8261cd"><span class="section-number-2">3</span> Props</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+<code>Prop</code> denotes the type of all propositions.  Props are types at a level below
+Type 0. They are the type of all true/false statements.
+</p>
+
+<p>
+Whenever we are dealing with a statement that might be true or false, it is of
+type Prop.
+</p>
+
+<p>
+Here are some example uses of Prop.
+</p>
+<div class="org-src-container">
+<pre class="src src-lean">is_prime : <span class="org-constant">&#8469;</span> <span class="org-constant">&#8594;</span> <span class="org-type">Prop</span>
+congruent_triangles : Triangle <span class="org-constant">&#8594;</span> Triangle <span class="org-constant">&#8594;</span> <span class="org-type">Prop</span>
+greater_than_2 : <span class="org-constant">&#8477;</span> <span class="org-constant">&#8594;</span> <span class="org-type">Prop</span> <span class="org-constant">:=</span> <span class="org-constant">&#955;</span> (x : <span class="org-constant">&#8477;</span>), x <span class="org-constant">&gt;</span> <span class="org-constant">2</span>
+</pre>
+</div>
+
+<p>
+Note that <code>is_prime 5</code> is a term of type Prop, but so is <code>is_prime 6</code>.  We get
+two Prop terms for free in lean <code>(true : Prop)</code> and <code>(false : Prop)</code>. For
+everything else, we need a proof of equality. This means that <code>(is_prime 6 =
+false)</code> is itself a Prop that needs a proof.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org3ee0edf" class="outline-2">
+<h2 id="org3ee0edf"><span class="section-number-2">4</span> Finite types</h2>
 <div class="outline-text-2" id="text-4">
 </div>
-<div id="outline-container-org2011d40" class="outline-3">
-<h3 id="org2011d40"><span class="section-number-3">4.1</span> empty</h3>
+<div id="outline-container-orgbbd45b6" class="outline-3">
+<h3 id="orgbbd45b6"><span class="section-number-3">4.1</span> empty</h3>
+<div class="outline-text-3" id="text-4-1">
+<p>
+This is the type that contains no terms. (Think of this as an analogue of the
+empty set).
+</p>
+
+<p>
+Since empty has no terms, if you ever encounter an element <code>(a : empty)</code> then
+this is an indication that we have made a mistake somewhere. This is similar to
+how we can never have an element \(a \in \emptyset\).
+</p>
 </div>
-<div id="outline-container-org1a36521" class="outline-3">
-<h3 id="org1a36521"><span class="section-number-3">4.2</span> unit</h3>
 </div>
-<div id="outline-container-orga0bffbd" class="outline-3">
-<h3 id="orga0bffbd"><span class="section-number-3">4.3</span> bool</h3>
+
+<div id="outline-container-org602ce9a" class="outline-3">
+<h3 id="org602ce9a"><span class="section-number-3">4.2</span> unit</h3>
+<div class="outline-text-3" id="text-4-2">
+<p>
+This is the type that contains a exactly one term.
+</p>
+
+<p>
+If we need a way to reference this term&#x2026;
+</p>
+<div class="org-src-container">
+<pre class="src src-lean"><span class="org-keyword">#check</span> unit.star  <span class="org-comment-delimiter">-- </span><span class="org-comment">this has type unit</span>
+<span class="org-comment-delimiter">-- </span><span class="org-comment">unit</span>
+<span class="org-keyword">#check</span> ()  <span class="org-comment-delimiter">-- </span><span class="org-comment">this is another way to refer to unit.star</span>
+<span class="org-comment-delimiter">-- </span><span class="org-comment">unit</span>
+<span class="org-keyword">example</span> : () <span class="org-constant">=</span> unit.star <span class="org-constant">:=</span> rfl
+</pre>
 </div>
-<div id="outline-container-org55ab50b" class="outline-3">
-<h3 id="org55ab50b"><span class="section-number-3">4.4</span> fin</h3>
+
+<p>
+We can also think of this as the type of "truth" while empty is the type of
+"false".
+</p>
+</div>
+</div>
+
+<div id="outline-container-orge32404d" class="outline-3">
+<h3 id="orge32404d"><span class="section-number-3">4.3</span> bool</h3>
+<div class="outline-text-3" id="text-4-3">
+<p>
+This is the type that contains exactly two terms. The terms are denoted <code>(tt :
+bool)</code> and <code>(ff : bool)</code>. Note that bool is not the same as Prop, <code>tt</code> is not
+the same as <code>true</code>, and <code>ff</code> is not the same as <code>false</code>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org46f89ba" class="outline-3">
+<h3 id="org46f89ba"><span class="section-number-3">4.4</span> fin</h3>
+<div class="outline-text-3" id="text-4-4">
+<p>
+<code>fin n</code> denotes the type that contains \(n\) elements. <code>fin 0</code>, <code>fin 1</code>, <code>fin 2</code>
+have the special names <code>empty</code>, <code>unit</code>, and <code>bool</code> respectively.
+</p>
+
+<p>
+Terms of <code>fin n</code> are merely the integers \(0\) to \(n-1\).
+</p>
+
+<p>
+Use <code>fin</code> when you wish to construct a type with of a given cardinality.
+</p>
+</div>
 </div>
 </div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Vaibhav Karve</p>
-<p class="date">Created: 2021-02-12 Fri 11:44</p>
+<p class="date">Created: 2021-02-18 Thu 11:07</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

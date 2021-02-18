@@ -6,14 +6,86 @@
 
 
 
-* TODO Types and terms
+* Types and terms
+A /type/ is a collection of distinct /terms/ (very similar to how a set is a
+collection of distinct values).
 
-* TODO Types vs. Sets
+In set theory we write \((a \in A)\). In type theory we will instead write
+\((a : A)\).
 
-* TODO Props
+* Types vs. Sets (and universes)
+Unlike sets, not all types are "on the same level". Each type belongs to a
+universe.
 
-* TODO Finite types
+Most types that we are familiar with are in universe level 0.
+So, following statements are true --
+#+BEGIN_SRC lean
+  (5 : ℕ) -- this says that 5 has type ℕ
+  (ℕ : Type 0) -- this says that ℕ  has type level 0.
+  (ℕ : Type)   -- The default universe level is always 0.
+  (list ℕ : Type) -- A list of natural numbers has the same type as ℕ itself
+  (list Type : Type 1) -- A list of types belongs to a higher universe.
+#+END_SRC
+
+Note that =(list Type)= is a weird object that we will never have to deal with
+in our day-to-day usage of lean.
+
+*Important note:* Even though we use types instead of sets in lean, this does
+not mean that lean has no sets! Sets in lean have their own meaning, distinct
+from the sets we are used to in set theory.
+
+* Props
+=Prop= denotes the type of all propositions.  Props are types at a level below
+Type 0. They are the type of all true/false statements.
+
+Whenever we are dealing with a statement that might be true or false, it is of
+type Prop.
+
+Here are some example uses of Prop.
+#+BEGIN_SRC lean
+is_prime : ℕ → Prop
+congruent_triangles : Triangle → Triangle → Prop
+greater_than_2 : ℝ → Prop := λ (x : ℝ), x > 2
+#+END_SRC
+
+Note that =is_prime 5= is a term of type Prop, but so is =is_prime 6=.  We get
+two Prop terms for free in lean =(true : Prop)= and =(false : Prop)=. For
+everything else, we need a proof of equality. This means that =(is_prime 6 =
+false)= is itself a Prop that needs a proof.
+
+* Finite types
 ** empty
+This is the type that contains no terms. (Think of this as an analogue of the
+empty set).
+
+Since empty has no terms, if you ever encounter an element =(a : empty)= then
+this is an indication that we have made a mistake somewhere. This is similar to
+how we can never have an element \(a \in \emptyset\).
+
 ** unit
+This is the type that contains a exactly one term.
+
+If we need a way to reference this term...
+#+BEGIN_SRC lean
+#check unit.star  -- this has type unit
+-- unit
+#check ()  -- this is another way to refer to unit.star
+-- unit
+example : () = unit.star := rfl
+#+END_SRC
+
+We can also think of this as the type of "truth" while empty is the type of
+"false".
+
 ** bool
+This is the type that contains exactly two terms. The terms are denoted =(tt :
+bool)= and =(ff : bool)=. Note that bool is not the same as Prop, =tt= is not
+the same as =true=, and =ff= is not the same as =false=.
+
 ** fin
+=fin n= denotes the type that contains \(n\) elements. =fin 0=, =fin 1=, =fin 2=
+have the special names =empty=, =unit=, and =bool= respectively.
+
+Terms of =fin n= are merely the integers \(0\) to \(n-1\).
+
+Use =fin= when you wish to construct a type with of a given cardinality.
