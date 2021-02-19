@@ -1,7 +1,7 @@
 import tactic
 import data.real.basic
 import set_theory.cardinal
-import data.nat.prime
+import data.nat.prime data.stream
 
 /-!
 # model.lean
@@ -18,17 +18,18 @@ In this file, we define
 
 ## Tags
 
-model-theory, o-minimality
+model theory, o-minimality
 -/
 
 
-/-! Arity n Functions and their API -/
+/-! ## Arity n Functions and their API -/
 
 /-- Inductively define a function on n arguments. 0-arity functions are just
 terms of type α.-/
 @[reducible] def Func (α : Type) : ℕ → Type
 | 0 := α
 | (n+1) := α → Func n
+
 
 
 /-- Create a type of all functions with finite arity. Here we use Σ to
@@ -106,7 +107,7 @@ def app_vec_partial' {α : Type} : Π (m n : ℕ),
 | (m+1) (n+1) := sorry
 --| (m+1) (n+1) := λ h f v, app_vec_partial' (_ : m ≤ n-1) (f v.head (by omega)) (v.tail)
 
-/-! Languages -/
+/-! ## Languages -/
 
 /-- A language is given by specifying functions, relations and constants
 along with the arity of each function and each relation.-/
@@ -116,7 +117,6 @@ structure lang : Type 1 :=
 
 /-- Constants of a language are simply its 0-ary functions. -/
 def lang.C (L : lang) : Type := L.F 0
-
 
 
 /-- A dense linear ordering without endpoints is a language containg a
@@ -138,7 +138,7 @@ inhabited type.-/
 instance lang.inhabited : inhabited lang := {default := DLO_lang}
 
 
-/-! Structures -/
+/-! ## Structures -/
 
 
 /-- We now define an L-structure to be mapping of functions, relations and
@@ -163,7 +163,7 @@ instance struc.inhabited {L : lang} : inhabited (struc L) :=
 
 
 
-/-! Embeddings between Structures -/
+/-! ## Embeddings between Structures -/
 
 
 /-- An L-embedding is a map between two L-structures that is injective
@@ -216,7 +216,7 @@ def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
   card M ≤ card N := cardinal.mk_le_of_injective η.η_inj
 
-/-! Terms -/
+/-! ## Terms -/
 
 variables (L : lang) (M : struc L)
 
@@ -272,7 +272,7 @@ def term_interpretation {L : lang} (M : struc L)(var_assign : ℕ → M.univ) :
 
 
 
-/-! 4.2 Terms Substitution
+/-! ## 4.2 Terms Substitution
     -----------------------/
 
 /-- Simple example of a map where we substitute every variable
@@ -297,7 +297,7 @@ def term_sub_for_var {L : lang} (t' : term L 0) (k : ℕ) :
 
 
 
-/-!  Formulas and Sentences -/
+/-! ##  Formulas and Sentences -/
 
 inductive formula (L : lang)
 | tt : formula
@@ -372,10 +372,10 @@ def is_sentence {L : lang} (ϕ : formula L) : Prop :=
 
 def sentence (L : lang) : Type := {ϕ : formula L // is_sentence ϕ}
 
-/-! Examples of formulas and sentences.-/
+/-! ## Examples of formulas and sentences.-/
 
 
-/-! Satisfiability and Models -/
+/-! ## Satisfiability and Models -/
 
 /- Define an expanded language, given a struc M.
 
@@ -607,7 +607,7 @@ structure Model {L : lang} (axs : set(formula L)) : Type 1 :=
 
 -- TODO: Vaught's theorem
 
--- Alternate Branch of Work: Godel encoding?
+-- [This is Hard as well] Alternate Branch of Work: Godel encoding?
 -- Map from ℕ to the long strings enconding prime factorization.
 
 -- TODO: Quantifier elimination in DLO_theory
@@ -645,20 +645,33 @@ def godel_encoding (L : lang) : formula L → ℕ
 --| formula.all := sorry
 
 
-
 -- Proof omitted for now. [Schröder–Bernstein theorem?]
-axiom nat_to_prime : ℕ → nat.primes
+constant stream.primes : stream nat.primes
 
+-- Alternatively, we could filter out the composite numbers.
+#eval list.filter nat.prime (list.range 15)
 
 -- ⟨a, b⟩ → 2^{a+1}*3^{b+1} and so on
-noncomputable def encoding1 : Π n, vector ℕ n → ℕ
+def encoding1 : Π n, vector ℕ n → ℕ
 | 0 v     := 1
-| 1 v     := (nat_to_prime 0)^(v.nth 0 + 1)
-| (n+1) v := (nat_to_prime n)^(v.head + 1) * encoding1 n (v.tail)
+| 1 v     := (stream.primes 0)^(v.nth 0 + 1)
+| (n+1) v := (stream.primes n)^(v.head + 1) * encoding1 n (v.tail)
 
 
-#reduce list.range 5
-def primes : list ℕ := list.filter nat.prime [1..]
+def string_of_formula : formula L → string := sorry
+
+
+#eval string.append "234" "23"
+
+def func_number {L : lang} {n : ℕ} : L.F n → ℕ := sorry
+
+def term_number {L : lang} : Π n, term L n → ℕ
+| 0 (con c) := func_number c
+| 0 (var v) := 2*v
+| n (func f) := func_number f
+| n (app t t₀) := term_number (n+1) t * term_number 0 t₀
+
+-- ϕ₁ ∧ ϕ₂ := string_of_formula(∧) :: string_of_formula(ϕ₁) :: string_of_formula(ϕ₂)
 
 
 /-- Completeness of Language
@@ -666,10 +679,27 @@ def primes : list ℕ := list.filter nat.prime [1..]
 
 All sentences are formulas.
 -/
-def is_complete {L : lang} (S : set (formula L)) : Prop := sorry
+
+-- A set of sentences models something if every model of that theory also models
+-- it.
+def sentences_model {L : lang} (S : set (sentence L)) (s : sentence L) : Prop := Model S → Model s
+
+-- Given a structure, For every formula,
+-- TODO: Example: theory of groups is not complete.
+def is_complete {L : lang} (S : set (formula L)) : Prop := ∀ (s : sentence L), Model S → (Model s ∨ Model ¬' s)
+
+
 def is_countable (L : lang) : Prop := sorry
+
 def sentence_to_formula {L : lang} : sentence L → formula L := sorry
+
+-- Categoricity
+--  If there is a bijection between two universes, then their models are isomorphic
 def all_models_are_iso_as_structures {L : lang} (S : set (formula L)) : Prop :=
   sorry
+
 theorem Vaught {L : lang} (S : set (formula L)) (M : Model S) :
   is_countable L → all_models_are_iso_as_structures S → is_complete S := sorry
+
+-- TODO: Theorem: If two structures are isomorphic then they must satisfy the same theory.
+-- Proof by induction on formulas.
