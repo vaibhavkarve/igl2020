@@ -1,7 +1,7 @@
 import tactic
 import data.real.basic
 import set_theory.cardinal
-import data.nat.prime
+import data.nat.prime data.stream
 
 /-!
 # model.lean
@@ -18,17 +18,18 @@ In this file, we define
 
 ## Tags
 
-model-theory, o-minimality
+model theory, o-minimality
 -/
 
 
-/-! Arity n Functions and their API -/
+/-! ## Arity n Functions and their API -/
 
 /-- Inductively define a function on n arguments. 0-arity functions are just
 terms of type α.-/
 @[reducible] def Func (α : Type) : ℕ → Type
 | 0 := α
 | (n+1) := α → Func n
+
 
 
 /-- Create a type of all functions with finite arity. Here we use Σ to
@@ -57,7 +58,7 @@ it into a partial function of the same arity.
 2. This constructor makes a recursive call to itself. -/
 def mk_Func_of_total {α : Type} : Π {n : ℕ}, (vector α (n+1) → α) → Func α (n+1)
 | 0     := λ f a, f ⟨[a], by norm_num⟩                -- this produces a 1-ary func
-| (n+1) := λ f a, mk_Func_of_total (λ v, f (vector.cons a v))  -- an (n+2)-ary function
+| (n+1) := λ f a, mk_Func_of_total (λ v, f (a ::ᵥ v))  -- an (n+2)-ary function
 
 
 /-- We can apply a Func to an element. This will give us a lower-level
@@ -77,10 +78,15 @@ def app_vec {α : Type} : Π {n : ℕ}, Func α (n+1) → vector α (n+1) → α
 | 0     := λ f v, f v.head
 | (n+1) := λ f v, app_vec (f v.head) (v.tail)
 
+-- Under this notation, if `(f : Func α n)` and `(v : vector α n)`, then `(f ⊗
+-- n)` denotes the value in `α` obtained by feeding the `n` elements of `v` to
+-- `f`.
+local infix `⊗` : 70 := app_vec
+
 
 /-- Apply a Func to a function on `fin n`.-/
 def app_fin {α : Type} {n : ℕ} (f : Func α (n+1)) (v : fin (n+1) → α) : α :=
-  app_vec f (vector.of_fn v)
+  f ⊗ (vector.of_fn v)
 
 
 /-- We can apply a Func to a vector of elements of the incorrect size as well.
@@ -106,7 +112,7 @@ def app_vec_partial' {α : Type} : Π (m n : ℕ),
 | (m+1) (n+1) := sorry
 --| (m+1) (n+1) := λ h f v, app_vec_partial' (_ : m ≤ n-1) (f v.head (by omega)) (v.tail)
 
-/-! Languages -/
+/-! ## Languages -/
 
 /-- A language is given by specifying functions, relations and constants
 along with the arity of each function and each relation.-/
@@ -116,7 +122,6 @@ structure lang : Type 1 :=
 
 /-- Constants of a language are simply its 0-ary functions. -/
 def lang.C (L : lang) : Type := L.F 0
-
 
 
 /-- A dense linear ordering without endpoints is a language containg a
@@ -138,21 +143,17 @@ inhabited type.-/
 instance lang.inhabited : inhabited lang := {default := DLO_lang}
 
 
-/-! Structures -/
+/-! ## Structures -/
 
 
 /-- We now define an L-structure to be mapping of functions, relations and
- constants to appropriate elements of a domain/universe type.
-
-TODO: For now, we add in explicit interpretation of the constants as well
-as (L.F 0). But in fact we should keep one or the other, not both.
--/
+ constants to appropriate elements of a domain/universe type.-/
 structure struc (L : lang) : Type 1 :=
 (univ : Type)                                   -- universe/domain
-(F (n : ℕ) (f : L.F n) : Func univ n)          -- interpretation of each function
-(R (n : ℕ) (r : L.R n) : set (vector univ n))  -- interpretation of each relation
+(F {n : ℕ} (f : L.F n) : Func univ n)          -- interpretation of each function
+(R {n : ℕ} (r : L.R n) : set (vector univ n))  -- interpretation of each relation
 
-def struc.C {L : lang} (M : struc L) : L.C → M.univ := M.F 0
+def struc.C {L : lang} (M : struc L) : L.C → M.univ := @struc.F L M 0
 
 
 instance struc.inhabited {L : lang} : inhabited (struc L) :=
@@ -162,19 +163,23 @@ instance struc.inhabited {L : lang} : inhabited (struc L) :=
   }
 
 
+local notation f^M := struc.F M f -- f^M denotes the interpretation of f in M.
+local notation r`̂`M : 150 := struc.R M r -- r̂M denotes the interpretation of r in
+                                 -- M. (type as a variant of \^)
 
-/-! Embeddings between Structures -/
+
+/-! ## Embeddings between Structures -/
 
 
 /-- An L-embedding is a map between two L-structures that is injective
 on the domain and preserves the interpretation of all the symbols of L.-/
 structure embedding {L : lang} (M N : struc L) : Type :=
 (η : M.univ → N.univ)                        -- map of underlying domains
-(η_inj : function.injective η)                -- should be one-to-one
-(η_F : ∀ n f v,                              -- preserves action of each function
-     η (app_vec (M.F (n+1) f) v) = app_vec (N.F (n+1) f) (vector.map η v))
-(η_R : ∀ n r v,                              -- preserves each relation
-     v ∈ (M.R n r) ↔ (vector.map η v) ∈ (N.R n r))
+(η_inj : function.injective η)               -- should be one-to-one
+(η_F : ∀ n (f : L.F (n+1)) (v : vector M.univ (n+1)),
+     η (f^M ⊗ v) = f^N ⊗ vector.map η v)    -- preserves action of each function
+(η_R : ∀ n (r : L.R (n+1)) (v : vector M.univ (n+1)),
+     v ∈ (r̂M) ↔ (vector.map η v) ∈ (r̂N))   -- preserves each relation
 (η_C : ∀ c, η (M.C c) = N.C c)               -- preserves constants
 
 
@@ -216,7 +221,7 @@ def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
   card M ≤ card N := cardinal.mk_le_of_injective η.η_inj
 
-/-! Terms -/
+/-! ## Terms -/
 
 variables (L : lang) (M : struc L)
 
@@ -266,13 +271,13 @@ def term_interpretation {L : lang} (M : struc L)(var_assign : ℕ → M.univ) :
   Π {n : ℕ}, term L n →  Func M.univ n
 | 0 (con c)    := M.C c
 | 0 (var v)    := var_assign v
-| n (func f)   := M.F n f
+| n (func f)   := f^M
 | n (app t t₀) := (term_interpretation t) (term_interpretation t₀)
 
 
 
 
-/-! 4.2 Terms Substitution
+/-! ## 4.2 Terms Substitution
     -----------------------/
 
 /-- Simple example of a map where we substitute every variable
@@ -297,7 +302,7 @@ def term_sub_for_var {L : lang} (t' : term L 0) (k : ℕ) :
 
 
 
-/-!  Formulas and Sentences -/
+/-! ##  Formulas and Sentences -/
 
 inductive formula (L : lang)
 | tt : formula
@@ -311,17 +316,17 @@ inductive formula (L : lang)
 | all : ℕ → formula → formula    -- ℕ gives us a variable
 
 
-infix    `='` :  80 := formula.eq
-prefix   `¬'` :  60 := formula.neg
-infix    `∧'` :  70 := formula.and
-infix    `∨'` :  70 := formula.or
-notation `∃'` : 110 := formula.exi
-notation `∀'` : 110 := formula.all
-notation `⊤'` : 110 := formula.tt
-notation `⊥'` : 110 := formula.ff
+local infix    `='` :  80 := formula.eq
+local prefix   `¬'` :  60 := formula.neg
+local infix    `∧'` :  70 := formula.and
+local infix    `∨'` :  70 := formula.or
+local notation `∃'` : 110 := formula.exi
+local notation `∀'` : 110 := formula.all
+local notation `⊤'` : 110 := formula.tt
+local notation `⊥'` : 110 := formula.ff
 
 def impl {L : lang} (φ₁ : formula L) (φ₂ : formula L) := ¬'φ₁ ∨' φ₂
-infix `→'` : 80 := impl
+local infix `→'` : 80 := impl
 
 def bicond {L: lang} (φ₁ : formula L) (φ₂ : formula L) :=
   (φ₁ →' φ₂) ∧' (φ₂ →' φ₁)
@@ -331,8 +336,8 @@ infix `↔'` : 80 := bicond
 
 /-- Helper function for variables from list of terms-/
 def vars_in_list {L : lang} : list (term L 0) → finset ℕ
-|[] := ∅
-|(t :: ts) := vars_in_term t ∪ vars_in_list ts
+| [] := ∅
+| (t :: ts) := vars_in_term t ∪ vars_in_list ts
 
 
 /-- Extracts set of variables from the formula-/
@@ -372,10 +377,10 @@ def is_sentence {L : lang} (ϕ : formula L) : Prop :=
 
 def sentence (L : lang) : Type := {ϕ : formula L // is_sentence ϕ}
 
-/-! Examples of formulas and sentences.-/
+/-! ## Examples of formulas and sentences.-/
 
 
-/-! Satisfiability and Models -/
+/-! ## Satisfiability and Models -/
 
 /- Define an expanded language, given a struc M.
 
@@ -385,18 +390,17 @@ language.
 In Lou's book (more general): we start instead with C ⊂ M.univ, and then add
 only elements of C as constants to the language. -/
 @[reducible] def expanded_lang (L : lang) (M : struc L) : lang :=
-  {F := λ n, if n=0 then M.univ ⊕ L.F 0 else L.F n,
+  {F := λ n, if n=0 then M.univ ⊕ L.C else L.F n,
    .. L}
 
 
 /-- Define expanded structures. -/
 def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
-  {C := λ c, sum.cases_on c id (M.F 0),
-   F := λ n f, by {dsimp only at f,
-                   split_ifs at f with h₁ h₂,
-                   rw h₁,
-                   exact sum.cases_on f id (M.F 0),
-                   exact M.F n f},
+  {F := λ n f, by {dsimp only at f,
+                   split_ifs at f with h,
+                   rw h,
+                   exact sum.cases_on f id M.C,
+                   exact f^M},
    .. M}
 
 
@@ -406,7 +410,7 @@ def models {L : lang} {M : struc L} : (ℕ → M.univ) → formula L →  Prop
 | va ⊤'           := true
 | va ⊥'           := false
 | va (t₁ =' t₂)   := (term_interpretation M va t₁) = (term_interpretation M va t₂)
-| va (formula.rel _ r ts) := vector.map (term_interpretation M va) ts ∈ M.R ts.length r
+| va (formula.rel _ r ts) := vector.map (term_interpretation M va) ts ∈ (r̂M)
 | va ¬' ϕ             :=  ¬ models va ϕ
 | va (ϕ₁ ∧' ϕ₂)      := models va (ϕ₁) ∧ models va (ϕ₂)
 | va (ϕ₁ ∨' ϕ₂)      := models va (ϕ₁) ∨ models va (ϕ₂)
@@ -607,7 +611,7 @@ structure Model {L : lang} (axs : set(formula L)) : Type 1 :=
 
 -- TODO: Vaught's theorem
 
--- Alternate Branch of Work: Godel encoding?
+-- [This is Hard as well] Alternate Branch of Work: Godel encoding?
 -- Map from ℕ to the long strings enconding prime factorization.
 
 -- TODO: Quantifier elimination in DLO_theory
@@ -645,20 +649,33 @@ def godel_encoding (L : lang) : formula L → ℕ
 --| formula.all := sorry
 
 
-
 -- Proof omitted for now. [Schröder–Bernstein theorem?]
-axiom nat_to_prime : ℕ → nat.primes
+constant stream.primes : stream nat.primes
 
+-- Alternatively, we could filter out the composite numbers.
+#eval list.filter nat.prime (list.range 15)
 
 -- ⟨a, b⟩ → 2^{a+1}*3^{b+1} and so on
-noncomputable def encoding1 : Π n, vector ℕ n → ℕ
+def encoding1 : Π n, vector ℕ n → ℕ
 | 0 v     := 1
-| 1 v     := (nat_to_prime 0)^(v.nth 0 + 1)
-| (n+1) v := (nat_to_prime n)^(v.head + 1) * encoding1 n (v.tail)
+| 1 v     := (stream.primes 0)^(v.nth 0 + 1)
+| (n+1) v := (stream.primes n)^(v.head + 1) * encoding1 n (v.tail)
 
 
-#reduce list.range 5
-def primes : list ℕ := list.filter nat.prime [1..]
+def string_of_formula : formula L → string := sorry
+
+
+#eval string.append "234" "23"
+
+def func_number {L : lang} {n : ℕ} : L.F n → ℕ := sorry
+
+def term_number {L : lang} : Π n, term L n → ℕ
+| 0 (con c) := func_number c
+| 0 (var v) := 2*v
+| n (func f) := func_number f
+| n (app t t₀) := term_number (n+1) t * term_number 0 t₀
+
+-- ϕ₁ ∧ ϕ₂ := string_of_formula(∧) :: string_of_formula(ϕ₁) :: string_of_formula(ϕ₂)
 
 
 /-- Completeness of Language
@@ -666,10 +683,27 @@ def primes : list ℕ := list.filter nat.prime [1..]
 
 All sentences are formulas.
 -/
-def is_complete {L : lang} (S : set (formula L)) : Prop := sorry
+
+-- A set of sentences models something if every model of that theory also models
+-- it.
+def sentences_model {L : lang} (S : set (sentence L)) (s : sentence L) : Prop := Model S → Model s
+
+-- Given a structure, For every formula,
+-- TODO: Example: theory of groups is not complete.
+def is_complete {L : lang} (S : set (formula L)) : Prop := ∀ (s : sentence L), Model S → (Model s ∨ Model ¬' s)
+
+
 def is_countable (L : lang) : Prop := sorry
+
 def sentence_to_formula {L : lang} : sentence L → formula L := sorry
+
+-- Categoricity
+--  If there is a bijection between two universes, then their models are isomorphic
 def all_models_are_iso_as_structures {L : lang} (S : set (formula L)) : Prop :=
   sorry
+
 theorem Vaught {L : lang} (S : set (formula L)) (M : Model S) :
   is_countable L → all_models_are_iso_as_structures S → is_complete S := sorry
+
+-- TODO: Theorem: If two structures are isomorphic then they must satisfy the same theory.
+-- Proof by induction on formulas.
