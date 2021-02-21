@@ -58,7 +58,7 @@ it into a partial function of the same arity.
 2. This constructor makes a recursive call to itself. -/
 def mk_Func_of_total {α : Type} : Π {n : ℕ}, (vector α (n+1) → α) → Func α (n+1)
 | 0     := λ f a, f ⟨[a], by norm_num⟩                -- this produces a 1-ary func
-| (n+1) := λ f a, mk_Func_of_total (λ v, f (vector.cons a v))  -- an (n+2)-ary function
+| (n+1) := λ f a, mk_Func_of_total (λ v, f (a ::ᵥ v))  -- an (n+2)-ary function
 
 
 /-- We can apply a Func to an element. This will give us a lower-level
