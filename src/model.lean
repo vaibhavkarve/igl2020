@@ -163,6 +163,10 @@ instance struc.inhabited {L : lang} : inhabited (struc L) :=
   }
 
 
+local notation f^M := struc.F M f -- f^M denotes the interpretation of f in M.
+local notation r`̂`M : 150 := struc.R M r -- r̂M denotes the interpretation of r in
+                                 -- M. (type as a variant of \^)
+
 
 /-! ## Embeddings between Structures -/
 
@@ -267,7 +271,7 @@ def term_interpretation {L : lang} (M : struc L)(var_assign : ℕ → M.univ) :
   Π {n : ℕ}, term L n →  Func M.univ n
 | 0 (con c)    := M.C c
 | 0 (var v)    := var_assign v
-| n (func f)   := M.F n f
+| n (func f)   := f^M
 | n (app t t₀) := (term_interpretation t) (term_interpretation t₀)
 
 
