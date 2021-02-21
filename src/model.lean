@@ -410,7 +410,7 @@ def models {L : lang} {M : struc L} : (ℕ → M.univ) → formula L →  Prop
 | va ⊤'           := true
 | va ⊥'           := false
 | va (t₁ =' t₂)   := (term_interpretation M va t₁) = (term_interpretation M va t₂)
-| va (formula.rel _ r ts) := vector.map (term_interpretation M va) ts ∈ M.R ts.length r
+| va (formula.rel _ r ts) := vector.map (term_interpretation M va) ts ∈ (r̂M)
 | va ¬' ϕ             :=  ¬ models va ϕ
 | va (ϕ₁ ∧' ϕ₂)      := models va (ϕ₁) ∧ models va (ϕ₂)
 | va (ϕ₁ ∨' ϕ₂)      := models va (ϕ₁) ∨ models va (ϕ₂)
