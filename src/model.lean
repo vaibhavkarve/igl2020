@@ -147,17 +147,13 @@ instance lang.inhabited : inhabited lang := {default := DLO_lang}
 
 
 /-- We now define an L-structure to be mapping of functions, relations and
- constants to appropriate elements of a domain/universe type.
-
-TODO: For now, we add in explicit interpretation of the constants as well
-as (L.F 0). But in fact we should keep one or the other, not both.
--/
+ constants to appropriate elements of a domain/universe type.-/
 structure struc (L : lang) : Type 1 :=
 (univ : Type)                                   -- universe/domain
-(F (n : ℕ) (f : L.F n) : Func univ n)          -- interpretation of each function
-(R (n : ℕ) (r : L.R n) : set (vector univ n))  -- interpretation of each relation
+(F {n : ℕ} (f : L.F n) : Func univ n)          -- interpretation of each function
+(R {n : ℕ} (r : L.R n) : set (vector univ n))  -- interpretation of each relation
 
-def struc.C {L : lang} (M : struc L) : L.C → M.univ := M.F 0
+def struc.C {L : lang} (M : struc L) : L.C → M.univ := @struc.F L M 0
 
 
 instance struc.inhabited {L : lang} : inhabited (struc L) :=
