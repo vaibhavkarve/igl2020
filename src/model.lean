@@ -78,10 +78,15 @@ def app_vec {α : Type} : Π {n : ℕ}, Func α (n+1) → vector α (n+1) → α
 | 0     := λ f v, f v.head
 | (n+1) := λ f v, app_vec (f v.head) (v.tail)
 
+-- Under this notation, if `(f : Func α n)` and `(v : vector α n)`, then `(f ⊗
+-- n)` denotes the value in `α` obtained by feeding the `n` elements of `v` to
+-- `f`.
+local infix `⊗` : 70 := app_vec
+
 
 /-- Apply a Func to a function on `fin n`.-/
 def app_fin {α : Type} {n : ℕ} (f : Func α (n+1)) (v : fin (n+1) → α) : α :=
-  app_vec f (vector.of_fn v)
+  f ⊗ (vector.of_fn v)
 
 
 /-- We can apply a Func to a vector of elements of the incorrect size as well.
