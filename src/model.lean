@@ -336,8 +336,8 @@ infix `↔'` : 80 := bicond
 
 /-- Helper function for variables from list of terms-/
 def vars_in_list {L : lang} : list (term L 0) → finset ℕ
-|[] := ∅
-|(t :: ts) := vars_in_term t ∪ vars_in_list ts
+| [] := ∅
+| (t :: ts) := vars_in_term t ∪ vars_in_list ts
 
 
 /-- Extracts set of variables from the formula-/
