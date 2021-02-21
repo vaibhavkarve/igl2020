@@ -390,7 +390,7 @@ language.
 In Lou's book (more general): we start instead with C ⊂ M.univ, and then add
 only elements of C as constants to the language. -/
 @[reducible] def expanded_lang (L : lang) (M : struc L) : lang :=
-  {F := λ n, if n=0 then M.univ ⊕ L.F 0 else L.F n,
+  {F := λ n, if n=0 then M.univ ⊕ L.C else L.F n,
    .. L}
 
 
