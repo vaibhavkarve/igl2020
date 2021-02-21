@@ -396,12 +396,11 @@ only elements of C as constants to the language. -/
 
 /-- Define expanded structures. -/
 def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
-  {C := λ c, sum.cases_on c id (M.F 0),
-   F := λ n f, by {dsimp only at f,
-                   split_ifs at f with h₁ h₂,
-                   rw h₁,
-                   exact sum.cases_on f id (M.F 0),
-                   exact M.F n f},
+  {F := λ n f, by {dsimp only at f,
+                   split_ifs at f with h,
+                   rw h,
+                   exact sum.cases_on f id M.C,
+                   exact f^M},
    .. M}
 
 
