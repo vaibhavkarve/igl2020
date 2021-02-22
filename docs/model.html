@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2021-02-12 Fri 11:42 -->
+<!-- 2021-02-22 Mon 09:20 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>model.lean</title>
@@ -260,56 +260,55 @@ for the JavaScript code in this tag.
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgb3017b4">1. <span class="todo TODO">TODO</span> Arity \(n\) functions and their API</a></li>
-<li><a href="#org37ae52e">2. Languages</a>
+<li><a href="#org645afb4">1. <span class="todo TODO">TODO</span> Arity \(n\) functions and their API</a></li>
+<li><a href="#org24a7f8e">2. Languages</a>
 <ul>
-<li><a href="#orgfb0cae2">2.1. Definition and implementation</a></li>
-<li><a href="#orgbb62efe">2.2. Constants</a></li>
-<li><a href="#org999a4a0">2.3. DLO language</a></li>
-<li><a href="#org27fca37">2.4. <code>lang</code> is an inhabited type</a></li>
+<li><a href="#orgb2b6851">2.1. Definition and implementation</a></li>
+<li><a href="#org153d9e4">2.2. Constants</a></li>
+<li><a href="#org0a6e1b1">2.3. DLO language</a></li>
+<li><a href="#orgbc6e057">2.4. <code>lang</code> is an inhabited type</a></li>
 </ul>
 </li>
-<li><a href="#org182fa71">3. Structures</a>
+<li><a href="#org2d21912">3. Structures</a>
 <ul>
-<li><a href="#org46e19cc">3.1. <span class="todo TODO">TODO</span> <code>struc</code> is inhabited</a></li>
+<li><a href="#org8f04ee5">3.1. <code>struc</code> is inhabited</a></li>
 </ul>
 </li>
-<li><a href="#org738b26a">4. <span class="todo TODO">TODO</span> Exbedding between structures</a>
+<li><a href="#org75718d8">4. Embedding between structures</a>
 <ul>
-<li><a href="#org62ca680">4.1. Embedding</a></li>
-<li><a href="#org6d2339c">4.2. Embeddings are inhabited</a></li>
-<li><a href="#orgb4281a1">4.3. Isomorphism</a></li>
-<li><a href="#org42bf4a6">4.4. Isomorphisms are inhabited</a></li>
-<li><a href="#org49f5a85">4.5. Cardinality of structure</a></li>
+<li><a href="#org2bfb859">4.1. Embedding</a></li>
+<li><a href="#orge43c2bd">4.2. Embeddings are inhabited</a></li>
+<li><a href="#org21edd31">4.3. Isomorphism</a></li>
+<li><a href="#orgd32177e">4.4. Isomorphisms are inhabited</a></li>
+<li><a href="#orgc65d5b2">4.5. Cardinality of structure</a></li>
 </ul>
 </li>
-<li><a href="#orga69bed2">5. <span class="todo TODO">TODO</span> Terms</a>
+<li><a href="#orgceb70b2">5. <span class="todo TODO">TODO</span> Terms</a>
 <ul>
-<li><a href="#org8fa09b9">5.1. Definition of terms</a></li>
-<li><a href="#org5b816f5">5.2. Terms are inhabited</a></li>
-<li><a href="#org170d182">5.3. Variables in a term in term</a></li>
-<li><a href="#orga11a72b">5.4. Number of variables in a term</a></li>
-<li><a href="#org6310635">5.5. Term interpretation</a></li>
+<li><a href="#orga7b6fec">5.1. Definition of terms</a></li>
+<li><a href="#orgf03a29e">5.2. Terms are inhabited</a></li>
+<li><a href="#org6d85af8">5.3. Variables in a term in term</a></li>
+<li><a href="#orgfac7a86">5.4. Number of variables in a term</a></li>
+<li><a href="#orgda3b5c8">5.5. Term interpretation</a></li>
 </ul>
 </li>
-<li><a href="#org3d636ab">6. <span class="todo TODO">TODO</span> Term substitution</a></li>
-<li><a href="#org08f414d">7. <span class="todo TODO">TODO</span> Formulas and Sentences</a></li>
-<li><a href="#orgdfe2657">8. <span class="todo TODO">TODO</span> Satisfiability and models</a></li>
-<li><a href="#org82480fb">9. Bibliography</a></li>
+<li><a href="#org6671309">6. <span class="todo TODO">TODO</span> Term substitution</a></li>
+<li><a href="#orgbf66a29">7. <span class="todo TODO">TODO</span> Formulas and Sentences</a></li>
+<li><a href="#orgd266595">8. <span class="todo TODO">TODO</span> Satisfiability and models</a></li>
+<li><a href="#orgd78e000">9. <span class="todo TODO">TODO</span> Bibliography</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-orgb3017b4" class="outline-2">
-<h2 id="orgb3017b4"><span class="section-number-2">1</span> <span class="todo TODO">TODO</span> Arity \(n\) functions and their API</h2>
+<div id="outline-container-org645afb4" class="outline-2">
+<h2 id="org645afb4"><span class="section-number-2">1</span> <span class="todo TODO">TODO</span> Arity \(n\) functions and their API</h2>
 </div>
-
-<div id="outline-container-org37ae52e" class="outline-2">
-<h2 id="org37ae52e"><span class="section-number-2">2</span> Languages</h2>
+<div id="outline-container-org24a7f8e" class="outline-2">
+<h2 id="org24a7f8e"><span class="section-number-2">2</span> Languages</h2>
 <div class="outline-text-2" id="text-2">
 </div>
-<div id="outline-container-orgfb0cae2" class="outline-3">
-<h3 id="orgfb0cae2"><span class="section-number-3">2.1</span> Definition and implementation</h3>
+<div id="outline-container-orgb2b6851" class="outline-3">
+<h3 id="orgb2b6851"><span class="section-number-3">2.1</span> Definition and implementation</h3>
 <div class="outline-text-3" id="text-2-1">
 <p>
 A <i>language</i> is given by specifying "functions'', "relations" and "constants"
@@ -353,8 +352,8 @@ that does not affect the rest of treatment of model theory in any way.</li>
 </div>
 </div>
 
-<div id="outline-container-orgbb62efe" class="outline-3">
-<h3 id="orgbb62efe"><span class="section-number-3">2.2</span> Constants</h3>
+<div id="outline-container-org153d9e4" class="outline-3">
+<h3 id="org153d9e4"><span class="section-number-3">2.2</span> Constants</h3>
 <div class="outline-text-3" id="text-2-2">
 <p>
 We define the constants in a language to simply be the \(0\)-arity functions
@@ -370,8 +369,8 @@ implementation of languages.</li>
 </div>
 </div>
 
-<div id="outline-container-org999a4a0" class="outline-3">
-<h3 id="org999a4a0"><span class="section-number-3">2.3</span> DLO language</h3>
+<div id="outline-container-org0a6e1b1" class="outline-3">
+<h3 id="org0a6e1b1"><span class="section-number-3">2.3</span> DLO language</h3>
 <div class="outline-text-3" id="text-2-3">
 <p>
 The language that is of primary interest to us is the language of dense linear
@@ -393,8 +392,8 @@ binary relation. (Refer to the type theory primer for the meaning of <code>empty
 </div>
 </div>
 
-<div id="outline-container-org27fca37" class="outline-3">
-<h3 id="org27fca37"><span class="section-number-3">2.4</span> <code>lang</code> is an inhabited type</h3>
+<div id="outline-container-orgbc6e057" class="outline-3">
+<h3 id="orgbc6e057"><span class="section-number-3">2.4</span> <code>lang</code> is an inhabited type</h3>
 <div class="outline-text-3" id="text-2-4">
 <p>
 We can now declare that <code>lang</code> is an inhabited (read: nonempty) type since we
@@ -406,8 +405,8 @@ know that <code>DLO_lang</code> is a <code>lang</code>. This declaration is made
 </div>
 </div>
 
-<div id="outline-container-org182fa71" class="outline-2">
-<h2 id="org182fa71"><span class="section-number-2">3</span> Structures</h2>
+<div id="outline-container-org2d21912" class="outline-2">
+<h2 id="org2d21912"><span class="section-number-2">3</span> Structures</h2>
 <div class="outline-text-2" id="text-3">
 <p>
 Given a language \(L\), an <i>\(L\)-structure</i> is a bundle of the following 4
@@ -419,91 +418,194 @@ pieces of data.
 a set because Lean is based on type theory.</li>
 
 <li>For every symbolic function of arity \(n\) in \(L\), we must have a
-corresponding real function of arity \(n\) acting on the univere of \(M\). To
-implement this, we map every <code>(f : L.F n)</code> to <code>Func univ v</code>. Since we need a
-name for this map, we name it <code>F</code>. Thanks to namespaces in lean, the full
-name for this map is <code>struc.F</code> or <code>M.F</code> where \(M\) is a <code>struc</code>, and hence
-there is no chance of mixing this up with <code>lang.F</code> or <code>L.F</code>.</li>
+corresponding real function of arity \(n\) acting on the universe of
+\(M\). To implement this, we map every <code>(f : L.F n)</code> to <code>Func univ v</code>. Since
+we need a name for this map, we name it <code>F</code>. Thanks to namespaces in lean,
+the full name for this map is <code>struc.F</code> or <code>M.F</code> where \(M\) is a <code>struc</code>,
+and hence there is no chance of mixing this up with <code>lang.F</code> or <code>L.F</code>. We
+will denote the interpretation of the symbolic function \(f\) under the
+structure \(M\) as <code>f^M</code>.</li>
 
 <li>For every symbolic relation of arity \(n\) in \(L\), we must have a
-corresponding real relation of arity \(n\) on the univere of \(M\). At this
+corresponding real relation of arity \(n\) on the universe of \(M\). At this
 point, it is useful to recall that the proper definition of a relation is as
 a subset if the domain set. What do I mean?  While we like to think of a
 binary relation for example as a relation "between" elements of our set, it
-is in fact better to view it as a subset of the cartesian product of the
+is in fact better to view it as a subset of the Cartesian product of the
 domain with itself. Pairs belonging to this subset are related while pairs
 not belonging are not.  Similarly, \(3\)-ary relations are subsets of
 <code>univ³</code>, and so on. Thus we map each element <code>(r : L.R n)</code> to <code>set (vector
-   univ n)</code>, i.e. we map to a set of length \(n\) vectors of <code>univ</code>.</li>
+   univ n)</code>, i.e. we map to a set of length \(n\) vectors of <code>univ</code>. We will denote the interpretation of the symbolic relation \(r\) under the structure \(M\) as <code>r̂M</code>.</li>
 
 <li>For every symbolic constant in \(L\), we must have a corresponding constant
 in the universe/domain. Since <code>L.C</code> is implemented outside of \(L\), we
-similarly implement <code>M.C</code> outside of \(M\). It is implemented merely as the
-\(0\)-arity function <code>M.F 0</code>.</li>
+similarly implement <code>M.C</code> outside of \(M\). It is implemented as a
+restriction of <code>M.F</code> to \(0\)-arity functions.</li>
 </ol>
 </div>
 
-<div id="outline-container-org46e19cc" class="outline-3">
-<h3 id="org46e19cc"><span class="section-number-3">3.1</span> <span class="todo TODO">TODO</span> <code>struc</code> is inhabited</h3>
+<div id="outline-container-org8f04ee5" class="outline-3">
+<h3 id="org8f04ee5"><span class="section-number-3">3.1</span> <code>struc</code> is inhabited</h3>
+<div class="outline-text-3" id="text-3-1">
+<p>
+We can now declare that <code>struc L</code> is an inhabited (read: nonempty) type for
+every language \(L\). In other words, every language has at least one structure
+defined on it.
+</p>
+
+<p>
+The default value for <code>struc L</code> has &#x2013;
+</p>
+<ul class="org-ul">
+<li>a universe/domain with only one element</li>
+<li>corresponding to every symbolic function \(f\) in \(L\), <code>f^M</code> is the
+function that maps everything to the singleton element.</li>
+<li>corresponding to every symbolic relation \(r\) in \(L\), <code>r̂M</code> is the empty
+relation.</li>
+</ul>
+</div>
 </div>
 </div>
 
-<div id="outline-container-org738b26a" class="outline-2">
-<h2 id="org738b26a"><span class="section-number-2">4</span> <span class="todo TODO">TODO</span> Exbedding between structures</h2>
+<div id="outline-container-org75718d8" class="outline-2">
+<h2 id="org75718d8"><span class="section-number-2">4</span> Embedding between structures</h2>
 <div class="outline-text-2" id="text-4">
 </div>
-<div id="outline-container-org62ca680" class="outline-3">
-<h3 id="org62ca680"><span class="section-number-3">4.1</span> Embedding</h3>
+<div id="outline-container-org2bfb859" class="outline-3">
+<h3 id="org2bfb859"><span class="section-number-3">4.1</span> Embedding</h3>
+<div class="outline-text-3" id="text-4-1">
+<p>
+Given two structures on the same language, an <i>embedding</i> between them is a map
+that is injective on the universe/domain and preserves the interpretation of all
+the elements of the language.
+</p>
+
+<p>
+For ease of writing, we first introduce some notation. Given a function of arity
+\(n\) <code>(f : Func α n)</code>, and an \(n\)-vector \(v\), we will write \(f\otimes v\)
+to mean that the function \(f\) is to be applied to the \(n\) elements of \(v\)
+to yield a value in <code>α</code>.
+</p>
+
+<p>
+To start, we let \(L\) denote the language, and \(M\) and \(N\) denote the
+structures on \(L\). Then the map <code>η : M.univ → N.univ</code> is an embedding &#x2013;
+</p>
+<ol class="org-ol">
+<li>If \(\eta\) it is injective</li>
+<li>For every \(n\)-vector \(v\) and every \(n\)-arity symbolic function \(f\) in
+\(L\), we have <code>η(f^M ⊗ v) = f^N ⊗ η(v)</code>, where \(\eta(v)\) denotes the
+vector obtained by mapping every coordinate of \(v\) under \(\eta\).</li>
+<li>For every \(n\)-vector \(v\) and every \(n\)-arity symbolic relation \(r\) in
+\(L\), we have <code>v ∈ r̂M ↔ η(v) ∈ r̂N</code>, where \(\eta(v)\) again denotes the
+vector obtained by mapping every coordinate of \(v\) under \(\eta\).</li>
+</ol>
 </div>
-<div id="outline-container-org6d2339c" class="outline-3">
-<h3 id="org6d2339c"><span class="section-number-3">4.2</span> Embeddings are inhabited</h3>
 </div>
-<div id="outline-container-orgb4281a1" class="outline-3">
-<h3 id="orgb4281a1"><span class="section-number-3">4.3</span> Isomorphism</h3>
+
+<div id="outline-container-orge43c2bd" class="outline-3">
+<h3 id="orge43c2bd"><span class="section-number-3">4.2</span> Embeddings are inhabited</h3>
+<div class="outline-text-3" id="text-4-2">
+<p>
+We argue that every structure has an embedding to itself via the indentity map.
+</p>
+
+<p>
+For this embedding, the \(\eta\) map is the identity map on the universe of
+\(M\). This map is clearly injective and it trivially preserves the interpretation of every function, relation, and constant.
+</p>
+
+<p>
+Thus, <code>embedding M M</code> is an inhabited type (read: nonempty), for every structure
+\(M\).
+</p>
 </div>
-<div id="outline-container-org42bf4a6" class="outline-3">
-<h3 id="org42bf4a6"><span class="section-number-3">4.4</span> Isomorphisms are inhabited</h3>
 </div>
-<div id="outline-container-org49f5a85" class="outline-3">
-<h3 id="org49f5a85"><span class="section-number-3">4.5</span> Cardinality of structure</h3>
+
+<div id="outline-container-org21edd31" class="outline-3">
+<h3 id="org21edd31"><span class="section-number-3">4.3</span> Isomorphism</h3>
+<div class="outline-text-3" id="text-4-3">
+<p>
+An <i>isomorphism</i> is a bijective embedding between two \(L\)-structures. To implement this, we define an isomorphism to be a structure in Lean that extends embeddings. This means &#x2013;
+</p>
+<ol class="org-ol">
+<li>there is a natural map <code>to_embedding : isomorphism M N → embedding M N</code>.</li>
+<li>an isomorphism is the data contained in an embedding bundled with a proof of
+the bijectivity of the \(\eta\) map.</li>
+</ol>
 </div>
 </div>
-<div id="outline-container-orga69bed2" class="outline-2">
-<h2 id="orga69bed2"><span class="section-number-2">5</span> <span class="todo TODO">TODO</span> Terms</h2>
+
+<div id="outline-container-orgd32177e" class="outline-3">
+<h3 id="orgd32177e"><span class="section-number-3">4.4</span> Isomorphisms are inhabited</h3>
+<div class="outline-text-3" id="text-4-4">
+<p>
+We argue that every structure has an isomorphism to itself via the identity map.
+</p>
+
+<p>
+Thus, <code>isomorphism M M</code> is an inhabited type (read: nonempty), for every
+structure \(M\).
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgc65d5b2" class="outline-3">
+<h3 id="orgc65d5b2"><span class="section-number-3">4.5</span> Cardinality of structure</h3>
+<div class="outline-text-3" id="text-4-5">
+<p>
+The <i>cardinality</i> of a structure is defined to be the cardinality of its domain. In Lean, the cardinals are their own separate type which is why we need to "make" the cardinal from the universe of \(M\).
+</p>
+
+<p>
+We can then claim that if \(\eta : M \rightarrow N\) is an embedding of \(M\) in
+\(N\), then the cardinality of \(M\) must be at most the cardinality of \(N\). In other words, only smaller structures can be embedded into larger structures.
+</p>
+
+<p>
+The proof hinges on the injectivity of \(\eta\) and follows from the fact
+<code>cardinal.mk_le_of_injective</code> (which is already proved in mathlib).
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgceb70b2" class="outline-2">
+<h2 id="orgceb70b2"><span class="section-number-2">5</span> <span class="todo TODO">TODO</span> Terms</h2>
 <div class="outline-text-2" id="text-5">
 </div>
-<div id="outline-container-org8fa09b9" class="outline-3">
-<h3 id="org8fa09b9"><span class="section-number-3">5.1</span> Definition of terms</h3>
+<div id="outline-container-orga7b6fec" class="outline-3">
+<h3 id="orga7b6fec"><span class="section-number-3">5.1</span> Definition of terms</h3>
 </div>
-<div id="outline-container-org5b816f5" class="outline-3">
-<h3 id="org5b816f5"><span class="section-number-3">5.2</span> Terms are inhabited</h3>
+<div id="outline-container-orgf03a29e" class="outline-3">
+<h3 id="orgf03a29e"><span class="section-number-3">5.2</span> Terms are inhabited</h3>
 </div>
-<div id="outline-container-org170d182" class="outline-3">
-<h3 id="org170d182"><span class="section-number-3">5.3</span> Variables in a term in term</h3>
+<div id="outline-container-org6d85af8" class="outline-3">
+<h3 id="org6d85af8"><span class="section-number-3">5.3</span> Variables in a term in term</h3>
 </div>
-<div id="outline-container-orga11a72b" class="outline-3">
-<h3 id="orga11a72b"><span class="section-number-3">5.4</span> Number of variables in a term</h3>
+<div id="outline-container-orgfac7a86" class="outline-3">
+<h3 id="orgfac7a86"><span class="section-number-3">5.4</span> Number of variables in a term</h3>
 </div>
-<div id="outline-container-org6310635" class="outline-3">
-<h3 id="org6310635"><span class="section-number-3">5.5</span> Term interpretation</h3>
+<div id="outline-container-orgda3b5c8" class="outline-3">
+<h3 id="orgda3b5c8"><span class="section-number-3">5.5</span> Term interpretation</h3>
 </div>
 </div>
-<div id="outline-container-org3d636ab" class="outline-2">
-<h2 id="org3d636ab"><span class="section-number-2">6</span> <span class="todo TODO">TODO</span> Term substitution</h2>
+<div id="outline-container-org6671309" class="outline-2">
+<h2 id="org6671309"><span class="section-number-2">6</span> <span class="todo TODO">TODO</span> Term substitution</h2>
 </div>
-<div id="outline-container-org08f414d" class="outline-2">
-<h2 id="org08f414d"><span class="section-number-2">7</span> <span class="todo TODO">TODO</span> Formulas and Sentences</h2>
+<div id="outline-container-orgbf66a29" class="outline-2">
+<h2 id="orgbf66a29"><span class="section-number-2">7</span> <span class="todo TODO">TODO</span> Formulas and Sentences</h2>
 </div>
-<div id="outline-container-orgdfe2657" class="outline-2">
-<h2 id="orgdfe2657"><span class="section-number-2">8</span> <span class="todo TODO">TODO</span> Satisfiability and models</h2>
+<div id="outline-container-orgd266595" class="outline-2">
+<h2 id="orgd266595"><span class="section-number-2">8</span> <span class="todo TODO">TODO</span> Satisfiability and models</h2>
 </div>
-<div id="outline-container-org82480fb" class="outline-2">
-<h2 id="org82480fb"><span class="section-number-2">9</span> Bibliography</h2>
+<div id="outline-container-orgd78e000" class="outline-2">
+<h2 id="orgd78e000"><span class="section-number-2">9</span> <span class="todo TODO">TODO</span> Bibliography</h2>
 </div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Vaibhav Karve</p>
-<p class="date">Created: 2021-02-12 Fri 11:42</p>
+<p class="date">Created: 2021-02-22 Mon 09:20</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

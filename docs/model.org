@@ -74,36 +74,93 @@ pieces of data.
    a set because Lean is based on type theory.
 
 2. For every symbolic function of arity \(n\) in \(L\), we must have a
-   corresponding real function of arity \(n\) acting on the univere of \(M\). To
-   implement this, we map every =(f : L.F n)= to =Func univ v=. Since we need a
-   name for this map, we name it =F=. Thanks to namespaces in lean, the full
-   name for this map is =struc.F= or =M.F= where \(M\) is a =struc=, and hence
-   there is no chance of mixing this up with =lang.F= or =L.F=.
+   corresponding real function of arity \(n\) acting on the universe of
+   \(M\). To implement this, we map every =(f : L.F n)= to =Func univ v=. Since
+   we need a name for this map, we name it =F=. Thanks to namespaces in lean,
+   the full name for this map is =struc.F= or =M.F= where \(M\) is a =struc=,
+   and hence there is no chance of mixing this up with =lang.F= or =L.F=. We
+   will denote the interpretation of the symbolic function \(f\) under the
+   structure \(M\) as =f^M=.
 
 3. For every symbolic relation of arity \(n\) in \(L\), we must have a
-   corresponding real relation of arity \(n\) on the univere of \(M\). At this
+   corresponding real relation of arity \(n\) on the universe of \(M\). At this
    point, it is useful to recall that the proper definition of a relation is as
    a subset if the domain set. What do I mean?  While we like to think of a
    binary relation for example as a relation "between" elements of our set, it
-   is in fact better to view it as a subset of the cartesian product of the
+   is in fact better to view it as a subset of the Cartesian product of the
    domain with itself. Pairs belonging to this subset are related while pairs
    not belonging are not.  Similarly, \(3\)-ary relations are subsets of
    =univ³=, and so on. Thus we map each element =(r : L.R n)= to =set (vector
-   univ n)=, i.e. we map to a set of length \(n\) vectors of =univ=.
+   univ n)=, i.e. we map to a set of length \(n\) vectors of =univ=. We will denote the interpretation of the symbolic relation \(r\) under the structure \(M\) as =r̂M=.
 
 4. For every symbolic constant in \(L\), we must have a corresponding constant
    in the universe/domain. Since =L.C= is implemented outside of \(L\), we
-   similarly implement =M.C= outside of \(M\). It is implemented merely as the
-   \(0\)-arity function =M.F 0=.
+   similarly implement =M.C= outside of \(M\). It is implemented as a
+   restriction of =M.F= to \(0\)-arity functions.
 
-** TODO =struc= is inhabited
+** =struc= is inhabited
+We can now declare that =struc L= is an inhabited (read: nonempty) type for
+every language \(L\). In other words, every language has at least one structure
+defined on it.
 
-* TODO Embedding between structures
+The default value for =struc L= has --
+- a universe/domain with only one element
+- corresponding to every symbolic function \(f\) in \(L\), =f^M= is the
+  function that maps everything to the singleton element.
+- corresponding to every symbolic relation \(r\) in \(L\), =r̂M= is the empty
+  relation.
+
+* Embedding between structures
 ** Embedding
+Given two structures on the same language, an /embedding/ between them is a map
+that is injective on the universe/domain and preserves the interpretation of all
+the elements of the language.
+
+For ease of writing, we first introduce some notation. Given a function of arity
+\(n\) =(f : Func α n)=, and an \(n\)-vector \(v\), we will write \(f\otimes v\)
+to mean that the function \(f\) is to be applied to the \(n\) elements of \(v\)
+to yield a value in =α=.
+
+To start, we let \(L\) denote the language, and \(M\) and \(N\) denote the
+structures on \(L\). Then the map =η : M.univ → N.univ= is an embedding --
+1. If \(\eta\) it is injective
+2. For every \(n\)-vector \(v\) and every \(n\)-arity symbolic function \(f\) in
+   \(L\), we have =η(f^M ⊗ v) = f^N ⊗ η(v)=, where \(\eta(v)\) denotes the
+   vector obtained by mapping every coordinate of \(v\) under \(\eta\).
+3. For every \(n\)-vector \(v\) and every \(n\)-arity symbolic relation \(r\) in
+   \(L\), we have =v ∈ r̂M ↔ η(v) ∈ r̂N=, where \(\eta(v)\) again denotes the
+   vector obtained by mapping every coordinate of \(v\) under \(\eta\).
+
 ** Embeddings are inhabited
+We argue that every structure has an embedding to itself via the indentity map.
+
+For this embedding, the \(\eta\) map is the identity map on the universe of
+\(M\). This map is clearly injective and it trivially preserves the interpretation of every function, relation, and constant.
+
+Thus, =embedding M M= is an inhabited type (read: nonempty), for every structure
+\(M\).
+
 ** Isomorphism
+An /isomorphism/ is a bijective embedding between two \(L\)-structures. To implement this, we define an isomorphism to be a structure in Lean that extends embeddings. This means --
+1. there is a natural map =to_embedding : isomorphism M N → embedding M N=.
+2. an isomorphism is the data contained in an embedding bundled with a proof of
+   the bijectivity of the \(\eta\) map.
+
 ** Isomorphisms are inhabited
+We argue that every structure has an isomorphism to itself via the identity map.
+
+Thus, =isomorphism M M= is an inhabited type (read: nonempty), for every
+structure \(M\).
+
 ** Cardinality of structure
+The /cardinality/ of a structure is defined to be the cardinality of its domain. In Lean, the cardinals are their own separate type which is why we need to "make" the cardinal from the universe of \(M\).
+
+We can then claim that if \(\eta : M \rightarrow N\) is an embedding of \(M\) in
+\(N\), then the cardinality of \(M\) must be at most the cardinality of \(N\). In other words, only smaller structures can be embedded into larger structures.
+
+The proof hinges on the injectivity of \(\eta\) and follows from the fact
+=cardinal.mk_le_of_injective= (which is already proved in mathlib).
+
 * TODO Terms
 ** Definition of terms
 ** Terms are inhabited
@@ -113,4 +170,4 @@ pieces of data.
 * TODO Term substitution
 * TODO Formulas and Sentences
 * TODO Satisfiability and models
-* Bibliography
+* TODO Bibliography
