@@ -194,36 +194,41 @@ instance embedding.inhabited {L : lang} {M : struc L} : inhabited (embedding M M
                η_C := λ _, rfl}}
 
 
-/-- A bijective L-embedding is called an L-isomorphism.-/
+/-- A bijective embedding between two `L`-structures is called an isomorphism.-/
 structure isomorphism {L: lang} (M N : struc L) extends (embedding M N) : Type :=
 (η_bij : function.bijective η)
 
 
-/-- We argue that every structure has an L-isomorphism, namely, the isomorphism
-to itself.-/
+/-- We argue that every structure has an isomorphism to itself via the identity
+  map.-/
 instance isomorphism.inhabited {L : lang} {M : struc L} : inhabited (isomorphism M M) :=
   {default := {η_bij := function.bijective_id,
                .. default (embedding M M)}}
 
 
-/-- The cardinality of a struc is the cardinality of its domain.-/
+/-- The cardinality of a structure is the cardinality of its domain.-/
 def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 
 
-/-- If η: M → N is an embedding, then the cardinality of N is at least
-  the cardinality of M.-/
+
+/-- If η: M → N is an embedding, then the cardinality of N is at least the
+  cardinality of M.-/
 lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
   card M ≤ card N := cardinal.mk_le_of_injective η.η_inj
 
-/-! ## Terms -/
 
-variables (L : lang) (M : struc L)
+
+/-! ## Terms -/
 
 /-- We define terms in a language to be constants, variables, functions or
    functions applied to level-0 terms. Here a (term L n) represents all
    terms of level n. Level 0 terms must be constants, variables, or terms
-   of type L.F 0.-/
-inductive term : ℕ → Type
+   of type L.F 0.
+
+TODO: Wait for PR#4406: https://github.com/leanprover-community/mathlib/pull/4406
+so we can switch to using finvec.
+-/
+inductive term (L : lang) : ℕ → Type
 | con : L.C → term 0
 | var : ℕ → term 0
 | func {n : ℕ} : L.F n → term n
