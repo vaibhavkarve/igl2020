@@ -183,14 +183,8 @@ structure embedding {L : lang} (M N : struc L) : Type :=
 (η_C : ∀ c, η (M.C c) = N.C c)               -- preserves constants
 
 
-@[simp] lemma vec_map_id {α : Type} {n : ℕ} (v : vector α n) : vector.map id v = v :=
-begin
-  apply vector.eq,
-  simp only [list.map_id, vector.to_list_map],
-end
 
-
-/-- We argue that every structure has an L-embedding, namely, the embedding
+/-- We argue that every structure has an embedding, namely, the embedding
 to itself via the identity map.-/
 instance embedding.inhabited {L : lang} {M : struc L} : inhabited (embedding M M) :=
   {default := {η := id,
