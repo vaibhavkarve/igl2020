@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2021-02-18 Thu 11:07 -->
+<!-- 2021-02-24 Wed 13:43 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Prerequisite type theory</title>
@@ -260,18 +260,18 @@ for the JavaScript code in this tag.
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org401ed2d">1. Types and terms</a></li>
-<li><a href="#org3451cea">2. Types vs. Sets (and universes)</a></li>
-<li><a href="#orga8261cd">3. Props</a></li>
-<li><a href="#org3ee0edf">4. Finite types</a></li>
+<li><a href="#org76c7730">1. Types and terms</a></li>
+<li><a href="#orgd92be4a">2. Types vs. Sets (and universes)</a></li>
+<li><a href="#org252fe68">3. Props</a></li>
+<li><a href="#orge299641">4. Finite types</a></li>
 </ul>
 </div>
 </div>
 
 
 
-<div id="outline-container-org401ed2d" class="outline-2">
-<h2 id="org401ed2d"><span class="section-number-2">1</span> Types and terms</h2>
+<div id="outline-container-org76c7730" class="outline-2">
+<h2 id="org76c7730"><span class="section-number-2">1</span> Types and terms</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 A <i>type</i> is a collection of distinct <i>terms</i> (very similar to how a set is a
@@ -285,8 +285,8 @@ In set theory we write \((a \in A)\). In type theory we will instead write
 </div>
 </div>
 
-<div id="outline-container-org3451cea" class="outline-2">
-<h2 id="org3451cea"><span class="section-number-2">2</span> Types vs. Sets (and universes)</h2>
+<div id="outline-container-orgd92be4a" class="outline-2">
+<h2 id="orgd92be4a"><span class="section-number-2">2</span> Types vs. Sets (and universes)</h2>
 <div class="outline-text-2" id="text-2">
 <p>
 Unlike sets, not all types are "on the same level". Each type belongs to a
@@ -319,8 +319,8 @@ from the sets we are used to in set theory.
 </div>
 </div>
 
-<div id="outline-container-orga8261cd" class="outline-2">
-<h2 id="orga8261cd"><span class="section-number-2">3</span> Props</h2>
+<div id="outline-container-org252fe68" class="outline-2">
+<h2 id="org252fe68"><span class="section-number-2">3</span> Props</h2>
 <div class="outline-text-2" id="text-3">
 <p>
 <code>Prop</code> denotes the type of all propositions.  Props are types at a level below
@@ -351,12 +351,12 @@ false)</code> is itself a Prop that needs a proof.
 </div>
 </div>
 
-<div id="outline-container-org3ee0edf" class="outline-2">
-<h2 id="org3ee0edf"><span class="section-number-2">4</span> Finite types</h2>
+<div id="outline-container-orge299641" class="outline-2">
+<h2 id="orge299641"><span class="section-number-2">4</span> Finite types</h2>
 <div class="outline-text-2" id="text-4">
 </div>
-<div id="outline-container-orgbbd45b6" class="outline-3">
-<h3 id="orgbbd45b6"><span class="section-number-3">4.1</span> empty</h3>
+<div id="outline-container-org5ccfc0e" class="outline-3">
+<h3 id="org5ccfc0e"><span class="section-number-3">4.1</span> empty</h3>
 <div class="outline-text-3" id="text-4-1">
 <p>
 This is the type that contains no terms. (Think of this as an analogue of the
@@ -371,8 +371,8 @@ how we can never have an element \(a \in \emptyset\).
 </div>
 </div>
 
-<div id="outline-container-org602ce9a" class="outline-3">
-<h3 id="org602ce9a"><span class="section-number-3">4.2</span> unit</h3>
+<div id="outline-container-orgf12b01a" class="outline-3">
+<h3 id="orgf12b01a"><span class="section-number-3">4.2</span> unit</h3>
 <div class="outline-text-3" id="text-4-2">
 <p>
 This is the type that contains a exactly one term.
@@ -397,8 +397,8 @@ We can also think of this as the type of "truth" while empty is the type of
 </div>
 </div>
 
-<div id="outline-container-orge32404d" class="outline-3">
-<h3 id="orge32404d"><span class="section-number-3">4.3</span> bool</h3>
+<div id="outline-container-orgd78c6ca" class="outline-3">
+<h3 id="orgd78c6ca"><span class="section-number-3">4.3</span> bool</h3>
 <div class="outline-text-3" id="text-4-3">
 <p>
 This is the type that contains exactly two terms. The terms are denoted <code>(tt :
@@ -408,8 +408,8 @@ the same as <code>true</code>, and <code>ff</code> is not the same as <code>fals
 </div>
 </div>
 
-<div id="outline-container-org46f89ba" class="outline-3">
-<h3 id="org46f89ba"><span class="section-number-3">4.4</span> fin</h3>
+<div id="outline-container-orgad9664a" class="outline-3">
+<h3 id="orgad9664a"><span class="section-number-3">4.4</span> fin</h3>
 <div class="outline-text-3" id="text-4-4">
 <p>
 <code>fin n</code> denotes the type that contains \(n\) elements. <code>fin 0</code>, <code>fin 1</code>, <code>fin 2</code>
@@ -429,7 +429,7 @@ Use <code>fin</code> when you wish to construct a type with of a given cardinali
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Vaibhav Karve</p>
-<p class="date">Created: 2021-02-18 Thu 11:07</p>
+<p class="date">Created: 2021-02-24 Wed 13:43</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
