@@ -4,6 +4,8 @@
 #+options: H:2
 #+subtitle:
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://gongzhitaao.org/orgcss/org.css"/>
+#+property: header-args :eval never-export
+
 
 * TODO Arity \(n\) functions and their API
 * Languages
@@ -161,13 +163,130 @@ We can then claim that if \(\eta : M \rightarrow N\) is an embedding of \(M\) in
 The proof hinges on the injectivity of \(\eta\) and follows from the fact
 =cardinal.mk_le_of_injective= (which is already proved in mathlib).
 
-* TODO Terms
+* Terms
+Throughout this section, let \(L\) be a language and let \(M\) be an
+\(L\)-structure.
+
 ** Definition of terms
-** Terms are inhabited
-** Variables in a term in term
-** Number of variables in a term
-** Term interpretation
+\(L\)-/Terms/ are defined inductively as --
+- constants of the language are all terms.
+- there is a countably infinite supply of indexed "variables", each of which are
+  also distinct terms.
+- an \(n\)-ary symbolic function of \(L\) applied to exactly \(n\) other terms
+  also yields a term.
+
+This definition of terms has 2 distinct parts --
+1. There are atomic terms like constants and variables,
+2. There are higher-order terms (i.e. terms made of other terms) like ones
+   formed by function application.
+
+** TODO Implementation of terms
+The trickiest part of the definition of terms is checking that in higher-order
+terms, an \(n\)-ary symbolic function is being applied to exactly \(n\)-many
+terms. This check needs a proof of a fact like =(length = n)=. However, we
+cannot incorporate this proof into the definition directly without running into
+lean's issues of nested inductive types.
+
+Our solution is to incorporate the notion of atomic/higher-order into our
+implementation. To each term we associate a level. We start by stipulating that
+atomic terms have level \(0\). A symbolic function applied to all its arguments
+also has level \(0\), while a partially applied function has positive level.
+
+We summarize the term to level translation below --
+| Term                       | Level                                           |
+|----------------------------+-------------------------------------------------|
+| constant                   | 0                                               |
+| variable                   | 0                                               |
+| function                   | level = arity of the function                   |
+| partially-applied function | level = arity \(-\) # arguments already applied |
+
+** TODO Depth of a term
+** TODO Terms are inhabited
+** TODO Variables in a term
+** TODO Number of variables in a term
+** NEXT Term interpretation
 * TODO Term substitution
-* TODO Formulas and Sentences
+* Formulas and Sentences
+** Definition of a formula
+An \(L\)-/formula/ on \(L\) is any one of the following "words" on the alphabet
+\(L \cup \text{Var} \cup \{\top, \bot, =\}\), where Var denotes the set of all
+variables --
+1. \(\top\) and \(\bot\) are formulas
+2. \(t_1 = t_2\) is a formula, where \(t_1\) and \(t_2\) are \(L\)-terms.
+3. \(r t_1 \ldots t_n\) is a formula, where \(r\) is a symbolic \(n\)-ary
+   relation in \(L\), and the \(t_i\)'s are \(L\)-terms.
+4. If \(\phi, \psi\) are \(L\)-formulas, then so are \((\neg \phi)\),
+   \((\phi\wedge\psi)\), and \((\phi\vee\psi)\). *Note:* we have added
+   parenthesis here merely for ease of writing. They are not really a part of
+   the formula.
+5. If \(x\) is a variable, and \(\phi\) is an \(L\)-formula, then \(\exists x
+   \phi\) and \(\forall x \phi\) are \(L\)-formulas.
+
+** Implementation of a formula
+We implement this definition of an \(L\)-formula inductively by enumerating all
+the cases. Since we do not have a separate type for variables in our
+implementation, we simply denote variable \(x_i\) by the natural number \(i\).
+
+** Notation for logical operators
+We then introduce some notation for logical operators. We mark all symbols with
+a "prime" in order to distinguish them from Lean's built-in symbols for
+equality, and, or, not etc.
+
+
+| Symbol | Meaning                    |
+|--------+----------------------------|
+| ~='~   | formula.eq                 |
+| =¬'=   | formula.neg                |
+| =∧'=   | formula.and                |
+| =∨'=   | formula.or                 |
+| =∃'=   | formula.exi                |
+| =∀'=   | formula.all                |
+| =⊤'=   | formula.tt                 |
+| =⊥'=   | formula.ff                 |
+| =→'=   | =¬'φ₁ ∨' φ₂=               |
+| =↔'=   | =(φ₁ →' φ₂) ∧' (φ₂ →' φ₁)= |
+
+** TODO Helper functions
+- =vars_in list=
+- =vars_in_formula=
+
+** Free and bound variables
+A variable /occurs freely/ in a formula if it present outside of a
+quantification, meaning it occurs in the formula somewhere where it is not
+immediately preceded by =∃'= or =∀'=.
+
+We need to be careful with our implementation of this definition because it
+contains two distinct ideas. A variable occurs freely in a formula if --
+1. It occurs in a formula.
+2. *Some* occurrence in the formula is free.
+
+For example, in the formula \(\phi = \neg'(\forall' v_2 \top) \wedge' (v_1 ='
+v_4)\wedge' (\exists v_3 (v_2 =' v_3))\),
+- the variables \(v_1\) and \(v_4\) occur freely in the formula
+- the variable \(v_3\) does not occur freely in the formula.
+- the variable \(v_5\) does not occur freely in the formula (because it does not
+  occur in the formula at all).
+- Surprisingly, the variable \(v_2\) occurs freely in the formula.
+
+** Definition of a sentence
+A formula in which no variable occurs freely is a sentence.  We create a subtype
+of \(L\)-formulas that we call \(L\)-sentences.
+
+Every sentence is consequently a formula. The explicit map for this can be
+written as
+#+BEGIN_SRC lean
+example : setence L → formula L := λ s, s.val
+#+END_SRC
+
+We wish to always be able to recover the formula underlying a sentence without
+having to specify the above function explicitly. To do this, we declare a
+=has_coe= instance from =sentence L= to =formula L=. Thereafter, we can always
+reference the underlying formula of a sentence =s= as =↑s=.
+
 * TODO Satisfiability and models
+** Expanding a language and structure
+** Models
+- requires [[Term interpretation][term interpretation]].
+
+
 * TODO Bibliography

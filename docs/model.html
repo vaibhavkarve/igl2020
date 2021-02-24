@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2021-02-22 Mon 09:20 -->
+<!-- 2021-02-24 Wed 13:47 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>model.lean</title>
@@ -260,55 +260,72 @@ for the JavaScript code in this tag.
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org645afb4">1. <span class="todo TODO">TODO</span> Arity \(n\) functions and their API</a></li>
-<li><a href="#org24a7f8e">2. Languages</a>
+<li><a href="#orgd34ae4b">1. <span class="todo TODO">TODO</span> Arity \(n\) functions and their API</a></li>
+<li><a href="#org16d8cae">2. Languages</a>
 <ul>
-<li><a href="#orgb2b6851">2.1. Definition and implementation</a></li>
-<li><a href="#org153d9e4">2.2. Constants</a></li>
-<li><a href="#org0a6e1b1">2.3. DLO language</a></li>
-<li><a href="#orgbc6e057">2.4. <code>lang</code> is an inhabited type</a></li>
+<li><a href="#org55df46c">2.1. Definition and implementation</a></li>
+<li><a href="#org0a3d6af">2.2. Constants</a></li>
+<li><a href="#org12edba5">2.3. DLO language</a></li>
+<li><a href="#orgb9225d3">2.4. <code>lang</code> is an inhabited type</a></li>
 </ul>
 </li>
-<li><a href="#org2d21912">3. Structures</a>
+<li><a href="#org5067754">3. Structures</a>
 <ul>
-<li><a href="#org8f04ee5">3.1. <code>struc</code> is inhabited</a></li>
+<li><a href="#orgdc4a28d">3.1. <code>struc</code> is inhabited</a></li>
 </ul>
 </li>
-<li><a href="#org75718d8">4. Embedding between structures</a>
+<li><a href="#org7447201">4. Embedding between structures</a>
 <ul>
-<li><a href="#org2bfb859">4.1. Embedding</a></li>
-<li><a href="#orge43c2bd">4.2. Embeddings are inhabited</a></li>
-<li><a href="#org21edd31">4.3. Isomorphism</a></li>
-<li><a href="#orgd32177e">4.4. Isomorphisms are inhabited</a></li>
-<li><a href="#orgc65d5b2">4.5. Cardinality of structure</a></li>
+<li><a href="#org3f87b25">4.1. Embedding</a></li>
+<li><a href="#orgb6cb281">4.2. Embeddings are inhabited</a></li>
+<li><a href="#org3063461">4.3. Isomorphism</a></li>
+<li><a href="#org11739f8">4.4. Isomorphisms are inhabited</a></li>
+<li><a href="#orgfea7202">4.5. Cardinality of structure</a></li>
 </ul>
 </li>
-<li><a href="#orgceb70b2">5. <span class="todo TODO">TODO</span> Terms</a>
+<li><a href="#org54d96d7">5. Terms</a>
 <ul>
-<li><a href="#orga7b6fec">5.1. Definition of terms</a></li>
-<li><a href="#orgf03a29e">5.2. Terms are inhabited</a></li>
-<li><a href="#org6d85af8">5.3. Variables in a term in term</a></li>
-<li><a href="#orgfac7a86">5.4. Number of variables in a term</a></li>
-<li><a href="#orgda3b5c8">5.5. Term interpretation</a></li>
+<li><a href="#orgb3b9e7b">5.1. Definition of terms</a></li>
+<li><a href="#org5d8c56c">5.2. <span class="todo TODO">TODO</span> Implementation of terms</a></li>
+<li><a href="#org15358d9">5.3. <span class="todo TODO">TODO</span> Depth of a term</a></li>
+<li><a href="#org1dc4a6a">5.4. <span class="todo TODO">TODO</span> Terms are inhabited</a></li>
+<li><a href="#org2e6a86a">5.5. <span class="todo TODO">TODO</span> Variables in a term</a></li>
+<li><a href="#org906515b">5.6. <span class="todo TODO">TODO</span> Number of variables in a term</a></li>
+<li><a href="#org278e78c">5.7. <span class="todo NEXT">NEXT</span> Term interpretation</a></li>
 </ul>
 </li>
-<li><a href="#org6671309">6. <span class="todo TODO">TODO</span> Term substitution</a></li>
-<li><a href="#orgbf66a29">7. <span class="todo TODO">TODO</span> Formulas and Sentences</a></li>
-<li><a href="#orgd266595">8. <span class="todo TODO">TODO</span> Satisfiability and models</a></li>
-<li><a href="#orgd78e000">9. <span class="todo TODO">TODO</span> Bibliography</a></li>
+<li><a href="#org443a5d5">6. <span class="todo TODO">TODO</span> Term substitution</a></li>
+<li><a href="#org9840766">7. Formulas and Sentences</a>
+<ul>
+<li><a href="#orgf9a617d">7.1. Definition of a formula</a></li>
+<li><a href="#orge5186f7">7.2. Implementation of a formula</a></li>
+<li><a href="#orgff249e1">7.3. Notation for logical operators</a></li>
+<li><a href="#orgfa03992">7.4. <span class="todo TODO">TODO</span> Helper functions</a></li>
+<li><a href="#orgd5b5046">7.5. Free and bound variables</a></li>
+<li><a href="#orga8f349a">7.6. Definition of a sentence</a></li>
+</ul>
+</li>
+<li><a href="#org099ba1e">8. <span class="todo TODO">TODO</span> Satisfiability and models</a>
+<ul>
+<li><a href="#orgd6abc28">8.1. Expanding a language and structure</a></li>
+<li><a href="#orgf7453d1">8.2. Models</a></li>
+</ul>
+</li>
+<li><a href="#org35fc187">9. <span class="todo TODO">TODO</span> Bibliography</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org645afb4" class="outline-2">
-<h2 id="org645afb4"><span class="section-number-2">1</span> <span class="todo TODO">TODO</span> Arity \(n\) functions and their API</h2>
+
+<div id="outline-container-orgd34ae4b" class="outline-2">
+<h2 id="orgd34ae4b"><span class="section-number-2">1</span> <span class="todo TODO">TODO</span> Arity \(n\) functions and their API</h2>
 </div>
-<div id="outline-container-org24a7f8e" class="outline-2">
-<h2 id="org24a7f8e"><span class="section-number-2">2</span> Languages</h2>
+<div id="outline-container-org16d8cae" class="outline-2">
+<h2 id="org16d8cae"><span class="section-number-2">2</span> Languages</h2>
 <div class="outline-text-2" id="text-2">
 </div>
-<div id="outline-container-orgb2b6851" class="outline-3">
-<h3 id="orgb2b6851"><span class="section-number-3">2.1</span> Definition and implementation</h3>
+<div id="outline-container-org55df46c" class="outline-3">
+<h3 id="org55df46c"><span class="section-number-3">2.1</span> Definition and implementation</h3>
 <div class="outline-text-3" id="text-2-1">
 <p>
 A <i>language</i> is given by specifying "functions'', "relations" and "constants"
@@ -352,8 +369,8 @@ that does not affect the rest of treatment of model theory in any way.</li>
 </div>
 </div>
 
-<div id="outline-container-org153d9e4" class="outline-3">
-<h3 id="org153d9e4"><span class="section-number-3">2.2</span> Constants</h3>
+<div id="outline-container-org0a3d6af" class="outline-3">
+<h3 id="org0a3d6af"><span class="section-number-3">2.2</span> Constants</h3>
 <div class="outline-text-3" id="text-2-2">
 <p>
 We define the constants in a language to simply be the \(0\)-arity functions
@@ -369,8 +386,8 @@ implementation of languages.</li>
 </div>
 </div>
 
-<div id="outline-container-org0a6e1b1" class="outline-3">
-<h3 id="org0a6e1b1"><span class="section-number-3">2.3</span> DLO language</h3>
+<div id="outline-container-org12edba5" class="outline-3">
+<h3 id="org12edba5"><span class="section-number-3">2.3</span> DLO language</h3>
 <div class="outline-text-3" id="text-2-3">
 <p>
 The language that is of primary interest to us is the language of dense linear
@@ -392,8 +409,8 @@ binary relation. (Refer to the type theory primer for the meaning of <code>empty
 </div>
 </div>
 
-<div id="outline-container-orgbc6e057" class="outline-3">
-<h3 id="orgbc6e057"><span class="section-number-3">2.4</span> <code>lang</code> is an inhabited type</h3>
+<div id="outline-container-orgb9225d3" class="outline-3">
+<h3 id="orgb9225d3"><span class="section-number-3">2.4</span> <code>lang</code> is an inhabited type</h3>
 <div class="outline-text-3" id="text-2-4">
 <p>
 We can now declare that <code>lang</code> is an inhabited (read: nonempty) type since we
@@ -405,8 +422,8 @@ know that <code>DLO_lang</code> is a <code>lang</code>. This declaration is made
 </div>
 </div>
 
-<div id="outline-container-org2d21912" class="outline-2">
-<h2 id="org2d21912"><span class="section-number-2">3</span> Structures</h2>
+<div id="outline-container-org5067754" class="outline-2">
+<h2 id="org5067754"><span class="section-number-2">3</span> Structures</h2>
 <div class="outline-text-2" id="text-3">
 <p>
 Given a language \(L\), an <i>\(L\)-structure</i> is a bundle of the following 4
@@ -444,8 +461,8 @@ restriction of <code>M.F</code> to \(0\)-arity functions.</li>
 </ol>
 </div>
 
-<div id="outline-container-org8f04ee5" class="outline-3">
-<h3 id="org8f04ee5"><span class="section-number-3">3.1</span> <code>struc</code> is inhabited</h3>
+<div id="outline-container-orgdc4a28d" class="outline-3">
+<h3 id="orgdc4a28d"><span class="section-number-3">3.1</span> <code>struc</code> is inhabited</h3>
 <div class="outline-text-3" id="text-3-1">
 <p>
 We can now declare that <code>struc L</code> is an inhabited (read: nonempty) type for
@@ -467,12 +484,12 @@ relation.</li>
 </div>
 </div>
 
-<div id="outline-container-org75718d8" class="outline-2">
-<h2 id="org75718d8"><span class="section-number-2">4</span> Embedding between structures</h2>
+<div id="outline-container-org7447201" class="outline-2">
+<h2 id="org7447201"><span class="section-number-2">4</span> Embedding between structures</h2>
 <div class="outline-text-2" id="text-4">
 </div>
-<div id="outline-container-org2bfb859" class="outline-3">
-<h3 id="org2bfb859"><span class="section-number-3">4.1</span> Embedding</h3>
+<div id="outline-container-org3f87b25" class="outline-3">
+<h3 id="org3f87b25"><span class="section-number-3">4.1</span> Embedding</h3>
 <div class="outline-text-3" id="text-4-1">
 <p>
 Given two structures on the same language, an <i>embedding</i> between them is a map
@@ -503,8 +520,8 @@ vector obtained by mapping every coordinate of \(v\) under \(\eta\).</li>
 </div>
 </div>
 
-<div id="outline-container-orge43c2bd" class="outline-3">
-<h3 id="orge43c2bd"><span class="section-number-3">4.2</span> Embeddings are inhabited</h3>
+<div id="outline-container-orgb6cb281" class="outline-3">
+<h3 id="orgb6cb281"><span class="section-number-3">4.2</span> Embeddings are inhabited</h3>
 <div class="outline-text-3" id="text-4-2">
 <p>
 We argue that every structure has an embedding to itself via the indentity map.
@@ -522,8 +539,8 @@ Thus, <code>embedding M M</code> is an inhabited type (read: nonempty), for ever
 </div>
 </div>
 
-<div id="outline-container-org21edd31" class="outline-3">
-<h3 id="org21edd31"><span class="section-number-3">4.3</span> Isomorphism</h3>
+<div id="outline-container-org3063461" class="outline-3">
+<h3 id="org3063461"><span class="section-number-3">4.3</span> Isomorphism</h3>
 <div class="outline-text-3" id="text-4-3">
 <p>
 An <i>isomorphism</i> is a bijective embedding between two \(L\)-structures. To implement this, we define an isomorphism to be a structure in Lean that extends embeddings. This means &#x2013;
@@ -536,8 +553,8 @@ the bijectivity of the \(\eta\) map.</li>
 </div>
 </div>
 
-<div id="outline-container-orgd32177e" class="outline-3">
-<h3 id="orgd32177e"><span class="section-number-3">4.4</span> Isomorphisms are inhabited</h3>
+<div id="outline-container-org11739f8" class="outline-3">
+<h3 id="org11739f8"><span class="section-number-3">4.4</span> Isomorphisms are inhabited</h3>
 <div class="outline-text-3" id="text-4-4">
 <p>
 We argue that every structure has an isomorphism to itself via the identity map.
@@ -550,8 +567,8 @@ structure \(M\).
 </div>
 </div>
 
-<div id="outline-container-orgc65d5b2" class="outline-3">
-<h3 id="orgc65d5b2"><span class="section-number-3">4.5</span> Cardinality of structure</h3>
+<div id="outline-container-orgfea7202" class="outline-3">
+<h3 id="orgfea7202"><span class="section-number-3">4.5</span> Cardinality of structure</h3>
 <div class="outline-text-3" id="text-4-5">
 <p>
 The <i>cardinality</i> of a structure is defined to be the cardinality of its domain. In Lean, the cardinals are their own separate type which is why we need to "make" the cardinal from the universe of \(M\).
@@ -570,42 +587,330 @@ The proof hinges on the injectivity of \(\eta\) and follows from the fact
 </div>
 </div>
 
-<div id="outline-container-orgceb70b2" class="outline-2">
-<h2 id="orgceb70b2"><span class="section-number-2">5</span> <span class="todo TODO">TODO</span> Terms</h2>
+<div id="outline-container-org54d96d7" class="outline-2">
+<h2 id="org54d96d7"><span class="section-number-2">5</span> Terms</h2>
 <div class="outline-text-2" id="text-5">
+<p>
+Throughout this section, let \(L\) be a language and let \(M\) be an
+\(L\)-structure.
+</p>
 </div>
-<div id="outline-container-orga7b6fec" class="outline-3">
-<h3 id="orga7b6fec"><span class="section-number-3">5.1</span> Definition of terms</h3>
+
+<div id="outline-container-orgb3b9e7b" class="outline-3">
+<h3 id="orgb3b9e7b"><span class="section-number-3">5.1</span> Definition of terms</h3>
+<div class="outline-text-3" id="text-5-1">
+<p>
+\(L\)-<i>Terms</i> are defined inductively as &#x2013;
+</p>
+<ul class="org-ul">
+<li>constants of the language are all terms.</li>
+<li>there is a countably infinite supply of indexed "variables", each of which are
+also distinct terms.</li>
+<li>an \(n\)-ary symbolic function of \(L\) applied to exactly \(n\) other terms
+also yields a term.</li>
+</ul>
+
+<p>
+This definition of terms has 2 distinct parts &#x2013;
+</p>
+<ol class="org-ol">
+<li>There are atomic terms like constants and variables,</li>
+<li>There are higher-order terms (i.e. terms made of other terms) like ones
+formed by function application.</li>
+</ol>
 </div>
-<div id="outline-container-orgf03a29e" class="outline-3">
-<h3 id="orgf03a29e"><span class="section-number-3">5.2</span> Terms are inhabited</h3>
 </div>
-<div id="outline-container-org6d85af8" class="outline-3">
-<h3 id="org6d85af8"><span class="section-number-3">5.3</span> Variables in a term in term</h3>
+
+<div id="outline-container-org5d8c56c" class="outline-3">
+<h3 id="org5d8c56c"><span class="section-number-3">5.2</span> <span class="todo TODO">TODO</span> Implementation of terms</h3>
+<div class="outline-text-3" id="text-5-2">
+<p>
+The trickiest part of the definition of terms is checking that in higher-order
+terms, an \(n\)-ary symbolic function is being applied to exactly \(n\)-many
+terms. This check needs a proof of a fact like <code>(length = n)</code>. However, we
+cannot incorporate this proof into the definition directly without running into
+lean's issues of nested inductive types.
+</p>
+
+<p>
+Our solution is to incorporate the notion of atomic/higher-order into our
+implementation. To each term we associate a level. We start by stipulating that
+atomic terms have level \(0\). A symbolic function applied to all its arguments
+also has level \(0\), while a partially applied function has positive level.
+</p>
+
+<p>
+We summarize the term to level translation below &#x2013;
+</p>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Term</th>
+<th scope="col" class="org-left">Level</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">constant</td>
+<td class="org-left">0</td>
+</tr>
+
+<tr>
+<td class="org-left">variable</td>
+<td class="org-left">0</td>
+</tr>
+
+<tr>
+<td class="org-left">function</td>
+<td class="org-left">level = arity of the function</td>
+</tr>
+
+<tr>
+<td class="org-left">partially-applied function</td>
+<td class="org-left">level = arity \(-\) # arguments already applied</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div id="outline-container-orgfac7a86" class="outline-3">
-<h3 id="orgfac7a86"><span class="section-number-3">5.4</span> Number of variables in a term</h3>
 </div>
-<div id="outline-container-orgda3b5c8" class="outline-3">
-<h3 id="orgda3b5c8"><span class="section-number-3">5.5</span> Term interpretation</h3>
+
+<div id="outline-container-org15358d9" class="outline-3">
+<h3 id="org15358d9"><span class="section-number-3">5.3</span> <span class="todo TODO">TODO</span> Depth of a term</h3>
+</div>
+<div id="outline-container-org1dc4a6a" class="outline-3">
+<h3 id="org1dc4a6a"><span class="section-number-3">5.4</span> <span class="todo TODO">TODO</span> Terms are inhabited</h3>
+</div>
+<div id="outline-container-org2e6a86a" class="outline-3">
+<h3 id="org2e6a86a"><span class="section-number-3">5.5</span> <span class="todo TODO">TODO</span> Variables in a term</h3>
+</div>
+<div id="outline-container-org906515b" class="outline-3">
+<h3 id="org906515b"><span class="section-number-3">5.6</span> <span class="todo TODO">TODO</span> Number of variables in a term</h3>
+</div>
+<div id="outline-container-org278e78c" class="outline-3">
+<h3 id="org278e78c"><span class="section-number-3">5.7</span> <span class="todo NEXT">NEXT</span> Term interpretation</h3>
 </div>
 </div>
-<div id="outline-container-org6671309" class="outline-2">
-<h2 id="org6671309"><span class="section-number-2">6</span> <span class="todo TODO">TODO</span> Term substitution</h2>
+<div id="outline-container-org443a5d5" class="outline-2">
+<h2 id="org443a5d5"><span class="section-number-2">6</span> <span class="todo TODO">TODO</span> Term substitution</h2>
 </div>
-<div id="outline-container-orgbf66a29" class="outline-2">
-<h2 id="orgbf66a29"><span class="section-number-2">7</span> <span class="todo TODO">TODO</span> Formulas and Sentences</h2>
+<div id="outline-container-org9840766" class="outline-2">
+<h2 id="org9840766"><span class="section-number-2">7</span> Formulas and Sentences</h2>
+<div class="outline-text-2" id="text-7">
 </div>
-<div id="outline-container-orgd266595" class="outline-2">
-<h2 id="orgd266595"><span class="section-number-2">8</span> <span class="todo TODO">TODO</span> Satisfiability and models</h2>
+<div id="outline-container-orgf9a617d" class="outline-3">
+<h3 id="orgf9a617d"><span class="section-number-3">7.1</span> Definition of a formula</h3>
+<div class="outline-text-3" id="text-7-1">
+<p>
+An \(L\)-<i>formula</i> on \(L\) is any one of the following "words" on the alphabet
+\(L \cup \text{Var} \cup \{\top, \bot, =\}\), where Var denotes the set of all
+variables &#x2013;
+</p>
+<ol class="org-ol">
+<li>\(\top\) and \(\bot\) are formulas</li>
+<li>\(t_1 = t_2\) is a formula, where \(t_1\) and \(t_2\) are \(L\)-terms.</li>
+<li>\(r t_1 \ldots t_n\) is a formula, where \(r\) is a symbolic \(n\)-ary
+relation in \(L\), and the \(t_i\)'s are \(L\)-terms.</li>
+<li>If \(\phi, \psi\) are \(L\)-formulas, then so are \((\neg \phi)\),
+\((\phi\wedge\psi)\), and \((\phi\vee\psi)\). <b>Note:</b> we have added
+parenthesis here merely for ease of writing. They are not really a part of
+the formula.</li>
+<li>If \(x\) is a variable, and \(\phi\) is an \(L\)-formula, then \(\exists x
+   \phi\) and \(\forall x \phi\) are \(L\)-formulas.</li>
+</ol>
 </div>
-<div id="outline-container-orgd78e000" class="outline-2">
-<h2 id="orgd78e000"><span class="section-number-2">9</span> <span class="todo TODO">TODO</span> Bibliography</h2>
+</div>
+
+<div id="outline-container-orge5186f7" class="outline-3">
+<h3 id="orge5186f7"><span class="section-number-3">7.2</span> Implementation of a formula</h3>
+<div class="outline-text-3" id="text-7-2">
+<p>
+We implement this definition of an \(L\)-formula inductively by enumerating all
+the cases. Since we do not have a separate type for variables in our
+implementation, we simply denote variable \(x_i\) by the natural number \(i\).
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgff249e1" class="outline-3">
+<h3 id="orgff249e1"><span class="section-number-3">7.3</span> Notation for logical operators</h3>
+<div class="outline-text-3" id="text-7-3">
+<p>
+We then introduce some notation for logical operators. We mark all symbols with
+a "prime" in order to distinguish them from Lean's built-in symbols for
+equality, and, or, not etc.
+</p>
+
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Symbol</th>
+<th scope="col" class="org-left">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left"><code>='</code></td>
+<td class="org-left">formula.eq</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>¬'</code></td>
+<td class="org-left">formula.neg</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>∧'</code></td>
+<td class="org-left">formula.and</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>∨'</code></td>
+<td class="org-left">formula.or</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>∃'</code></td>
+<td class="org-left">formula.exi</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>∀'</code></td>
+<td class="org-left">formula.all</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>⊤'</code></td>
+<td class="org-left">formula.tt</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>⊥'</code></td>
+<td class="org-left">formula.ff</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>→'</code></td>
+<td class="org-left"><code>¬'φ₁ ∨' φ₂</code></td>
+</tr>
+
+<tr>
+<td class="org-left"><code>↔'</code></td>
+<td class="org-left"><code>(φ₁ →' φ₂) ∧' (φ₂ →' φ₁)</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-orgfa03992" class="outline-3">
+<h3 id="orgfa03992"><span class="section-number-3">7.4</span> <span class="todo TODO">TODO</span> Helper functions</h3>
+<div class="outline-text-3" id="text-7-4">
+<ul class="org-ul">
+<li><code>vars_in list</code></li>
+<li><code>vars_in_formula</code></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgd5b5046" class="outline-3">
+<h3 id="orgd5b5046"><span class="section-number-3">7.5</span> Free and bound variables</h3>
+<div class="outline-text-3" id="text-7-5">
+<p>
+A variable <i>occurs freely</i> in a formula if it present outside of a
+quantification, meaning it occurs in the formula somewhere where it is not
+immediately preceded by <code>∃'</code> or <code>∀'</code>.
+</p>
+
+<p>
+We need to be careful with our implementation of this definition because it
+contains two distinct ideas. A variable occurs freely in a formula if &#x2013;
+</p>
+<ol class="org-ol">
+<li>It occurs in a formula.</li>
+<li><b>Some</b> occurrence in the formula is free.</li>
+</ol>
+
+<p>
+For example, in the formula \(\phi = \neg'(\forall' v_2 \top) \wedge' (v_1 ='
+v_4)\wedge' (\exists v_3 (v_2 =' v_3))\),
+</p>
+<ul class="org-ul">
+<li>the variables \(v_1\) and \(v_4\) occur freely in the formula</li>
+<li>the variable \(v_3\) does not occur freely in the formula.</li>
+<li>the variable \(v_5\) does not occur freely in the formula (because it does not
+occur in the formula at all).</li>
+<li>Surprisingly, the variable \(v_2\) occurs freely in the formula.</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orga8f349a" class="outline-3">
+<h3 id="orga8f349a"><span class="section-number-3">7.6</span> Definition of a sentence</h3>
+<div class="outline-text-3" id="text-7-6">
+<p>
+A formula in which no variable occurs freely is a sentence.  We create a subtype
+of \(L\)-formulas that we call \(L\)-sentences.
+</p>
+
+<p>
+Every sentence is consequently a formula. The explicit map for this can be
+written as
+</p>
+<div class="org-src-container">
+<pre class="src src-lean"><span class="org-keyword">example</span> : setence L <span class="org-constant">&#8594;</span> formula L <span class="org-constant">:=</span> <span class="org-constant">&#955;</span> s, s.val
+</pre>
+</div>
+
+<p>
+We wish to always be able to recover the formula underlying a sentence without
+having to specify the above function explicitly. To do this, we declare a
+<code>has_coe</code> instance from <code>sentence L</code> to <code>formula L</code>. Thereafter, we can always
+reference the underlying formula of a sentence <code>s</code> as <code>↑s</code>.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org099ba1e" class="outline-2">
+<h2 id="org099ba1e"><span class="section-number-2">8</span> <span class="todo TODO">TODO</span> Satisfiability and models</h2>
+<div class="outline-text-2" id="text-8">
+</div>
+<div id="outline-container-orgd6abc28" class="outline-3">
+<h3 id="orgd6abc28"><span class="section-number-3">8.1</span> Expanding a language and structure</h3>
+</div>
+<div id="outline-container-orgf7453d1" class="outline-3">
+<h3 id="orgf7453d1"><span class="section-number-3">8.2</span> Models</h3>
+<div class="outline-text-3" id="text-8-2">
+<ul class="org-ul">
+<li>requires <a href="#org278e78c">term interpretation</a>.</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-org35fc187" class="outline-2">
+<h2 id="org35fc187"><span class="section-number-2">9</span> <span class="todo TODO">TODO</span> Bibliography</h2>
 </div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Vaibhav Karve</p>
-<p class="date">Created: 2021-02-22 Mon 09:20</p>
+<p class="date">Created: 2021-02-24 Wed 13:47</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

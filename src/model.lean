@@ -183,14 +183,8 @@ structure embedding {L : lang} (M N : struc L) : Type :=
 (η_C : ∀ c, η (M.C c) = N.C c)               -- preserves constants
 
 
-@[simp] lemma vec_map_id {α : Type} {n : ℕ} (v : vector α n) : vector.map id v = v :=
-begin
-  apply vector.eq,
-  simp only [list.map_id, vector.to_list_map],
-end
 
-
-/-- We argue that every structure has an L-embedding, namely, the embedding
+/-- We argue that every structure has an embedding, namely, the embedding
 to itself via the identity map.-/
 instance embedding.inhabited {L : lang} {M : struc L} : inhabited (embedding M M) :=
   {default := {η := id,
@@ -200,49 +194,69 @@ instance embedding.inhabited {L : lang} {M : struc L} : inhabited (embedding M M
                η_C := λ _, rfl}}
 
 
-/-- A bijective L-embedding is called an L-isomorphism.-/
+/-- A bijective embedding between two `L`-structures is called an isomorphism.-/
 structure isomorphism {L: lang} (M N : struc L) extends (embedding M N) : Type :=
 (η_bij : function.bijective η)
 
 
-/-- We argue that every structure has an L-isomorphism, namely, the isomorphism
-to itself.-/
+/-- We argue that every structure has an isomorphism to itself via the identity
+  map.-/
 instance isomorphism.inhabited {L : lang} {M : struc L} : inhabited (isomorphism M M) :=
   {default := {η_bij := function.bijective_id,
                .. default (embedding M M)}}
 
 
-/-- The cardinality of a struc is the cardinality of its domain.-/
+/-- The cardinality of a structure is the cardinality of its domain.-/
 def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 
 
-/-- If η: M → N is an embedding, then the cardinality of N is at least
-  the cardinality of M.-/
+
+/-- If η: M → N is an embedding, then the cardinality of N is at least the
+  cardinality of M.-/
 lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
   card M ≤ card N := cardinal.mk_le_of_injective η.η_inj
 
-/-! ## Terms -/
 
-variables (L : lang) (M : struc L)
+
+/-! ## Terms -/
 
 /-- We define terms in a language to be constants, variables, functions or
    functions applied to level-0 terms. Here a (term L n) represents all
    terms of level n. Level 0 terms must be constants, variables, or terms
-   of type L.F 0.-/
-inductive term : ℕ → Type
+   of type L.F 0.
+
+TODO: Wait for PR#4406: https://github.com/leanprover-community/mathlib/pull/4406
+so we can switch to using finvec.
+-/
+inductive term (L : lang) : ℕ → Type
 | con : L.C → term 0
 | var : ℕ → term 0
-| func {n : ℕ} : L.F n → term n
-| app {n : ℕ} : term (n + 1) → term 0 → term (n)
+| func {n : ℕ} : L.F (n+1) → term (n+1)
+| app {n : ℕ} : term (n + 1) → term 0 → term n
 open term
+
+
+variables {L : lang} {M : struc L}
+
+
+/-- This function computes the depth of a term as seen by a parser. For
+    example, the depth of `f(v₁, v₂, v₃)` is 4 (one for `f` and one for
+    each variable). The depth of `f(v₁, g(v₂), v₃)` is similarly 5.
+-/
+def term.depth : Π {n : ℕ}, term L n → ℕ
+| 0 (con c)    := 1
+| 0 (var v)    := 1
+| _ (func f)   := 1
+| _ (app t t₀) := t.depth + t₀.depth
 
 
 /-- Every language L is guaranteed to have a 0-level term because
 variable terms can be formed without reference to L. In fact, every
 language has countably infinite terms of level 0.
 -/
-instance term.inhabited {L : lang} : inhabited (term L 0) :=
+instance term.inhabited : inhabited (term L 0) :=
   {default := var 0}
+
 
 /- Note about Prod and Sum:
   1. Π denotes Prod of types. Represents ∀ at type level.
@@ -251,7 +265,7 @@ instance term.inhabited {L : lang} : inhabited (term L 0) :=
      Disjoint union of types (co-product in category of Set/Types).-/
 
 /-- Variables in a of term returned as a finite set. -/
-@[reducible] def vars_in_term {L : lang} : Π {n : ℕ}, term L n → finset ℕ
+@[reducible] def vars_in_term : Π {n : ℕ}, term L n → finset ℕ
 | 0 (con c)    := ∅
 | 0 (var v)    := {v}
 | _ (func f)   := ∅
@@ -260,14 +274,14 @@ instance term.inhabited {L : lang} : inhabited (term L 0) :=
 
 /-- The number of variables in a term is computed as the size of
 the finset given by vars_in_term. -/
-@[reducible] def number_of_vars {L : lang} : Π {n : ℕ}, term L n → ℕ
+@[reducible] def number_of_vars : Π {n : ℕ}, term L n → ℕ
 | 0 (con c)    := 0
 | 0 (var v)    := 1
 | _ (func f)   := 0
 | _ (app t t₀) := number_of_vars t + number_of_vars t₀
 
 
-def term_interpretation {L : lang} (M : struc L)(var_assign : ℕ → M.univ) :
+def term_interpretation (var_assign : ℕ → M.univ) :
   Π {n : ℕ}, term L n →  Func M.univ n
 | 0 (con c)    := M.C c
 | 0 (var v)    := var_assign v
@@ -284,7 +298,7 @@ def term_interpretation {L : lang} (M : struc L)(var_assign : ℕ → M.univ) :
 with exactly one term. A lemma will show if the term is variable
 free, then the image of the function is variable free. Can be
 generalized to subsitute each variable with its own term. -/
-def term_sub {L : lang} (t' : term L 0) : Π n, term L n → term L n
+def term_sub (t' : term L 0) : Π n, term L n → term L n
 | 0 (con c)    := con c
 | 0 (var n)    := t'
 | n (func f)   := func f
@@ -293,7 +307,7 @@ def term_sub {L : lang} (t' : term L 0) : Π n, term L n → term L n
 /--Alternative definition where we only allow the substitution to
 occur over only one variable.-/
 
-def term_sub_for_var {L : lang} (t' : term L 0) (k : ℕ) :
+def term_sub_for_var (t' : term L 0) (k : ℕ) :
   Π n, term L n → term L n
 | 0 (con c)    := con c
 | 0 (var n)    := if k = n then t' else var n
@@ -308,7 +322,7 @@ inductive formula (L : lang)
 | tt : formula
 | ff : formula
 | eq  : term L 0 → term L 0 → formula
-| rel : Π (n : ℕ), L.R n → vector (term L 0) n → formula
+| rel : Π {n : ℕ}, L.R n → vector (term L 0) n → formula
 | neg : formula → formula
 | and : formula → formula → formula
 | or  : formula → formula → formula
@@ -316,68 +330,71 @@ inductive formula (L : lang)
 | all : ℕ → formula → formula    -- ℕ gives us a variable
 
 
-local infix    `='` :  80 := formula.eq
-local prefix   `¬'` :  60 := formula.neg
-local infix    `∧'` :  70 := formula.and
-local infix    `∨'` :  70 := formula.or
-local notation `∃'` : 110 := formula.exi
-local notation `∀'` : 110 := formula.all
-local notation `⊤'` : 110 := formula.tt
-local notation `⊥'` : 110 := formula.ff
+infix    ` =' ` :  80 := formula.eq
+prefix   ` ¬' ` :  60 := formula.neg
+infix    ` ∧' ` :  70 := formula.and
+infix    ` ∨' ` :  70 := formula.or
+notation ` ∃' ` : 110 := formula.exi
+notation ` ∀' ` : 110 := formula.all
+notation ` ⊤' ` : 110 := formula.tt
+notation ` ⊥' ` : 110 := formula.ff
 
-def impl {L : lang} (φ₁ : formula L) (φ₂ : formula L) := ¬'φ₁ ∨' φ₂
-local infix `→'` : 80 := impl
+def impl (φ₁ : formula L) (φ₂ : formula L) := ¬'φ₁ ∨' φ₂
+infix ` →' ` : 80 := impl
 
-def bicond {L: lang} (φ₁ : formula L) (φ₂ : formula L) :=
-  (φ₁ →' φ₂) ∧' (φ₂ →' φ₁)
-infix `↔'` : 80 := bicond
-
+def bicond (φ₁ : formula L) (φ₂ : formula L) := (φ₁ →' φ₂)∧'(φ₂ →' φ₁)
+infix ` ↔' ` : 80 := bicond
 
 
 /-- Helper function for variables from list of terms-/
-def vars_in_list {L : lang} : list (term L 0) → finset ℕ
+def vars_in_list : list (term L 0) → finset ℕ
 | [] := ∅
 | (t :: ts) := vars_in_term t ∪ vars_in_list ts
 
 
 /-- Extracts set of variables from the formula-/
-def vars_in_formula {L : lang} : formula L → finset ℕ
+def vars_in_formula : formula L → finset ℕ
 | ⊤'                 := ∅
 | ⊥'                 := ∅
 | (t₁='t₂)           := vars_in_term t₁ ∪ vars_in_term t₂
-| (formula.rel _ r ts) := vars_in_list (ts.to_list)
-| (¬' ϕ)       := vars_in_formula ϕ
-| (ϕ₁ ∧' ϕ₂)  := vars_in_formula ϕ₁ ∪ vars_in_formula ϕ₂
-| (ϕ₁ ∨' ϕ₂)  := vars_in_formula ϕ₁ ∪ vars_in_formula ϕ₂
-| (∃' v ϕ)    := vars_in_formula ϕ ∪ {v}
-| (∀' v ϕ)    := vars_in_formula ϕ ∪ {v}
+| (formula.rel _ ts) := vars_in_list (ts.to_list)
+| (¬' ϕ)             := vars_in_formula ϕ
+| (ϕ₁ ∧' ϕ₂)         := vars_in_formula ϕ₁ ∪ vars_in_formula ϕ₂
+| (ϕ₁ ∨' ϕ₂)         := vars_in_formula ϕ₁ ∪ vars_in_formula ϕ₂
+| (∃' v ϕ)           := vars_in_formula ϕ ∪ {v}
+| (∀' v ϕ)           := vars_in_formula ϕ ∪ {v}
 
 
-/-- A variable occurs freely in a formula if it is not quantified
-over.-/
-def is_var_free (n : ℕ) {L : lang} : formula L → Prop
-| ⊤'                 := true
-| ⊥'                 := true
-| (t₁='t₂)           := true
-| (formula.rel _ r ts) := true
-| (¬' ϕ)       := is_var_free ϕ
-| (ϕ₁ ∧' ϕ₂)  := is_var_free ϕ₁ ∧ is_var_free ϕ₂
-| (ϕ₁ ∨' ϕ₂)  := is_var_free ϕ₁ ∧ is_var_free ϕ₂
-| (∃' v ϕ)    := v ≠ n ∧ is_var_free ϕ
-| (∀' v ϕ)    := v ≠ n ∧ is_var_free ϕ
+
+/-- A variable occurs freely in a formula
+    1. if it occurs in the formula, AND
+    2. if at least one of its occurrences is outside of a quantification.
+
+    For example, this function returns `false` on input `(var, ϕ)` in any of
+    the following scenarios --
+    - `var` does not occur in `ϕ` at all.
+    - `var` occurs in `ϕ` by only after a quantifier.-/
+def var_occurs_freely (var : ℕ) : formula L → Prop
+| ⊤'                 := false  -- doesn't occur
+| ⊥'                 := false  -- doesn't occur
+| (t₁='t₂)           := var ∈ vars_in_term t₁ ∪ vars_in_term t₂ -- check occur
+| (formula.rel _ ts) := var ∈ vars_in_list (ts.to_list)         -- check occur
+| (¬' ϕ)             := var_occurs_freely ϕ
+| (ϕ₁ ∧' ϕ₂)         := var_occurs_freely ϕ₁ ∨ var_occurs_freely ϕ₂
+| (ϕ₁ ∨' ϕ₂)         := var_occurs_freely ϕ₁ ∨ var_occurs_freely ϕ₂
+| (∃' v ϕ)           := (var ≠ v) ∧ var_occurs_freely ϕ -- check not quantified
+| (∀' v ϕ)           := (var ≠ v) ∧ var_occurs_freely ϕ -- check not quantified
 
 
-/-- If the variable does not occur freely, we say that it is bound.-/
-def var_is_bound {L : lang} (n : ℕ) (ϕ : formula L) : Prop := ¬ is_var_free n ϕ
+/-- A formula in which no variable occurs freely is a sentence.  We create a
+    subtype of `L`-formulas that we call `L`-sentences.-/
+def sentence (L : lang) : Type :=
+  {ϕ : formula L // ∀ var, ¬ var_occurs_freely var ϕ}
 
 
-/-- We use the following to define sentences within Lean-/
-def is_sentence {L : lang} (ϕ : formula L) : Prop :=
-  ∀ n : ℕ, (n ∈ vars_in_formula ϕ → var_is_bound n ϕ)
-
-def sentence (L : lang) : Type := {ϕ : formula L // is_sentence ϕ}
-
-/-! ## Examples of formulas and sentences.-/
+/-- Since sentences are a subtype of formula, we define a coercion map for
+    conveniently casting any sentence `s` to a formula by writing `↑s`.-/
+instance coe_sentence_formula : has_coe (sentence L) (formula L) := ⟨λ s, s.val⟩
 
 
 /-! ## Satisfiability and Models -/
@@ -406,11 +423,11 @@ def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
 
 /-- We now interpret what it means for a formula to be true/modeled in
 an L-structure. -/
-def models {L : lang} {M : struc L} : (ℕ → M.univ) → formula L →  Prop
+def models : (ℕ → M.univ) → formula L →  Prop
 | va ⊤'           := true
 | va ⊥'           := false
-| va (t₁ =' t₂)   := (term_interpretation M va t₁) = (term_interpretation M va t₂)
-| va (formula.rel _ r ts) := vector.map (term_interpretation M va) ts ∈ (r̂M)
+| va (t₁ =' t₂)   := (term_interpretation va t₁) = (term_interpretation va t₂)
+| va (formula.rel r ts) := vector.map (term_interpretation va) ts ∈ (r̂M)
 | va ¬' ϕ             :=  ¬ models va ϕ
 | va (ϕ₁ ∧' ϕ₂)      := models va (ϕ₁) ∧ models va (ϕ₂)
 | va (ϕ₁ ∨' ϕ₂)      := models va (ϕ₁) ∨ models va (ϕ₂)
@@ -424,7 +441,7 @@ Then t is interpreted to the same element under both s₁ and s₂. -/
 lemma eq_term_interpretation_of_identical_var_assign {L : lang} {M : struc L}
   (s₁ s₂ : ℕ → M.univ) (t : term L 0)
   (h : ∀ v ∈ vars_in_term t, s₁ v = s₂ v) :
-  (term_interpretation M s₁ t = term_interpretation M s₂ t) :=
+  (term_interpretation s₁ t = term_interpretation s₂ t) :=
 begin
   -- We will proceed with induction on the term t.
   -- First we revert the hypothesis h which has `t` in it.
@@ -470,12 +487,12 @@ lemma iff_models_relation_of_identical_var_assign {L : lang} {M : struc L}
   (s₁ s₂ : ℕ → M.univ)
   (r : L.R n)
   (vec : vector (term L 0) n)
-  (h : ∀ v ∈ vars_in_formula (formula.rel n r vec), s₁ v = s₂ v) :
-  models s₁ (formula.rel n r vec) ↔ models s₂ (formula.rel n r vec) :=
+  (h : ∀ v ∈ vars_in_formula (formula.rel r vec), s₁ v = s₂ v) :
+  models s₁ (formula.rel r vec) ↔ models s₂ (formula.rel r vec) :=
 begin
   unfold models,
-  suffices x : vector.map (term_interpretation M s₁) vec
-               = vector.map (term_interpretation M s₂) vec,
+  suffices x : vector.map (term_interpretation s₁) vec
+               = vector.map (term_interpretation s₂) vec,
   rw x,
   ext1,
   rw [vector.nth_map, vector.nth_map,
@@ -695,7 +712,6 @@ def is_complete {L : lang} (S : set (formula L)) : Prop := ∀ (s : sentence L),
 
 def is_countable (L : lang) : Prop := sorry
 
-def sentence_to_formula {L : lang} : sentence L → formula L := sorry
 
 -- Categoricity
 --  If there is a bijection between two universes, then their models are isomorphic
@@ -707,3 +723,18 @@ theorem Vaught {L : lang} (S : set (formula L)) (M : Model S) :
 
 -- TODO: Theorem: If two structures are isomorphic then they must satisfy the same theory.
 -- Proof by induction on formulas.
+
+
+
+
+variables (infinite' : card M > cardinal.omega)
+constant k : cardinal
+noncomputable def Lowenheim_Skolem (L : lang) (M : struc L) (infinite' : card M > cardinal.omega) : struc L := sorry
+
+axiom LS1 : card (Lowenheim_Skolem L M infinite') = k
+axiom LS2 : k < card M → is_elementary_substruc N M
+
+def lang.card (L : lang) : cardinal := (cardinal.mk (Σ n, L.F n)) + (cardinal.mk (Σ n, L.R n))
+def Model.card (S : set (sentence L)) (μ : Model S) : cardinal := cardinal.mk μ.M.univ
+
+axiom LS_Lou (h : L.card ≤ k) (S : set (sentence L)) (μ : Model S) : μ.card = k
