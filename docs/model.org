@@ -4,6 +4,8 @@
 #+options: H:2
 #+subtitle:
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://gongzhitaao.org/orgcss/org.css"/>
+#+property: header-args :eval never-export
+
 
 * TODO Arity \(n\) functions and their API
 * Languages
