@@ -347,22 +347,22 @@ infix ` ↔' ` : 80 := bicond
 
 
 /-- Helper function for variables from list of terms-/
-def vars_in_list {L : lang} : list (term L 0) → finset ℕ
+def vars_in_list : list (term L 0) → finset ℕ
 | [] := ∅
 | (t :: ts) := vars_in_term t ∪ vars_in_list ts
 
 
 /-- Extracts set of variables from the formula-/
-def vars_in_formula {L : lang} : formula L → finset ℕ
+def vars_in_formula : formula L → finset ℕ
 | ⊤'                 := ∅
 | ⊥'                 := ∅
 | (t₁='t₂)           := vars_in_term t₁ ∪ vars_in_term t₂
-| (formula.rel _ r ts) := vars_in_list (ts.to_list)
-| (¬' ϕ)       := vars_in_formula ϕ
-| (ϕ₁ ∧' ϕ₂)  := vars_in_formula ϕ₁ ∪ vars_in_formula ϕ₂
-| (ϕ₁ ∨' ϕ₂)  := vars_in_formula ϕ₁ ∪ vars_in_formula ϕ₂
-| (∃' v ϕ)    := vars_in_formula ϕ ∪ {v}
-| (∀' v ϕ)    := vars_in_formula ϕ ∪ {v}
+| (formula.rel _ ts) := vars_in_list (ts.to_list)
+| (¬' ϕ)             := vars_in_formula ϕ
+| (ϕ₁ ∧' ϕ₂)         := vars_in_formula ϕ₁ ∪ vars_in_formula ϕ₂
+| (ϕ₁ ∨' ϕ₂)         := vars_in_formula ϕ₁ ∪ vars_in_formula ϕ₂
+| (∃' v ϕ)           := vars_in_formula ϕ ∪ {v}
+| (∀' v ϕ)           := vars_in_formula ϕ ∪ {v}
 
 
 /-- A variable occurs freely in a formula if it is not quantified
