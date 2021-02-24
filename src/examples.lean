@@ -86,8 +86,7 @@ def ordered_ring_lang : lang := {R := λ n : ℕ,
 def type_is_struc_of_set_lang {A : Type} : struc (set_lang) :=
  {univ := A,
   F := λ _ f, empty.elim f,
-  R := λ _ r, empty.elim r,
-  C := λ c, empty.elim c}
+  R := λ _ r, empty.elim r}
 
 
 /-- Type is a structure of the ordered set language-/
@@ -98,8 +97,7 @@ def type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
    R := by {intros n r v,
             iterate {cases n, cases r},
             exact (v.nth 0 < v.nth 1),
-            cases r},
-   C := λ c, empty.elim c}
+            cases r}}
 
 
 
@@ -117,8 +115,7 @@ def free_magma_is_struc_of_magma_lang {A : Type} [magma A] :
             iterate {cases n, cases f}, -- if n=0,1
             exact magma.mul, -- if n=2
             cases f},        -- if n≥3
-   R := λ _ r, empty.elim r,
-   C := λ c, empty.elim c}
+   R := λ _ r, empty.elim r}
 
 
 def semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
@@ -128,8 +125,7 @@ def semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
             iterate {cases n, cases f},
             exact semigroup.mul,
             cases f},
-   R := λ _ r, empty.elim r,
-   C := λ c, empty.elim c}
+   R := λ _ r, empty.elim r}
 
 
 /-- Monoid is a structure of the language of monoids-/
@@ -142,8 +138,7 @@ def monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
             iterate {cases n, cases f},
             exact monoid.mul,
             cases f},
-   R := λ _ r, empty.elim r,
-   C := λ c, 1}
+   R := λ _ r, empty.elim r}
 
 
 /-- Group is a structure of the group language-/
@@ -158,8 +153,7 @@ def group_is_struc_of_group_lang {A : Type} [group A] :
             iterate {cases n, cases f},
               exact group.mul,
             cases f},
-    R := λ _ r, empty.elim r,
-    C := λ c, 1}
+    R := λ _ r, empty.elim r}
 
 
 /-- Semiring is a structure of the language of semirings-/
@@ -176,13 +170,7 @@ def semiring_is_struc_of_semiring_lang {A : Type} [semiring A] :
               exact semiring.add,
               exact semiring.mul,
             cases f},
-   R := λ _ r, empty.elim r,
-   C := by {intros c,
-            cases c,
-            cases c_val,
-            exact semiring.zero,
-            exact semiring.one}
-  }
+   R := λ _ r, empty.elim r}
 
 
 /-- Ring is a structure of the language of rings-/
@@ -201,13 +189,7 @@ def ring_is_struc_of_ring_lang {A : Type} [ring A] :
               exact ring.add,
               exact ring.mul,
             cases f},
-   R := λ _ r, empty.elim r,
-   C := by {intros c,
-            cases c,
-            cases c_val,
-            exact ring.zero,
-            exact ring.one}
-  }
+   R := λ _ r, empty.elim r}
 
 
 /-- Ordered ring is a structure of the language of ordered rings-/
@@ -229,13 +211,7 @@ def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
    R := by {intros n r v,
             iterate {cases n, cases r},
             exact (v.nth 0 < v.nth 1),
-            cases r},
-   C := by {intros c,
-            cases c,
-            cases c_val,
-            exact ring.zero,
-            exact ring.one}
-  }
+            cases r}}
 
 
 /-- A type with linear order is a structure on dense-linear-order language.-/
@@ -309,12 +285,11 @@ namespace example_terms
   def M1 : struc L1 :=
   {univ := ℕ,
    F := by {intros n f,
-            cases n, { exact 1},               -- if n=0 (must match with M1.C)
+            cases n, { exact 1},               -- if n=0
             cases n, { exact λ x : ℕ, 100*x}, -- if n=1
             cases n, { exact (+)},             -- if n=2
             cases f},                          -- if n>2
-   R := λ _ f _, by {cases f},
-   C := function.const L1.C 1}
+   R := λ _ f _, by {cases f}}
 
 
   open term
@@ -328,13 +303,13 @@ namespace example_terms
                                  $ app (func f) (con c)
   def va : ℕ → M1.univ := function.const ℕ (M1.C c)
 
-  #reduce term_interpretation M1 va (func f)  -- f is interpreted as x ↦ 100x
-  #reduce term_interpretation M1 va (func g)  -- g is interpreted (x, y) ↦ x+y
-  #reduce term_interpretation M1 va (con c)   -- c is interpreted as (1 : ℕ)
-  #reduce term_interpretation M1 va t₁          -- f(c) is interpreted as 100
-  #reduce term_interpretation M1 va t₂          -- g(c, t₁) is interpreted as 101
-  #reduce term_interpretation M1 va t₃          -- f(g(c, f(c))) is interpreted as 10100
-  #reduce term_interpretation M1 va t           -- same as t₃
+  #reduce term_interpretation va (func f)  -- f is interpreted as x ↦ 100x
+  #reduce term_interpretation va (func g)  -- g is interpreted (x, y) ↦ x+y
+  #reduce term_interpretation va (con c)   -- c is interpreted as (1 : ℕ)
+  #reduce term_interpretation va t₁          -- f(c) is interpreted as 100
+  #reduce term_interpretation va t₂          -- g(c, t₁) is interpreted as 101
+  #reduce term_interpretation va t₃          -- f(g(c, f(c))) is interpreted as 10100
+  #reduce term_interpretation va t           -- same as t₃
 
 
   def t₄ : term L1 0 := app (func f) (var 5) -- f(v₅)
@@ -344,24 +319,30 @@ namespace example_terms
   #reduce term_sub_for_var (var 3) 4 0 t₄ -- f(v₅)
   #reduce term_sub_for_var (var 3) 5 0 t₄ -- f(v₃)
 
+
   open example_terms
   def ψ₁ : formula L1 := t₁ =' (var 5) -- f(c) = v₅
   def ψ₂ : formula L1 := ¬' (var 4 =' t₃ ) -- g(c, t₁) =/= v₄
   def ψ₃ : formula L1 := ∃' 3 ψ₁ -- ∃v₃  f(v₅) = v₅
   def ψ₄ : formula L1 := ∀' 4 (∀' 5 ψ₂) -- ∀v₄∀v₅ g(c, f(v₄)) =/= v₅
 
-  example : var_is_bound 5 (ψ₄) :=
+  example : ¬ (var_occurs_freely 5 ψ₄) :=
   begin
-    unfold var_is_bound,
     rw ψ₄,
-    unfold is_var_free,
+    unfold var_occurs_freely,
     rw ψ₂,
     simp,
   end
 
-  #reduce is_sentence (ψ₂)
-  #reduce is_sentence (ψ₃)
-  #reduce is_sentence (ψ₄)
+  def phi : formula (DLO_lang) :=
+  ¬'(∀' 2 ⊤') ∧' ((var 1) =' (var 4)) ∧' (∃' 3 (var 2 =' var 3))
+
+  example :   var_occurs_freely 1 phi := by norm_num [phi, var_occurs_freely]
+  example :   var_occurs_freely 2 phi := by norm_num [phi, var_occurs_freely]
+  example : ¬ var_occurs_freely 3 phi := by norm_num [phi, var_occurs_freely]
+  example :   var_occurs_freely 4 phi := by norm_num [phi, var_occurs_freely]
+  example : ¬ var_occurs_freely 5 phi := by norm_num [phi, var_occurs_freely]
+
 
 end example_terms
 
@@ -374,10 +355,9 @@ namespace DLO_Model
    R := λ n f, by {iterate 2 {cases n, exact ∅},
                    cases n, exact {v : vector ℚ 2 | v.nth 0 < v.nth 1},
                    exact ∅},
-  C := function.const DLO_lang.C 1,
   F := λ _ f, by {cases f},
  }
-notation `<'` : 110 := formula.rel 2 ()
+notation `<'` : 110 := @formula.rel DLO_lang 2 ()
 
 /- A dense linear ordering without endpoints is a language containg a
     single binary relation symbol < satisfying the following sentences:
@@ -412,7 +392,6 @@ def Q_Model_DLO : Model (DLO_axioms) :=
 intros σ,
 rintro (rfl | rfl | rfl | rfl | rfl | H);
 iterate {unfold models},
---intros,
  {intros x x₁ h,
   cases h,
   solve_by_elim},
