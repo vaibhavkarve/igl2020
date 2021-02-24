@@ -254,8 +254,9 @@ def term.depth : Π {n : ℕ}, term L n → ℕ
 variable terms can be formed without reference to L. In fact, every
 language has countably infinite terms of level 0.
 -/
-instance term.inhabited {L : lang} : inhabited (term L 0) :=
+instance term.inhabited : inhabited (term L 0) :=
   {default := var 0}
+
 
 /- Note about Prod and Sum:
   1. Π denotes Prod of types. Represents ∀ at type level.
@@ -264,7 +265,7 @@ instance term.inhabited {L : lang} : inhabited (term L 0) :=
      Disjoint union of types (co-product in category of Set/Types).-/
 
 /-- Variables in a of term returned as a finite set. -/
-@[reducible] def vars_in_term {L : lang} : Π {n : ℕ}, term L n → finset ℕ
+@[reducible] def vars_in_term : Π {n : ℕ}, term L n → finset ℕ
 | 0 (con c)    := ∅
 | 0 (var v)    := {v}
 | _ (func f)   := ∅
@@ -273,14 +274,14 @@ instance term.inhabited {L : lang} : inhabited (term L 0) :=
 
 /-- The number of variables in a term is computed as the size of
 the finset given by vars_in_term. -/
-@[reducible] def number_of_vars {L : lang} : Π {n : ℕ}, term L n → ℕ
+@[reducible] def number_of_vars : Π {n : ℕ}, term L n → ℕ
 | 0 (con c)    := 0
 | 0 (var v)    := 1
 | _ (func f)   := 0
 | _ (app t t₀) := number_of_vars t + number_of_vars t₀
 
 
-def term_interpretation {L : lang} (M : struc L)(var_assign : ℕ → M.univ) :
+def term_interpretation (var_assign : ℕ → M.univ) :
   Π {n : ℕ}, term L n →  Func M.univ n
 | 0 (con c)    := M.C c
 | 0 (var v)    := var_assign v
@@ -297,7 +298,7 @@ def term_interpretation {L : lang} (M : struc L)(var_assign : ℕ → M.univ) :
 with exactly one term. A lemma will show if the term is variable
 free, then the image of the function is variable free. Can be
 generalized to subsitute each variable with its own term. -/
-def term_sub {L : lang} (t' : term L 0) : Π n, term L n → term L n
+def term_sub (t' : term L 0) : Π n, term L n → term L n
 | 0 (con c)    := con c
 | 0 (var n)    := t'
 | n (func f)   := func f
@@ -306,7 +307,7 @@ def term_sub {L : lang} (t' : term L 0) : Π n, term L n → term L n
 /--Alternative definition where we only allow the substitution to
 occur over only one variable.-/
 
-def term_sub_for_var {L : lang} (t' : term L 0) (k : ℕ) :
+def term_sub_for_var (t' : term L 0) (k : ℕ) :
   Π n, term L n → term L n
 | 0 (con c)    := con c
 | 0 (var n)    := if k = n then t' else var n
@@ -321,7 +322,7 @@ inductive formula (L : lang)
 | tt : formula
 | ff : formula
 | eq  : term L 0 → term L 0 → formula
-| rel : Π (n : ℕ), L.R n → vector (term L 0) n → formula
+| rel : Π {n : ℕ}, L.R n → vector (term L 0) n → formula
 | neg : formula → formula
 | and : formula → formula → formula
 | or  : formula → formula → formula
