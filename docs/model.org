@@ -163,12 +163,48 @@ We can then claim that if \(\eta : M \rightarrow N\) is an embedding of \(M\) in
 The proof hinges on the injectivity of \(\eta\) and follows from the fact
 =cardinal.mk_le_of_injective= (which is already proved in mathlib).
 
-* TODO Terms
+* Terms
+Throughout this section, let \(L\) be a language and let \(M\) be an
+\(L\)-structure.
+
 ** Definition of terms
-** Terms are inhabited
-** Variables in a term in term
-** Number of variables in a term
-** Term interpretation
+\(L\)-/Terms/ are defined inductively as --
+- constants of the language are all terms.
+- there is a countably infinite supply of indexed "variables", each of which are
+  also distinct terms.
+- an \(n\)-ary symbolic function of \(L\) applied to exactly \(n\) other terms
+  also yields a term.
+
+This definition of terms has 2 distinct parts --
+1. There are atomic terms like constants and variables,
+2. There are higher-order terms (i.e. terms made of other terms) like ones
+   formed by function application.
+
+** TODO Implementation of terms
+The trickiest part of the definition of terms is checking that in higher-order
+terms, an \(n\)-ary symbolic function is being applied to exactly \(n\)-many
+terms. This check needs a proof of a fact like =(length = n)=. However, we
+cannot incorporate this proof into the definition directly without running into
+lean's issues of nested inductive types.
+
+Our solution is to incorporate the notion of atomic/higher-order into our
+implementation. To each term we associate a level. We start by stipulating that
+atomic terms have level \(0\). A symbolic function applied to all its arguments
+also has level \(0\), while a partially applied function has positive level.
+
+We summarize the term to level translation below --
+| Term                       | Level                                           |
+|----------------------------+-------------------------------------------------|
+| constant                   | 0                                               |
+| variable                   | 0                                               |
+| function                   | level = arity of the function                   |
+| partially-applied function | level = arity \(-\) # arguments already applied |
+
+** TODO Depth of a term
+** TODO Terms are inhabited
+** TODO Variables in a term
+** TODO Number of variables in a term
+** NEXT Term interpretation
 * TODO Term substitution
 * TODO Formulas and Sentences
 * TODO Satisfiability and models
