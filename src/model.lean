@@ -723,3 +723,18 @@ theorem Vaught {L : lang} (S : set (formula L)) (M : Model S) :
 
 -- TODO: Theorem: If two structures are isomorphic then they must satisfy the same theory.
 -- Proof by induction on formulas.
+
+
+
+
+variables (infinite' : card M > cardinal.omega)
+constant k : cardinal
+noncomputable def Lowenheim_Skolem (L : lang) (M : struc L) (infinite' : card M > cardinal.omega) : struc L := sorry
+
+axiom LS1 : card (Lowenheim_Skolem L M infinite') = k
+axiom LS2 : k < card M → is_elementary_substruc N M
+
+def lang.card (L : lang) : cardinal := (cardinal.mk (Σ n, L.F n)) + (cardinal.mk (Σ n, L.R n))
+def Model.card (S : set (sentence L)) (μ : Model S) : cardinal := cardinal.mk μ.M.univ
+
+axiom LS_Lou (h : L.card ≤ k) (S : set (sentence L)) (μ : Model S) : μ.card = k
