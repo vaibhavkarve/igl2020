@@ -365,22 +365,25 @@ def vars_in_formula : formula L → finset ℕ
 | (∀' v ϕ)           := vars_in_formula ϕ ∪ {v}
 
 
-/-- A variable occurs freely in a formula if it is not quantified
-over.-/
-def is_var_free (n : ℕ) {L : lang} : formula L → Prop
-| ⊤'                 := true
-| ⊥'                 := true
-| (t₁='t₂)           := true
-| (formula.rel _ r ts) := true
-| (¬' ϕ)       := is_var_free ϕ
-| (ϕ₁ ∧' ϕ₂)  := is_var_free ϕ₁ ∧ is_var_free ϕ₂
-| (ϕ₁ ∨' ϕ₂)  := is_var_free ϕ₁ ∧ is_var_free ϕ₂
-| (∃' v ϕ)    := v ≠ n ∧ is_var_free ϕ
-| (∀' v ϕ)    := v ≠ n ∧ is_var_free ϕ
 
+/-- A variable occurs freely in a formula
+    1. if it occurs in the formula, AND
+    2. if at least one of its occurrences is outside of a quantification.
 
-/-- If the variable does not occur freely, we say that it is bound.-/
-def var_is_bound {L : lang} (n : ℕ) (ϕ : formula L) : Prop := ¬ is_var_free n ϕ
+    For example, this function returns `false` on input `(var, ϕ)` in any of
+    the following scenarios --
+    - `var` does not occur in `ϕ` at all.
+    - `var` occurs in `ϕ` by only after a quantifier.-/
+def var_occurs_freely (var : ℕ) : formula L → Prop
+| ⊤'                 := false  -- doesn't occur
+| ⊥'                 := false  -- doesn't occur
+| (t₁='t₂)           := var ∈ vars_in_term t₁ ∪ vars_in_term t₂ -- check occur
+| (formula.rel _ ts) := var ∈ vars_in_list (ts.to_list)         -- check occur
+| (¬' ϕ)             := var_occurs_freely ϕ
+| (ϕ₁ ∧' ϕ₂)         := var_occurs_freely ϕ₁ ∨ var_occurs_freely ϕ₂
+| (ϕ₁ ∨' ϕ₂)         := var_occurs_freely ϕ₁ ∨ var_occurs_freely ϕ₂
+| (∃' v ϕ)           := (var ≠ v) ∧ var_occurs_freely ϕ -- check not quantified
+| (∀' v ϕ)           := (var ≠ v) ∧ var_occurs_freely ϕ -- check not quantified
 
 
 /-- We use the following to define sentences within Lean-/
