@@ -330,22 +330,20 @@ inductive formula (L : lang)
 | all : ℕ → formula → formula    -- ℕ gives us a variable
 
 
-local infix    `='` :  80 := formula.eq
-local prefix   `¬'` :  60 := formula.neg
-local infix    `∧'` :  70 := formula.and
-local infix    `∨'` :  70 := formula.or
-local notation `∃'` : 110 := formula.exi
-local notation `∀'` : 110 := formula.all
-local notation `⊤'` : 110 := formula.tt
-local notation `⊥'` : 110 := formula.ff
+infix    ` =' ` :  80 := formula.eq
+prefix   ` ¬' ` :  60 := formula.neg
+infix    ` ∧' ` :  70 := formula.and
+infix    ` ∨' ` :  70 := formula.or
+notation ` ∃' ` : 110 := formula.exi
+notation ` ∀' ` : 110 := formula.all
+notation ` ⊤' ` : 110 := formula.tt
+notation ` ⊥' ` : 110 := formula.ff
 
-def impl {L : lang} (φ₁ : formula L) (φ₂ : formula L) := ¬'φ₁ ∨' φ₂
-local infix `→'` : 80 := impl
+def impl (φ₁ : formula L) (φ₂ : formula L) := ¬'φ₁ ∨' φ₂
+infix ` →' ` : 80 := impl
 
-def bicond {L: lang} (φ₁ : formula L) (φ₂ : formula L) :=
-  (φ₁ →' φ₂) ∧' (φ₂ →' φ₁)
-infix `↔'` : 80 := bicond
-
+def bicond (φ₁ : formula L) (φ₂ : formula L) := (φ₁ →' φ₂)∧'(φ₂ →' φ₁)
+infix ` ↔' ` : 80 := bicond
 
 
 /-- Helper function for variables from list of terms-/
