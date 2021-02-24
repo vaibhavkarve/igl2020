@@ -391,9 +391,10 @@ def var_occurs_freely (var : ℕ) : formula L → Prop
 def sentence (L : lang) : Type :=
   {ϕ : formula L // ∀ var, ¬ var_occurs_freely var ϕ}
 
-def sentence (L : lang) : Type := {ϕ : formula L // is_sentence ϕ}
 
-/-! ## Examples of formulas and sentences.-/
+/-- Since sentences are a subtype of formula, we define a coercion map for
+    conveniently casting any sentence `s` to a formula by writing `↑s`.-/
+instance coe_sentence_formula : has_coe (sentence L) (formula L) := ⟨λ s, s.val⟩
 
 
 /-! ## Satisfiability and Models -/
