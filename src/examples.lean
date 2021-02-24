@@ -1,16 +1,5 @@
 /- In this file we demonstrate examples and constructions of various types. Key
-definitions can be found in the model.lean file.
-
-0. We define functions of arity (n : ℕ) and their API.
-1. We define languages and give examples.
-2. We define structures and give examples.
-3. We define embedding between two structures on the same language.
-4. We define terms.
-   4.1 We give some examples of terms.
-   4.2 We define a function for term substitution and prove a theorem.
-   4.3 We give an interpretation of terms in structures.
-5. We define formulas.
--/
+definitions can be found in the model.lean file.-/
 
 import model
 
