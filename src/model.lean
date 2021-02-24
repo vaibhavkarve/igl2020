@@ -441,7 +441,7 @@ Then t is interpreted to the same element under both s₁ and s₂. -/
 lemma eq_term_interpretation_of_identical_var_assign {L : lang} {M : struc L}
   (s₁ s₂ : ℕ → M.univ) (t : term L 0)
   (h : ∀ v ∈ vars_in_term t, s₁ v = s₂ v) :
-  (term_interpretation M s₁ t = term_interpretation M s₂ t) :=
+  (term_interpretation s₁ t = term_interpretation s₂ t) :=
 begin
   -- We will proceed with induction on the term t.
   -- First we revert the hypothesis h which has `t` in it.
@@ -487,12 +487,12 @@ lemma iff_models_relation_of_identical_var_assign {L : lang} {M : struc L}
   (s₁ s₂ : ℕ → M.univ)
   (r : L.R n)
   (vec : vector (term L 0) n)
-  (h : ∀ v ∈ vars_in_formula (formula.rel n r vec), s₁ v = s₂ v) :
-  models s₁ (formula.rel n r vec) ↔ models s₂ (formula.rel n r vec) :=
+  (h : ∀ v ∈ vars_in_formula (formula.rel r vec), s₁ v = s₂ v) :
+  models s₁ (formula.rel r vec) ↔ models s₂ (formula.rel r vec) :=
 begin
   unfold models,
-  suffices x : vector.map (term_interpretation M s₁) vec
-               = vector.map (term_interpretation M s₂) vec,
+  suffices x : vector.map (term_interpretation s₁) vec
+               = vector.map (term_interpretation s₂) vec,
   rw x,
   ext1,
   rw [vector.nth_map, vector.nth_map,
@@ -712,7 +712,6 @@ def is_complete {L : lang} (S : set (formula L)) : Prop := ∀ (s : sentence L),
 
 def is_countable (L : lang) : Prop := sorry
 
-def sentence_to_formula {L : lang} : sentence L → formula L := sorry
 
 -- Categoricity
 --  If there is a bijection between two universes, then their models are isomorphic
