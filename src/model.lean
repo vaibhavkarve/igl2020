@@ -386,9 +386,10 @@ def var_occurs_freely (var : ℕ) : formula L → Prop
 | (∀' v ϕ)           := (var ≠ v) ∧ var_occurs_freely ϕ -- check not quantified
 
 
-/-- We use the following to define sentences within Lean-/
-def is_sentence {L : lang} (ϕ : formula L) : Prop :=
-  ∀ n : ℕ, (n ∈ vars_in_formula ϕ → var_is_bound n ϕ)
+/-- A formula in which no variable occurs freely is a sentence.  We create a
+    subtype of `L`-formulas that we call `L`-sentences.-/
+def sentence (L : lang) : Type :=
+  {ϕ : formula L // ∀ var, ¬ var_occurs_freely var ϕ}
 
 def sentence (L : lang) : Type := {ϕ : formula L // is_sentence ϕ}
 
