@@ -236,6 +236,20 @@ inductive term (L : lang) : ℕ → Type
 open term
 
 
+variables {L : lang} {M : struc L}
+
+
+/-- This function computes the depth of a term as seen by a parser. For
+    example, the depth of `f(v₁, v₂, v₃)` is 4 (one for `f` and one for
+    each variable). The depth of `f(v₁, g(v₂), v₃)` is similarly 5.
+-/
+def term.depth : Π {n : ℕ}, term L n → ℕ
+| 0 (con c)    := 1
+| 0 (var v)    := 1
+| _ (func f)   := 1
+| _ (app t t₀) := t.depth + t₀.depth
+
+
 /-- Every language L is guaranteed to have a 0-level term because
 variable terms can be formed without reference to L. In fact, every
 language has countably infinite terms of level 0.
