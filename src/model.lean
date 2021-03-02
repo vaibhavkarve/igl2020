@@ -423,16 +423,18 @@ def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
 
 /-- We now interpret what it means for a formula to be true/modeled in
 an L-structure. -/
-def models : (ℕ → M.univ) → formula L →  Prop
+def models_formula : (ℕ → M.univ) → formula L →  Prop
 | va ⊤'           := true
 | va ⊥'           := false
 | va (t₁ =' t₂)   := (term_interpretation va t₁) = (term_interpretation va t₂)
 | va (formula.rel r ts) := vector.map (term_interpretation va) ts ∈ (r̂M)
-| va ¬' ϕ             :=  ¬ models va ϕ
-| va (ϕ₁ ∧' ϕ₂)      := models va (ϕ₁) ∧ models va (ϕ₂)
-| va (ϕ₁ ∨' ϕ₂)      := models va (ϕ₁) ∨ models va (ϕ₂)
-| va (∃' v ϕ)        := ∃ (x : M.univ), models (λ n, if n=v then x else va n) ϕ
-| va (∀' v ϕ)        := ∀ (x : M.univ), models (λ n, if n=v then x else va n) ϕ
+| va (¬' ϕ)       :=  ¬ models_formula va ϕ
+| va (ϕ₁ ∧' ϕ₂)   := models_formula va ϕ₁ ∧ models_formula va ϕ₂
+| va (ϕ₁ ∨' ϕ₂)   := models_formula va ϕ₁ ∨ models_formula va ϕ₂
+| va (∃' v ϕ)     := ∃ (x : M.univ), let va_updated := function.update va v x in
+                                      models_formula va_updated ϕ
+| va (∀' v ϕ)     := ∀ (x : M.univ), let va_updated := function.update va v x in
+                                      models_formula va_updated ϕ
 
 
 /-- Suppose that s₁ and s₂ are variable assignment functions into a structure M
