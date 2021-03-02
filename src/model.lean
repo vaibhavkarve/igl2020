@@ -285,8 +285,8 @@ def term_interpretation (var_assign : ℕ → M.univ) :
   Π {n : ℕ}, term L n →  Func M.univ n
 | 0 (con c)    := M.C c
 | 0 (var v)    := var_assign v
-| n (func f)   := f^M
-| n (app t t₀) := (term_interpretation t) (term_interpretation t₀)
+| _ (func f)   := f^M
+| _ (app t t₀) := (term_interpretation t) (term_interpretation t₀)
 
 
 
