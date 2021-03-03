@@ -422,8 +422,8 @@ def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
    .. M}
 
 
-/-- We now interpret what it means for a formula to be true/modeled in
-an L-structure. -/
+/-- We now interpret what it means for a formula to be true/modeled in an
+`L`-structure `M`.-/
 def models_formula : (ℕ → M.univ) → formula L →  Prop
 | va ⊤'           := true
 | va ⊥'           := false
