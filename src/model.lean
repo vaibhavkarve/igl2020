@@ -716,11 +716,12 @@ def coeset : set(sentence L) → set(formula L) := set.image coe
      the same sentences.-/
 
 
-def is_complete {L : lang}(S : set (sentence L)) : Prop := 
-(∃ A : struc L, ∀ (va : ℕ → A.univ), 
-  ∀ (σ ∈ coeset(S)), models va σ) ∧
-(∀ A₁ : Model (coeset S), ∀ A₂ : Model (coeset S),
-  ∀(σ : sentence L), models A₁.va (↑ σ) ↔ models A₂.va (↑σ))
+class is_complete (S : set (sentence L)) :=
+(has_model : ∃ A : struc L, ∀ (va : ℕ → A.univ), ∀ (σ ∈ coeset(S)),
+   models va σ)
+(models_iff_models : ∀ A₁ : Model (coeset S), ∀ A₂ : Model (coeset S), ∀(σ : sentence L),
+  models A₁.va (↑ σ) ↔ models A₂.va (↑σ))
+
 
 
 -- TODO: Theorem: If two structures are isomorphic then they must satisfy the same theory.
