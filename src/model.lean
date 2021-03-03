@@ -756,9 +756,22 @@ class has_infinite_model (T : set(sentence L)) :=
 
 /-- If a theory is k-categorical and has an infinite model,
     it is complete.-/
+theorem Vaught (k : cardinal) (h : L.card ≤ k) (T : set (sentence L))
+  [has_infinite_model T] (hkc : theory_kcategorical k T) : is_complete T :=
+begin
+  -- Proceed by contradiction.
+  -- ∃ σ, two models of T that satisfy σ and ¬σ respectively. Call them M₁ and M₂.
+  -- This means M₁ models T∪{σ} and M₂ models T∪{¬σ}.
+  -- We get two models M₃ and M₄ of same cardinality due to LS.
+  -- M₃ and M₄ both model T.
+  -- But by kcategoricity, M₃ and M₄ are isomorphic.
+  -- Achieve a contradiction using isomorphic_struc_satisfy_same_theory.
 
-theorem Vaught {L : lang}(k : cardinal)(L.card ≤ k)(T : set (sentence L))(T has infinite model)
-  : theory_kcategorical(k T) → is_complete(T)
+  fconstructor,
+
+sorry
+end
+
 
 
 /-- DLO is complete by using Vaught's test. This will include
