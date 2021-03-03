@@ -743,8 +743,11 @@ axiom LS_Lou (k : cardinal) (h : L.card ≤ k) (S : set (sentence L)) :
   ∃ μ : Model (coeset S), μ.card = k
 
 
-/-A theory is k-categorical if all models of cardinality k  
+/-A theory is k-categorical if all models of cardinality k
   are isomorphic as structures.-/
+def theory_kcategorical (k : cardinal) (T: set(sentence L)) :=
+  ∀ (M₁ M₂ : Model (coeset T)), M₁.card = k ∧ M₂.card = k → inhabited (isomorphism M₁.M M₂.M)
+
 
 def theory_kcategorical {L: lang}(k : cardinal)(T: set(sentence L)) : Prop :={
   sorry
