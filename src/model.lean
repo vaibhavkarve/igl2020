@@ -749,9 +749,10 @@ def theory_kcategorical (k : cardinal) (T: set(sentence L)) :=
   ∀ (M₁ M₂ : Model (coeset T)), M₁.card = k ∧ M₂.card = k → inhabited (isomorphism M₁.M M₂.M)
 
 
-def theory_kcategorical {L: lang}(k : cardinal)(T: set(sentence L)) : Prop :={
-  sorry
-}
+class has_infinite_model (T : set(sentence L)) :=
+(big:  ∃ μ : Model (coeset T), μ.card ≥ cardinal.omega)
+
+
 
 /-- If a theory is k-categorical and has an infinite model,
     it is complete.-/
