@@ -481,33 +481,42 @@ begin
 end
 
 
-/-- Suppose that s₁ and s₂ are variable assignment functions into a structure
-M such that s₁(v)=s₂(v) for every free variable v. The vector v on n terms is
-satisfied in M under s₁ iff it is also satisfied under s₂. -/
-lemma iff_models_relation_of_identical_var_assign {L : lang} {M : struc L}
-  (n : ℕ)
-  (s₁ s₂ : ℕ → M.univ)
-  (r : L.R n)
-  (vec : vector (term L 0) n)
-  (h : ∀ v ∈ vars_in_formula (formula.rel r vec), s₁ v = s₂ v) :
-  models s₁ (formula.rel r vec) ↔ models s₂ (formula.rel r vec) :=
+/-- Consider the formula `ϕ := (r t₁ ... tₙ)`.
+    Suppose that `va₁` and `va₂` are variable assignment functions into a
+    structure `M` such that `va₁(var)=va₂(var)` for every variable `var` that
+    occurs freely in `ϕ`. Then, the formula is satisfied in `M` under `va₁`
+    iff it is also satisfied under `va₂`.
+-/
+lemma iff_models_formula_relation_of_identical_var_assign
+  (n : ℕ) (r : L.R n) (vec : vector (term L 0) n)
+  (va₁ va₂ : ℕ → M.univ)
+  (h : ∀ var ∈ vars_in_formula (formula.rel r vec), va₁ var = va₂ var) :
+  models_formula va₁ (formula.rel r vec) ↔ models_formula va₂ (formula.rel r vec) :=
 begin
-  unfold models,
-  suffices x : vector.map (term_interpretation s₁) vec
-               = vector.map (term_interpretation s₂) vec,
-  rw x,
+  set ϕ : formula L := formula.rel r vec,
+  unfold vars_in_formula at *,
+
+  unfold models_formula,
+  suffices interpretations_equal : vector.map (term_interpretation va₁) vec
+     = vector.map (term_interpretation va₂) vec,
+  rw interpretations_equal,
+
   ext1,
   rw [vector.nth_map, vector.nth_map,
        eq_term_interpretation_of_identical_var_assign],
 
-  intros v H,
-  apply h,
+  intros var h₁,
+  suffices x : var ∈ vars_in_term (vec.nth m) → var ∈ vars_in_list vec.to_list,
+    { apply h,
+      apply x,
+      exact h₁},
+  --suffices y : vars_in_term (vec.nth m) ⊆ vars_in_list vec.to_list, apply y,
+  cases (vec.nth m) with c var',
+  {unfold vars_in_term,
+  tauto},
 
-  unfold vars_in_formula,
-  cases n,
-   {sorry},  -- this should be the R0 case. Probably can be dismissed by norm_num or linarith
-
-
+  simp,intro h₂, rw h₂,
+  sorry,
   sorry
 end
 
