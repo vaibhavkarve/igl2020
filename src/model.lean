@@ -733,7 +733,7 @@ theorem isomorphic_struc_satisfy_same_theory (M₁ M₂ : struc L)
 
 
 def lang.card (L : lang) : cardinal := (cardinal.mk (Σ n, L.F n)) + (cardinal.mk (Σ n, L.R n))
-def Model.card (S : set (sentence L)) (μ : Model S) : cardinal := cardinal.mk μ.M.univ
+def Model.card {S : set (formula L)} (μ : Model S) : cardinal := cardinal.mk μ.M.univ
 
 
 /--Lowenheim-Skolem asserts that for a theory over a language L, if that theory
