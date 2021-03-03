@@ -568,7 +568,7 @@ begin
   right,
   exact H,
 
-  unfold models,
+  unfold models_formula,
   apply or_congr,
   apply ϕ₁_ih,
   intros v H,
@@ -586,12 +586,12 @@ begin
   right,
   exact H,
 
-  unfold models,
+  unfold models_formula,
   apply exists_congr,
   intros x,
   sorry,
 
-  unfold models,
+  unfold models_formula,
   apply forall_congr,
   intros x,
   fconstructor,
@@ -601,9 +601,9 @@ end
 
 /--If σ is a sentence in the language L and M is an L-structure, either M ⊨ σ[s]
 for all assignment functions s, of M ⊨ σ[s] for no assignment function s. -/
-lemma models_all_or_none_sentences {L: lang} (M : struc L) [inhabited M.univ] (σ : sentence L) :
-  xor (∀ va : ℕ → M.univ, models va σ.val)
-      (∀ va' : ℕ → M.univ, ¬ models va' σ.val) :=
+lemma models_formula_all_or_none_sentences {L: lang} (M : struc L) [inhabited M.univ] (σ : sentence L) :
+  xor (∀ va : ℕ → M.univ, models_formula va σ.val)
+      (∀ va' : ℕ → M.univ, ¬ models_formula va' σ.val) :=
 begin
   unfold xor,
   cases σ with σ₁ σ₂ ,
@@ -614,20 +614,20 @@ begin
   use function.const ℕ (default M.univ),
 
  cases σ₁,
- unfold models,
+ unfold models_formula,
  repeat {sorry},
 end
 
--- TODO: make notation for models : ⊧ or ⊨
+-- TODO: make notation for models_formula : ⊧ or ⊨
 
 
 /--We now define a model to be a structure that models a set
 of sentences and show (ℚ, <) models the axioms for DLO.-/
 
-structure Model {L : lang} (axs : set(formula L)) : Type 1 :=
+structure Model {L : lang} (axs : set (formula L)) : Type 1 :=
 (M : struc L)
 (va : ℕ → M.univ)
-(satis : ∀ (σ ∈ axs), models va σ)
+(satis : ∀ (σ ∈ axs), models_formula va σ)
 
 
 
