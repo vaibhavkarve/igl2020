@@ -739,8 +739,8 @@ def Model.card {S : set (formula L)} (μ : Model S) : cardinal := cardinal.mk μ
 /--Lowenheim-Skolem asserts that for a theory over a language L, if that theory
     has an infinite model, then it has a model for any cardinality
     greater than or equal to |L|-/
-    
-axiom LS_Lou (h : L.card ≤ k) (S : set (sentence L)) (μ : Model S) : μ.card = k
+axiom LS_Lou (k : cardinal) (h : L.card ≤ k) (S : set (sentence L)) :
+  ∃ μ : Model (coeset S), μ.card = k
 
 
 /-A theory is k-categorical if all models of cardinality k  
