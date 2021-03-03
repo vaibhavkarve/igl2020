@@ -726,6 +726,10 @@ class is_complete (S : set (sentence L)) :=
 
 -- TODO: Theorem: If two structures are isomorphic then they must satisfy the same theory.
 -- Proof by induction on formulas.
+theorem isomorphic_struc_satisfy_same_theory (M₁ M₂ : struc L)
+ (η : isomorphism M₂ M₂) : ∀ (σ : sentence L) (va : ℕ → M₁.univ),
+ models va σ → models va' σ := sorry
+
 
 
 def lang.card (L : lang) : cardinal := (cardinal.mk (Σ n, L.F n)) + (cardinal.mk (Σ n, L.R n))
