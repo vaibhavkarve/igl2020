@@ -519,7 +519,6 @@ lemma iff_models_of_identical_var_assign (s₁ s₂ : ℕ → M.univ) (ϕ : form
   (h : ∀ v ∈ vars_in_formula ϕ, s₁ v = s₂ v) : (models s₁ ϕ ↔ models s₂ ϕ) :=
 begin
   induction ϕ with t₁ t₂ n r v ϕ ϕ_ih ϕ₁ ϕ₂ ϕ₁_ih ϕ₂_ih ϕ₁ ϕ₂ ϕ₁_ih ϕ₂_ih n ϕ ϕ_ih n ϕ ϕ_ih,
-
   refl,
   refl,
 
@@ -586,7 +585,8 @@ begin
   unfold models,
   apply forall_congr,
   intros x,
-  sorry,
+  fconstructor,
+
 end
 
 
@@ -705,38 +705,80 @@ All sentences are formulas.
 
 -- A set of sentences models something if every model of that theory also models
 -- it.
-def sentences_model {L : lang} (S : set (sentence L)) (s : sentence L) : Prop := Model S → Model s
 
--- Given a structure, For every formula,
--- TODO: Example: theory of groups is not complete.
-def is_complete {L : lang} (S : set (formula L)) : Prop := ∀ (s : sentence L), Model S → (Model s ∨ Model ¬' s)
+def logical_consequence {L : lang}{L : lang}(hypoth : set(formula L))(conseq : formula L) : Prop :=
+(∀ A : Model (hypoth), models A.va conseq)
 
 
-def is_countable (L : lang) : Prop := sorry
+/--Coercion over a set.-/
+
+def coeset : set(sentence L) → set(formula L) := set.image coe
+
+ /-- A theory is complete if any pair of models satisfies exactly
+     the same sentences.-/
 
 
--- Categoricity
---  If there is a bijection between two universes, then their models are isomorphic
-def all_models_are_iso_as_structures {L : lang} (S : set (formula L)) : Prop :=
-  sorry
+class is_complete (S : set (sentence L)) :=
+(has_model : ∃ A : struc L, ∀ (va : ℕ → A.univ), ∀ (σ ∈ coeset(S)),
+   models va σ)
+(models_iff_models : ∀ A₁ : Model (coeset S), ∀ A₂ : Model (coeset S), ∀(σ : sentence L),
+  models A₁.va (↑ σ) ↔ models A₂.va (↑σ))
 
-theorem Vaught {L : lang} (S : set (formula L)) (M : Model S) :
-  is_countable L → all_models_are_iso_as_structures S → is_complete S := sorry
+
 
 -- TODO: Theorem: If two structures are isomorphic then they must satisfy the same theory.
 -- Proof by induction on formulas.
+theorem isomorphic_struc_satisfy_same_theory (M₁ M₂ : struc L)
+ (η : isomorphism M₂ M₂) : ∀ (σ : sentence L) (va : ℕ → M₁.univ),
+ models va σ → models va' σ := sorry
 
 
-
-
-variables (infinite' : card M > cardinal.omega)
-constant k : cardinal
-noncomputable def Lowenheim_Skolem (L : lang) (M : struc L) (infinite' : card M > cardinal.omega) : struc L := sorry
-
-axiom LS1 : card (Lowenheim_Skolem L M infinite') = k
-axiom LS2 : k < card M → is_elementary_substruc N M
 
 def lang.card (L : lang) : cardinal := (cardinal.mk (Σ n, L.F n)) + (cardinal.mk (Σ n, L.R n))
-def Model.card (S : set (sentence L)) (μ : Model S) : cardinal := cardinal.mk μ.M.univ
+def Model.card {S : set (formula L)} (μ : Model S) : cardinal := cardinal.mk μ.M.univ
 
-axiom LS_Lou (h : L.card ≤ k) (S : set (sentence L)) (μ : Model S) : μ.card = k
+
+/--Lowenheim-Skolem asserts that for a theory over a language L, if that theory
+    has an infinite model, then it has a model for any cardinality
+    greater than or equal to |L|-/
+axiom LS_Lou (k : cardinal) (h : L.card ≤ k) (S : set (sentence L)) :
+  ∃ μ : Model (coeset S), μ.card = k
+
+
+/-A theory is k-categorical if all models of cardinality k
+  are isomorphic as structures.-/
+def theory_kcategorical (k : cardinal) (T: set(sentence L)) :=
+  ∀ (M₁ M₂ : Model (coeset T)), M₁.card = k ∧ M₂.card = k → inhabited (isomorphism M₁.M M₂.M)
+
+
+class has_infinite_model (T : set(sentence L)) :=
+(big:  ∃ μ : Model (coeset T), μ.card ≥ cardinal.omega)
+
+
+
+/-- If a theory is k-categorical and has an infinite model,
+    it is complete.-/
+theorem Vaught (k : cardinal) (h : L.card ≤ k) (T : set (sentence L))
+  [has_infinite_model T] (hkc : theory_kcategorical k T) : is_complete T :=
+begin
+  -- Proceed by contradiction.
+  -- ∃ σ, two models of T that satisfy σ and ¬σ respectively. Call them M₁ and M₂.
+  -- This means M₁ models T∪{σ} and M₂ models T∪{¬σ}.
+  -- We get two models M₃ and M₄ of same cardinality due to LS.
+  -- M₃ and M₄ both model T.
+  -- But by kcategoricity, M₃ and M₄ are isomorphic.
+  -- Achieve a contradiction using isomorphic_struc_satisfy_same_theory.
+
+  fconstructor,
+
+sorry
+end
+
+
+
+/-- DLO is complete by using Vaught's test. This will include
+    the back-and-forth argument (Lou) which includes construct
+    a sequence of partial isomorphisms and then stitch it together
+    to create a big isomoprhism by zig-zagging back and forth
+    over countable models of DLO.-/
+
