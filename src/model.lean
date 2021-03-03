@@ -521,36 +521,36 @@ begin
 end
 
 
-/-- Suppose that s₁ and s₂ are variable assignment functions into a structure M
-such that s₁(v) = s₂(v) for every free variable v in the formula ϕ.
-Then M ⊨ ϕ[s₁] iff M ⊨ ϕ[s₂]. -/
-lemma iff_models_of_identical_var_assign (s₁ s₂ : ℕ → M.univ) (ϕ : formula L)
-  (h : ∀ v ∈ vars_in_formula ϕ, s₁ v = s₂ v) : (models s₁ ϕ ↔ models s₂ ϕ) :=
+/-- Suppose that va₁ and va₂ are variable assignment functions into a structure M
+such that va₁(v) = va₂(v) for every free variable v in the formula ϕ.
+Then M ⊨ ϕ[va₁] iff M ⊨ ϕ[va₂]. -/
+lemma iff_models_formula_of_identical_var_assign (va₁ va₂ : ℕ → M.univ) (ϕ : formula L)
+  (h : ∀ v ∈ vars_in_formula ϕ, va₁ v = va₂ v) : (models_formula va₁ ϕ ↔ models_formula va₂ ϕ) :=
 begin
   induction ϕ with t₁ t₂ n r v ϕ ϕ_ih ϕ₁ ϕ₂ ϕ₁_ih ϕ₂_ih ϕ₁ ϕ₂ ϕ₁_ih ϕ₂_ih n ϕ ϕ_ih n ϕ ϕ_ih,
   refl,
   refl,
 
-  {unfold models,
+  {unfold models_formula,
    simp only [vars_in_formula, finset.mem_union] at h,
 
-   have h₁ : ∀ v ∈ vars_in_term t₁, s₁ v = s₂ v, sorry,
-   have h₂ : ∀ v ∈ vars_in_term t₂, s₁ v = s₂ v, sorry,
+   have h₁ : ∀ v ∈ vars_in_term t₁, va₁ v = va₂ v, sorry,
+   have h₂ : ∀ v ∈ vars_in_term t₂, va₁ v = va₂ v, sorry,
 
-   have h₃ := eq_term_interpretation_of_identical_var_assign s₁ s₂ t₁ h₁,
-   have h₄ := eq_term_interpretation_of_identical_var_assign s₁ s₂ t₂ h₂,
+   have h₃ := eq_term_interpretation_of_identical_var_assign va₁ va₂ t₁ h₁,
+   have h₄ := eq_term_interpretation_of_identical_var_assign va₁ va₂ t₂ h₂,
    sorry},
 
-  {apply iff_models_relation_of_identical_var_assign,
+  {apply iff_models_formula_relation_of_identical_var_assign,
   intros v',
   apply h},
 
-  unfold models,
+  unfold models_formula,
   apply not_congr,
   apply ϕ_ih,
   assumption,
 
-  unfold models,
+  unfold models_formula,
   apply and_congr,
   apply ϕ₁_ih,
   intros v H,
