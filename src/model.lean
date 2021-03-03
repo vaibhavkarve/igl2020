@@ -707,13 +707,10 @@ All sentences are formulas.
 def logical_consequence {L : lang}{L : lang}(hypoth : set(formula L))(conseq : formula L) : Prop :=
 (∀ A : Model (hypoth), models A.va conseq)
 
-def upcast {L : lang}(σ : sentence L) : formula L
- := ↑σ
 
 /--Coercion over a set.-/
 
-def coeset {L : lang}(S : set(sentence L)) : set(formula L)
- := set.image upcast S
+def coeset : set(sentence L) → set(formula L) := set.image coe
 
  /-- A theory is complete if any pair of models satisfies exactly
      the same sentences.-/
