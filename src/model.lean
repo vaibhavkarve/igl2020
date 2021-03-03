@@ -167,7 +167,6 @@ local notation f^M := struc.F M f -- f^M denotes the interpretation of f in M.
 local notation r`̂`M : 150 := struc.R M r -- r̂M denotes the interpretation of r in
                                  -- M. (type as a variant of \^)
 
-
 /-! ## Embeddings between Structures -/
 
 
@@ -596,6 +595,7 @@ begin
   intros x,
   fconstructor,
 
+  repeat {sorry},
 end
 
 
@@ -684,16 +684,11 @@ constant stream.primes : stream nat.primes
 #eval list.filter nat.prime (list.range 15)
 
 -- ⟨a, b⟩ → 2^{a+1}*3^{b+1} and so on
+
 def encoding1 : Π n, vector ℕ n → ℕ
 | 0 v     := 1
 | 1 v     := (stream.primes 0)^(v.nth 0 + 1)
 | (n+1) v := (stream.primes n)^(v.head + 1) * encoding1 n (v.tail)
-
-
-def string_of_formula : formula L → string := sorry
-
-
-#eval string.append "234" "23"
 
 def func_number {L : lang} {n : ℕ} : L.F n → ℕ := sorry
 
@@ -716,7 +711,7 @@ All sentences are formulas.
 -- it.
 
 def logical_consequence {L : lang}{L : lang}(hypoth : set(formula L))(conseq : formula L) : Prop :=
-(∀ A : Model (hypoth), models A.va conseq)
+(∀ A : Model (hypoth), models_formula A.va conseq)
 
 
 /--Coercion over a set.-/
@@ -729,17 +724,17 @@ def coeset : set(sentence L) → set(formula L) := set.image coe
 
 class is_complete (S : set (sentence L)) :=
 (has_model : ∃ A : struc L, ∀ (va : ℕ → A.univ), ∀ (σ ∈ coeset(S)),
-   models va σ)
+   models_formula va σ)
 (models_iff_models : ∀ A₁ : Model (coeset S), ∀ A₂ : Model (coeset S), ∀(σ : sentence L),
-  models A₁.va (↑ σ) ↔ models A₂.va (↑σ))
+  models_formula A₁.va (↑ σ) ↔ models_formula A₂.va (↑σ))
 
 
 
--- TODO: Theorem: If two structures are isomorphic then they must satisfy the same theory.
--- Proof by induction on formulas.
+-- TODO: Theorem: If two structures are isomorphic then they must satisfy the
+-- same theory.  Proof by induction on formulas.
 theorem isomorphic_struc_satisfy_same_theory (M₁ M₂ : struc L)
  (η : isomorphism M₂ M₂) : ∀ (σ : sentence L) (va : ℕ → M₁.univ),
- models va σ → models va' σ := sorry
+ models_formula va σ → models_formula va' σ := sorry
 
 
 
@@ -747,15 +742,15 @@ def lang.card (L : lang) : cardinal := (cardinal.mk (Σ n, L.F n)) + (cardinal.m
 def Model.card {S : set (formula L)} (μ : Model S) : cardinal := cardinal.mk μ.M.univ
 
 
-/--Lowenheim-Skolem asserts that for a theory over a language L, if that theory
-    has an infinite model, then it has a model for any cardinality
-    greater than or equal to |L|-/
+/-- Lowenheim-Skolem asserts that for a theory over a language L, if that theory
+    has an infinite model, then it has a model for any cardinality greater than
+    or equal to |L|-/
 axiom LS_Lou (k : cardinal) (h : L.card ≤ k) (S : set (sentence L)) :
   ∃ μ : Model (coeset S), μ.card = k
 
 
-/-A theory is k-categorical if all models of cardinality k
-  are isomorphic as structures.-/
+/- A theory is k-categorical if all models of cardinality k are isomorphic as
+   structures.-/
 def theory_kcategorical (k : cardinal) (T: set(sentence L)) :=
   ∀ (M₁ M₂ : Model (coeset T)), M₁.card = k ∧ M₂.card = k → inhabited (isomorphism M₁.M M₂.M)
 
@@ -780,7 +775,8 @@ begin
 
   fconstructor,
 
-sorry
+sorry,
+sorry,
 end
 
 
@@ -790,4 +786,3 @@ end
     a sequence of partial isomorphisms and then stitch it together
     to create a big isomoprhism by zig-zagging back and forth
     over countable models of DLO.-/
-
