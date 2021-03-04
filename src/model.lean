@@ -448,6 +448,12 @@ def models_formula : (ℕ → M.univ) → formula L →  Prop
 infix ` ⊨ ` : 100 := models_formula  -- Type this as a variant of \entails.
 
 
+/-- We say that two `L`-structures `M` and `N` are elementarily equivalent
+and write `M ≡ N` if : `M ⊨ φ` if and only if `N ⊨ φ` for all `L`-sentences
+`φ`.-/
+def elementarily_equivalent (va₁ : ℕ → M.univ) (va₂ : ℕ → M.univ) : Prop :=
+  ∀ ϕ, (va₁ ⊨ ϕ) ↔ va₂ ⊨ ϕ
+notation ≡ := elementarily_equivalent
 /-- Suppose that s₁ and s₂ are variable assignment functions into a structure M
 such that s₁(v) = s₂(v) for every free variable v in the term t.
 Then t is interpreted to the same element under both s₁ and s₂. -/
