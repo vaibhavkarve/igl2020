@@ -163,8 +163,8 @@ instance struc.inhabited {L : lang} : inhabited (struc L) :=
   }
 
 
-local notation f^M := struc.F M f -- f^M denotes the interpretation of f in M.
-local notation r`̂`M : 150 := struc.R M r -- r̂M denotes the interpretation of r in
+local notation f^M := M.F f -- f^M denotes the interpretation of f in M.
+local notation r`̂`M : 150 := M.R r -- r̂M denotes the interpretation of r in
                                  -- M. (type as a variant of \^)
 
 /-! ## Embeddings between Structures -/
