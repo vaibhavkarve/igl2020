@@ -644,14 +644,17 @@ begin
 end
 
 
+/-- An `L`-theory `T` is simply a set of `L`-sentences. We say that `M` is
+a model of `T` and write `M ⊨ T` if `M ⊨ φ` for all sentences `φ ∈ T`.-/
+def theory (L : lang) : Type := set (sentence L)
+instance theory.has_mem : has_mem (sentence L) (theory L) := ⟨set.mem⟩
 
-/--We now define a model to be a structure that models a set
-of sentences and show (ℚ, <) models the axioms for DLO.-/
-
-structure Model {L : lang} (axs : set (formula L)) : Type 1 :=
+/-- We now define a model to be a structure that models a set of sentences
+and show `(ℚ, <)` models the axioms for DLO.-/
+structure Model {L : lang} (T : theory L)  :=
 (M : struc L)
 (va : ℕ → M.univ)
-(satis : ∀ (σ ∈ axs), models_formula va σ)
+(satis : ∀ (σ ∈ T), va ⊨ ↑σ)
 
 
 
