@@ -445,6 +445,8 @@ def models_formula : (ℕ → M.univ) → formula L →  Prop
 | va (∀' v ϕ)     := ∀ (x : M.univ), let va_updated := function.update va v x in
                                       models_formula va_updated ϕ
 
+infix ` ⊨ ` : 100 := models_formula  -- Type this as a variant of \entails.
+
 
 /-- Suppose that s₁ and s₂ are variable assignment functions into a structure M
 such that s₁(v) = s₂(v) for every free variable v in the term t.
