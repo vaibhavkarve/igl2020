@@ -280,13 +280,19 @@ the finset given by vars_in_term. -/
 | _ (app t t₀) := number_of_vars t + number_of_vars t₀
 
 
+/-- Given a variable assignment map, we can define an interpretation of an
+`L`-term of level `n` as a function on `M.univ` of arity `n`.-/
 def term_interpretation (var_assign : ℕ → M.univ) :
-  Π {n : ℕ}, term L n →  Func M.univ n
+  Π {n : ℕ}, term L n → Func M.univ n
 | 0 (con c)    := M.C c
 | 0 (var v)    := var_assign v
 | _ (func f)   := f^M
 | _ (app t t₀) := (term_interpretation t) (term_interpretation t₀)
 
+
+/- The interpretation of an `L`-term `t` in an `L`-structure `M`, under a
+variable assignment map `va : ℕ → M.univ` is denoted `va^^t`.-/
+notation t`^^`va : 80 := term_interpretation va t
 
 
 
