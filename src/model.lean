@@ -731,31 +731,24 @@ def term_number {L : lang} : Π n, term L n → ℕ
 
 
 /-- Completeness of Language
-    ========================
+    ========================-/
 
-All sentences are formulas.
--/
+/-- A set of sentences models something if every model of that theory also
+ models it.-/
+def logical_consequence (h : set (sentence L)) (conseq : formula L) : Prop :=
+  (∀ A : Model h, A.va ⊨ conseq)
 
--- A set of sentences models something if every model of that theory also models
--- it.
-
-def logical_consequence {L : lang}{L : lang}(hypoth : set(formula L))(conseq : formula L) : Prop :=
-(∀ A : Model (hypoth), models_formula A.va conseq)
-
-
-/--Coercion over a set.-/
-
+/-- Coercion over a set.-/
 def coeset : set(sentence L) → set(formula L) := set.image coe
 
- /-- A theory is complete if any pair of models satisfies exactly
-     the same sentences.-/
 
-
-class is_complete (S : set (sentence L)) :=
-(has_model : ∃ A : struc L, ∀ (va : ℕ → A.univ), ∀ (σ ∈ coeset(S)),
-   models_formula va σ)
-(models_iff_models : ∀ A₁ : Model (coeset S), ∀ A₂ : Model (coeset S), ∀(σ : sentence L),
-  models_formula A₁.va (↑ σ) ↔ models_formula A₂.va (↑σ))
+/-- A theory is complete if any pair of models satisfies exactly the same
+sentences.-/
+structure complete_theory (t : theory L) :=
+(has_model : ∃ (A : struc L), ∀ (va : ℕ → A.univ), ∀ (σ ∈ t),
+  va ⊨ ↑σ)
+(models_iff_models : ∀ (A₁ A₂ : Model t), ∀ (σ ∈ t),
+  A₁.va ⊨ (↑σ) ↔ A₂.va ⊨ ↑σ)
 
 
 
@@ -763,36 +756,36 @@ class is_complete (S : set (sentence L)) :=
 -- same theory.  Proof by induction on formulas.
 theorem isomorphic_struc_satisfy_same_theory (M₁ M₂ : struc L)
  (η : isomorphism M₂ M₂) : ∀ (σ : sentence L) (va : ℕ → M₁.univ),
- models_formula va σ → models_formula va' σ := sorry
+  va ⊨ σ → va' ⊨ σ := sorry
 
 
 
 def lang.card (L : lang) : cardinal := (cardinal.mk (Σ n, L.F n)) + (cardinal.mk (Σ n, L.R n))
-def Model.card {S : set (formula L)} (μ : Model S) : cardinal := cardinal.mk μ.M.univ
+def Model.card {t : theory L} (μ : Model t) : cardinal := cardinal.mk μ.M.univ
 
 
 /-- Lowenheim-Skolem asserts that for a theory over a language L, if that theory
     has an infinite model, then it has a model for any cardinality greater than
     or equal to |L|-/
-axiom LS_Lou (k : cardinal) (h : L.card ≤ k) (S : set (sentence L)) :
-  ∃ μ : Model (coeset S), μ.card = k
+axiom LS_Lou (k : cardinal) (h : L.card ≤ k) (t : theory L) :
+  ∃ μ : Model t, μ.card = k
 
 
 /- A theory is k-categorical if all models of cardinality k are isomorphic as
    structures.-/
-def theory_kcategorical (k : cardinal) (T: set(sentence L)) :=
-  ∀ (M₁ M₂ : Model (coeset T)), M₁.card = k ∧ M₂.card = k → inhabited (isomorphism M₁.M M₂.M)
+def theory_kcategorical (k : cardinal) (t : theory L) :=
+  ∀ (M₁ M₂ : Model t), M₁.card = k ∧ M₂.card = k → nonempty (isomorphism M₁.M M₂.M)
 
 
-class has_infinite_model (T : set(sentence L)) :=
-(big:  ∃ μ : Model (coeset T), μ.card ≥ cardinal.omega)
+class has_infinite_model (t : theory L) :=
+(big:  ∃ μ : Model t, μ.card ≥ cardinal.omega)
 
 
 
 /-- If a theory is k-categorical and has an infinite model,
     it is complete.-/
-theorem Vaught (k : cardinal) (h : L.card ≤ k) (T : set (sentence L))
-  [has_infinite_model T] (hkc : theory_kcategorical k T) : is_complete T :=
+theorem Vaught (k : cardinal) (h : L.card ≤ k) (t : theory L)
+  [has_infinite_model t] (hkc : theory_kcategorical k t) : complete_theory t :=
 begin
   -- Proceed by contradiction.
   -- ∃ σ, two models of T that satisfy σ and ¬σ respectively. Call them M₁ and M₂.
@@ -802,9 +795,6 @@ begin
   -- But by kcategoricity, M₃ and M₄ are isomorphic.
   -- Achieve a contradiction using isomorphic_struc_satisfy_same_theory.
 
-  fconstructor,
-
-sorry,
 sorry,
 end
 
