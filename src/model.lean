@@ -475,9 +475,8 @@ theorem full_theory_is_isomorphism_invariant {N : struc L}
 such that s₁(v) = s₂(v) for every free variable v in the term t.
 Then t is interpreted to the same element under both s₁ and s₂. -/
 lemma eq_term_interpretation_of_identical_var_assign {L : lang} {M : struc L}
-  (s₁ s₂ : ℕ → M.univ) (t : term L 0)
-  (h : ∀ v ∈ vars_in_term t, s₁ v = s₂ v) :
-  (term_interpretation s₁ t = term_interpretation s₂ t) :=
+  (s₁ s₂ : ℕ → M.univ) (t : term L 0) (h : ∀ v ∈ vars_in_term t, s₁ v = s₂ v) :
+  (t^^s₁) = (t^^s₂) :=
 begin
   -- We will proceed with induction on the term t.
   -- First we revert the hypothesis h which has `t` in it.
@@ -514,7 +513,6 @@ begin
       {right, assumption} <|> {left, assumption}},
 end
 
-
 /-- Consider the formula `ϕ := (r t₁ ... tₙ)`.
     Suppose that `va₁` and `va₂` are variable assignment functions into a
     structure `M` such that `va₁(var)=va₂(var)` for every variable `var` that
@@ -525,15 +523,13 @@ lemma iff_models_formula_relation_of_identical_var_assign
   (n : ℕ) (r : L.R n) (vec : vector (term L 0) n)
   (va₁ va₂ : ℕ → M.univ)
   (h : ∀ var ∈ vars_in_formula (formula.rel r vec), va₁ var = va₂ var) :
-  models_formula va₁ (formula.rel r vec) ↔ models_formula va₂ (formula.rel r vec) :=
+  (va₁ ⊨ (formula.rel r vec)) ↔ (va₂ ⊨ (formula.rel r vec)) :=
 begin
   set ϕ : formula L := formula.rel r vec,
-  unfold vars_in_formula at *,
+  unfold vars_in_formula models_formula at *,
 
-  unfold models_formula,
-  suffices interpretations_equal : vector.map (term_interpretation va₁) vec
-     = vector.map (term_interpretation va₂) vec,
-  rw interpretations_equal,
+  suffices interpretations_eq : vector.map (^^va₁) vec = vector.map (^^va₂) vec,
+  rw interpretations_eq,
 
   ext1,
   rw [vector.nth_map, vector.nth_map,
@@ -546,8 +542,7 @@ begin
       exact h₁},
   --suffices y : vars_in_term (vec.nth m) ⊆ vars_in_list vec.to_list, apply y,
   cases (vec.nth m) with c var',
-  {unfold vars_in_term,
-  tauto},
+  {unfold vars_in_term, tauto},
 
   simp,intro h₂, rw h₂,
   sorry,
