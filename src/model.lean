@@ -656,6 +656,8 @@ structure Model {L : lang} (T : theory L)  :=
 (va : ℕ → M.univ)
 (satis : ∀ (σ ∈ T), va ⊨ ↑σ)
 
+/-- We say that a theory is satisfiable if it has a model.-/
+def satisfiable_theory (t : theory L) : Prop := nonempty (Model t)
 
 
 -- TODO: [Hard] Completeness of the DLO_theory
