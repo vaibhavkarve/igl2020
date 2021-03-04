@@ -454,6 +454,23 @@ and write `M ≡ N` if : `M ⊨ φ` if and only if `N ⊨ φ` for all `L`-senten
 def elementarily_equivalent (va₁ : ℕ → M.univ) (va₂ : ℕ → M.univ) : Prop :=
   ∀ ϕ, (va₁ ⊨ ϕ) ↔ va₂ ⊨ ϕ
 notation ≡ := elementarily_equivalent
+
+/-- The full theory of `M` is the set of `L`-sentences `φ` such that `M ⊨ φ`.-/
+def full_theory : set (sentence L) := sorry
+
+
+/-- `M ≡ N` iff their full theories match.-/
+lemma eq_full_theory_iff_elementary_equivalent : sorry :=
+begin
+  sorry
+end
+
+
+/-- The full theory is an isomorphism invariant.-/
+theorem full_theory_is_isomorphism_invariant {N : struc L}
+ (η : isomorphism M N) : M ≡ N := sorry
+
+
 /-- Suppose that s₁ and s₂ are variable assignment functions into a structure M
 such that s₁(v) = s₂(v) for every free variable v in the term t.
 Then t is interpreted to the same element under both s₁ and s₂. -/
