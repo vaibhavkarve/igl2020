@@ -553,15 +553,15 @@ end
 /-- Suppose that va₁ and va₂ are variable assignment functions into a structure M
 such that va₁(v) = va₂(v) for every free variable v in the formula ϕ.
 Then M ⊨ ϕ[va₁] iff M ⊨ ϕ[va₂]. -/
-lemma iff_models_formula_of_identical_var_assign (va₁ va₂ : ℕ → M.univ) (ϕ : formula L)
-  (h : ∀ v ∈ vars_in_formula ϕ, va₁ v = va₂ v) : (models_formula va₁ ϕ ↔ models_formula va₂ ϕ) :=
+lemma iff_models_formula_of_identical_var_assign (va₁ va₂ : ℕ → M.univ)
+  (ϕ : formula L) (h : ∀ v ∈ vars_in_formula ϕ, va₁ v = va₂ v) :
+  (va₁ ⊨ ϕ ↔ va₂ ⊨ ϕ) :=
 begin
   induction ϕ with t₁ t₂ n r v ϕ ϕ_ih ϕ₁ ϕ₂ ϕ₁_ih ϕ₂_ih ϕ₁ ϕ₂ ϕ₁_ih ϕ₂_ih n ϕ ϕ_ih n ϕ ϕ_ih,
   refl,
   refl,
 
-  {unfold models_formula,
-   simp only [vars_in_formula, finset.mem_union] at h,
+  {simp only [models_formula, vars_in_formula, finset.mem_union] at h,
 
    have h₁ : ∀ v ∈ vars_in_term t₁, va₁ v = va₂ v, sorry,
    have h₂ : ∀ v ∈ vars_in_term t₂, va₁ v = va₂ v, sorry,
@@ -574,12 +574,10 @@ begin
   intros v',
   apply h},
 
-  unfold models_formula,
   apply not_congr,
   apply ϕ_ih,
   assumption,
 
-  unfold models_formula,
   apply and_congr,
   apply ϕ₁_ih,
   intros v H,
@@ -597,7 +595,6 @@ begin
   right,
   exact H,
 
-  unfold models_formula,
   apply or_congr,
   apply ϕ₁_ih,
   intros v H,
@@ -615,12 +612,10 @@ begin
   right,
   exact H,
 
-  unfold models_formula,
   apply exists_congr,
   intros x,
   sorry,
 
-  unfold models_formula,
   apply forall_congr,
   intros x,
   fconstructor,
@@ -629,11 +624,12 @@ begin
 end
 
 
-/--If σ is a sentence in the language L and M is an L-structure, either M ⊨ σ[s]
-for all assignment functions s, of M ⊨ σ[s] for no assignment function s. -/
-lemma models_formula_all_or_none_sentences {L: lang} (M : struc L) [inhabited M.univ] (σ : sentence L) :
-  xor (∀ va : ℕ → M.univ, models_formula va σ.val)
-      (∀ va' : ℕ → M.univ, ¬ models_formula va' σ.val) :=
+/-- If `σ` is a sentence in the language `L` and `M` is an `L`-structure,
+either `M ⊨ σ[s]` for all variable assignments or `M ⊨ σ[s]` for no
+variable assignment.-/
+lemma models_formula_all_or_none_sentences {L: lang} (M : struc L)
+  [inhabited M.univ] (σ : sentence L) :
+  xor (∀ va : ℕ → M.univ, va ⊨ σ.val) (∀ va' : ℕ → M.univ, ¬ va' ⊨ σ.val) :=
 begin
   unfold xor,
   cases σ with σ₁ σ₂ ,
@@ -644,11 +640,9 @@ begin
   use function.const ℕ (default M.univ),
 
  cases σ₁,
- unfold models_formula,
  repeat {sorry},
 end
 
--- TODO: make notation for models_formula : ⊧ or ⊨
 
 
 /--We now define a model to be a structure that models a set
