@@ -669,6 +669,10 @@ structure Model {L : lang} (T : theory L)  :=
 (M : struc L)
 (satis : ∀ σ ∈ T, M ⊨ σ)
 
+def Model.card {t : theory L} (μ : Model t) : cardinal := μ.M.card
+
+
+
 /-- We say that a theory is satisfiable if it has a model.-/
 def satisfiable_theory (t : theory L) : Prop := nonempty (Model t)
 
