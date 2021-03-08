@@ -667,8 +667,7 @@ instance theory.has_mem : has_mem (sentence L) (theory L) := ⟨set.mem⟩
 and show `(ℚ, <)` models the axioms for DLO.-/
 structure Model {L : lang} (T : theory L)  :=
 (M : struc L)
-(va : ℕ → M.univ)
-(satis : ∀ (σ ∈ T), va ⊨ ↑σ)
+(satis : ∀ σ ∈ T, M ⊨ σ)
 
 /-- We say that a theory is satisfiable if it has a model.-/
 def satisfiable_theory (t : theory L) : Prop := nonempty (Model t)
