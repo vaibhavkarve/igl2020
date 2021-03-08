@@ -460,9 +460,10 @@ notation M` ⊨ `σ : 100 := models_sentence M σ -- Type this as a variant of \
 /-- We say that two `L`-structures `M` and `N` are elementarily equivalent
 and write `M ≡ N` if : `M ⊨ φ` if and only if `N ⊨ φ` for all `L`-sentences
 `φ`.-/
-def elementarily_equivalent (va₁ : ℕ → M.univ) (va₂ : ℕ → M.univ) : Prop :=
-  ∀ ϕ, (va₁ ⊨ ϕ) ↔ va₂ ⊨ ϕ
-notation ≡ := elementarily_equivalent
+def elementarily_equivalent (M₁ M₂: struc L) : Prop :=
+  ∀ (ϕ : sentence L), (M₁ ⊨ ϕ) ↔ M₂ ⊨ ϕ
+infix `≡` := elementarily_equivalent
+
 
 /-- The full theory of `M` is the set of `L`-sentences `φ` such that `M ⊨ φ`.-/
 def full_theory : set (sentence L) := sorry
