@@ -785,7 +785,7 @@ class has_infinite_model (t : theory L) :=
 /-- Lowenheim-Skolem asserts that for a theory over a language L, if that theory
     has an infinite model, then it has a model for any cardinality greater than
     or equal to |L|-/
-axiom LS_Lou (k : cardinal) (h : L.card ≤ k) (t : theory L) :
+axiom LS_Lou (k : cardinal) (h : L.card ≤ k) (t : theory L) [has_infinite_model t]:
   ∃ μ : Model t, μ.card = k
 
 
