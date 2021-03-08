@@ -795,10 +795,6 @@ def theory_kcategorical (k : cardinal) (t : theory L) :=
   ∀ (M₁ M₂ : Model t), M₁.card = k ∧ M₂.card = k → nonempty (isomorphism M₁.M M₂.M)
 
 
-class has_infinite_model (t : theory L) :=
-(big:  ∃ μ : Model t, μ.card ≥ cardinal.omega)
-
-
 
 /-- If a theory is k-categorical and has an infinite model,
     it is complete.-/
