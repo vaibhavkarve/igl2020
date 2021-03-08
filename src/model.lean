@@ -752,8 +752,8 @@ def term_number {L : lang} : Π n, term L n → ℕ
 
 /-- A set of sentences models something if every model of that theory also
  models it.-/
-def logical_consequence (h : set (sentence L)) (conseq : formula L) : Prop :=
-  (∀ A : Model h, A.va ⊨ conseq)
+def logical_consequence (t : theory L) (ϕ : sentence L) : Prop :=
+  (∀ A : Model t, A.M ⊨ ϕ)
 
 /-- Coercion over a set.-/
 def coeset : set(sentence L) → set(formula L) := set.image coe
