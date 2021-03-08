@@ -771,8 +771,10 @@ structure complete_theory (t : theory L) :=
 -- TODO: Theorem: If two structures are isomorphic then they must satisfy the
 -- same theory.  Proof by induction on formulas.
 theorem isomorphic_struc_satisfy_same_theory (M₁ M₂ : struc L)
- (η : isomorphism M₂ M₂) : ∀ (σ : sentence L) (va : ℕ → M₁.univ),
-  va ⊨ σ → va' ⊨ σ := sorry
+  (η : isomorphism M₁ M₂) (σ : sentence L) : M₁ ⊨ σ → M₂ ⊨ σ :=
+begin
+  sorry
+end
 
 
 
