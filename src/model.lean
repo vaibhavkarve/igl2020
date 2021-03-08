@@ -477,8 +477,11 @@ end
 
 
 /-- The full theory is an isomorphism invariant.-/
-theorem full_theory_is_isomorphism_invariant {N : struc L}
- (η : isomorphism M N) : M ≡ N := sorry
+theorem full_theory_is_isomorphism_invariant {M N : struc L}
+ (η : isomorphism M N) : M ≡ N :=
+begin
+ sorry
+end
 
 
 /-- Suppose that s₁ and s₂ are variable assignment functions into a structure M
@@ -658,6 +661,7 @@ end
 a model of `T` and write `M ⊨ T` if `M ⊨ φ` for all sentences `φ ∈ T`.-/
 def theory (L : lang) : Type := set (sentence L)
 instance theory.has_mem : has_mem (sentence L) (theory L) := ⟨set.mem⟩
+
 
 /-- We now define a model to be a structure that models a set of sentences
 and show `(ℚ, <)` models the axioms for DLO.-/
