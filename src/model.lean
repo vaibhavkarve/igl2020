@@ -819,3 +819,16 @@ end
     a sequence of partial isomorphisms and then stitch it together
     to create a big isomoprhism by zig-zagging back and forth
     over countable models of DLO.-/
+theorem DLO_is_complete : complete_theory DLO_axioms := sorry
+
+def substructure : sorry := sorry
+def fin_substructure : sorry := sorry
+def extend_struc_by_element : sorry := sorry
+
+
+def extension_of_isomorphism (t : theory L) (M₁ M₂ : Model t) :
+  ∀ (S₁ : fin_substructure M₁.M) (S₂ : fin_substructure M₂.M) (η : isomorphism S₁ S₂),
+  ∀ (m : M₁.M.univ), ∃ (m': M₂.M.univ),
+  ∃ (η' : extend_struc_by_element S₁ m → extend_struc_by_element S₂ m'),
+  η' is_isomorphism ∧ (η' m = m') ∧ (η = η' on S₁)
+-- TODO: Show that this is true for DLOs.
