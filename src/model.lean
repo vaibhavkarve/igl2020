@@ -171,6 +171,8 @@ local notation f^M := M.F f -- f^M denotes the interpretation of f in M.
 local notation r`̂`M : 150 := M.R r -- r̂M denotes the interpretation of r in
                                  -- M. (type as a variant of \^)
 
+def struc.card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
+
 /-! ## Embeddings between Structures -/
 
 
