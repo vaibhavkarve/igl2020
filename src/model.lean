@@ -765,8 +765,7 @@ structure complete_theory (t : theory L) :=
 (has_model : ∃ (A : struc L), ∀ (va : ℕ → A.univ), ∀ (σ ∈ t),
   va ⊨ ↑σ)
 (models_iff_models : ∀ (A₁ A₂ : Model t), ∀ (σ ∈ t),
-  A₁.va ⊨ (↑σ) ↔ A₂.va ⊨ ↑σ)
-
+  A₁.M ⊨ σ ↔ A₂.M ⊨ σ)
 
 
 -- TODO: Theorem: If two structures are isomorphic then they must satisfy the
