@@ -377,7 +377,7 @@ def φ₄ : formula DLO_lang := <' $ mk_vec 3 2 -- z < y
 def φ₅ : formula DLO_lang := <' $ mk_vec 1 3 -- x < z
 def φ₆ : formula DLO_lang := <' $ mk_vec 1 1 -- x < x
 
-def DLO_axioms : set(formula DLO_lang) :=
+def DLO_axioms : set (formula DLO_lang) :=
  { ∀'1 (∀'2 (¬' φ₆)),
    ∀'1 (∀'2 (∀'3 (φ₁ →' (φ₃ →' φ₅)))),
    ∀'1 (∀'2 (∀' 3 ((φ₁ ∨' φ₂) ∨' (var 1 =' var 2)))),
