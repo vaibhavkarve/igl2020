@@ -1,7 +1,7 @@
 #+title: model.lean
 #+MACRO: NEWLINE @@latex:\\@@ @@html:<br>@@
 #+subtitle: Model theory formalized in Lean {{{NEWLINE}}} [[file:type_theory.html][Link to file: type theory]]
-#+options: H:2
+#+options: H:3
 #+subtitle:
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://gongzhitaao.org/orgcss/org.css"/>
 #+property: header-args :eval never-export
