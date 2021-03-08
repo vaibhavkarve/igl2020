@@ -93,7 +93,9 @@ pieces of data.
    domain with itself. Pairs belonging to this subset are related while pairs
    not belonging are not.  Similarly, \(3\)-ary relations are subsets of
    =univ³=, and so on. Thus we map each element =(r : L.R n)= to =set (vector
-   univ n)=, i.e. we map to a set of length \(n\) vectors of =univ=. We will denote the interpretation of the symbolic relation \(r\) under the structure \(M\) as =r̂M=.
+   univ n)=, i.e. we map to a set of length \(n\) vectors of =univ=. We will
+   denote the interpretation of the symbolic relation \(r\) under the structure
+   \(M\) as =r̂M=.
 
 4. For every symbolic constant in \(L\), we must have a corresponding constant
    in the universe/domain. Since =L.C= is implemented outside of \(L\), we
@@ -155,17 +157,23 @@ Thus, =isomorphism M M= is an inhabited type (read: nonempty), for every
 structure \(M\).
 
 ** Cardinality of structure
-The /cardinality/ of a structure is defined to be the cardinality of its domain. In Lean, the cardinals are their own separate type which is why we need to "make" the cardinal from the universe of \(M\).
+The /cardinality/ of a structure is defined to be the cardinality of its
+domain. In Lean, the cardinals are their own separate type which is why we
+need to "make" the cardinal from the universe of \(M\).
 
-We can then claim that if \(\eta : M \rightarrow N\) is an embedding of \(M\) in
-\(N\), then the cardinality of \(M\) must be at most the cardinality of \(N\). In other words, only smaller structures can be embedded into larger structures.
+We can then claim that if \(\eta : M \rightarrow N\) is an embedding of
+\(M\) in \(N\), then the cardinality of \(M\) must be at most the
+cardinality of \(N\). In other words, only smaller structures can be
+embedded into larger structures.
 
 The proof hinges on the injectivity of \(\eta\) and follows from the fact
 =cardinal.mk_le_of_injective= (which is already proved in mathlib).
 
 * Terms
 Throughout this section, let \(L\) be a language and let \(M\) be an
-\(L\)-structure.
+\(L\)-structure. Terms can be thought of as symbolic words in a language. We get
+variables as words/terms for free (think of these as placeholder words). A
+function applied to the correct number of arguments is also a word.
 
 ** Definition of terms
 \(L\)-/Terms/ are defined inductively as --
@@ -204,7 +212,36 @@ We summarize the term to level translation below --
 ** TODO Terms are inhabited
 ** TODO Variables in a term
 ** TODO Number of variables in a term
-** NEXT Term interpretation
+** Term interpretation
+Having defined terms as words in our language, we can then define an
+interpretation for each word.
+
+Recall that an \(L\)-structure can be seen as a way of interpreting
+symbolic functions and relations as real functions and relations. This
+interpretation carries over to terms as well once we define how variables
+and function application are to be interpreted. A term of level \(n\) is
+interpreted as an \(n\)-ary function on the universe of \(M\).
+
+We denote the interpretation of term \(t\) under variable assignment \(va\) as
+=t^^va=.
+
+*** Variable interpretation using variable assignment
+For interpreting variables, we use a variable assignment map. This is a map
+from variables (i.e. ℕ) to the domain of \(M\).
+
+*** Full implementation
+For a given variable assignment map, term interpretation is defined
+inductively on each variant of \(L\)-terms as follows:
+1. A symbolic function \(f\) in \(L\) is interpreted as =f^M=.
+2. In order to be compatible with the above interpretation, a constant in
+   \(L\) is interpreted via the map =M.C=.
+3. A variable is interpreted via the variable assignment map.
+4. Lastly, the application of a term \(t\) to a term of \(t_0\) is interpreted
+   as the interpretation of \(t\) partially applied to the interpretation of
+   \(t_0\) to yield a function of arity one less than the arity equal to the
+   arity of the term we started with.
+
+
 * TODO Term substitution
 * Formulas and Sentences
 ** Definition of a formula
@@ -283,10 +320,38 @@ having to specify the above function explicitly. To do this, we declare a
 =has_coe= instance from =sentence L= to =formula L=. Thereafter, we can always
 reference the underlying formula of a sentence =s= as =↑s=.
 
-* TODO Satisfiability and models
-** Expanding a language and structure
-** Models
-- requires [[Term interpretation][term interpretation]].
+* Satisfiability and models
+** TODO Expanding a language and structure
+** Structure models/satisfies a formula
+We now define what it means for a formula to be true in an \(L\)-structure
+\(M\), or consequently, what it means for a structure \(M\) to model/satisfy a
+formula.
 
+Let =va : ℕ → M.univ= be a given variable assignment.  We denote \(M\)
+satisfying the formula \(\phi\) by \(M\models\phi\) and define it inductively as
+--
++ \(M\) always satisfies \(\top'\).
++ \(M\) never satisfies \(\bot'\).
++ \(M\) satisfies \(t_1 = t_2\) if =t₁^^va= and =t₂^^va= match.
++ \(M\) satisfies \(r\,t_1\ldots t_n\) if the =(t₁^^va, ..., tₙ^^va)= is in the
+  set =r̂M=.
++ \(M\) satisfies \(\neg \phi\) if it does not satisfy \(\phi\).
++ \(M\) satisfies \(\phi_1\wedge\phi_2\) if it satisfies both \(phi_1\) and
+  \(\phi_2\).
++ \(M\) satisfies \(\phi_1\vee\phi_2\) if it satisfies either \(phi_1\), or
+  \(\phi_2\), or both.
++ \(M\) satisfies \(\exists v, \phi\) for some variable \(v\) if there exists
+  some \(x\) in the domain of \(M\) such that \(M\) satisfies the formula
+  obtained by replacing all occurrences of \(v\) in \(phi\) by \(x\).
++ \(M\) satisfies \(\forall v, \phi\) for some variable \(v\) if for every \(x\)
+  in the domain of \(M\), \(M\) satisfies the formula obtained by replacing all
+  occurrences of \(v\) in \(phi\) by \(x\).
 
+*** Implementation detail for quantifiers
+Instead of updating the formula by replacing all occurrences of \(v\) in
+\(\phi\) by \(x\), we instead update the variable assignment \(va\) at the point
+\(v\) to \(x\).
+
+** TODO Lemmas about satisfaction of formulae
+** TODO Model
 * TODO Bibliography
