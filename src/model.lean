@@ -778,7 +778,6 @@ end
 
 
 
-def Model.card {t : theory L} (μ : Model t) : cardinal := cardinal.mk μ.M.univ
 
 
 /-- Lowenheim-Skolem asserts that for a theory over a language L, if that theory
