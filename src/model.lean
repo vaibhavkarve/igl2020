@@ -143,6 +143,10 @@ inhabited type.-/
 instance lang.inhabited : inhabited lang := {default := DLO_lang}
 
 
+def lang.card (L : lang) : cardinal :=
+  cardinal.sum (cardinal.mk ∘ L.F) + cardinal.sum (cardinal.mk ∘ L.R)
+
+
 /-! ## Structures -/
 
 
@@ -760,7 +764,6 @@ theorem isomorphic_struc_satisfy_same_theory (M₁ M₂ : struc L)
 
 
 
-def lang.card (L : lang) : cardinal := (cardinal.mk (Σ n, L.F n)) + (cardinal.mk (Σ n, L.R n))
 def Model.card {t : theory L} (μ : Model t) : cardinal := cardinal.mk μ.M.univ
 
 
