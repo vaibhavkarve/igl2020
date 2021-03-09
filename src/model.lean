@@ -783,17 +783,6 @@ begin
 sorry,
 end
 
-
-
-/-- DLO is complete by using Vaught's test. This will include
-    the back-and-forth argument (Lou) which includes construct
-    a sequence of partial isomorphisms and then stitch it together
-    to create a big isomoprhism by zig-zagging back and forth
-    over countable models of DLO.-/
-theorem DLO_is_complete : complete_theory DLO_axioms := sorry
-
-def substructure : sorry := sorry
-def fin_substructure : sorry := sorry
 def extend_struc_by_element : sorry := sorry
 
 
