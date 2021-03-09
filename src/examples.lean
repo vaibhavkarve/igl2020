@@ -449,4 +449,12 @@ def Q_Model_DLO : Model (DLO_axioms) :=
 }
 
 
+/-- DLO is complete by using Vaught's test. This will include the
+    back-and-forth argument (Lou) which includes construct a sequence of
+    partial isomorphisms and then stitch it together to create a big
+    isomoprhism by zig-zagging back and forth over countable models of
+    DLO.-/
+theorem DLO_is_complete : complete_theory DLO_theory := sorry
+
+
 end DLO_Model
