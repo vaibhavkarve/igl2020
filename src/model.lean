@@ -223,6 +223,17 @@ lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
 
 
 
+/-- If `M ⊆ N` and the inclusion map is an `L`-embedding, we say either
+  that `M` is a substructure of `N` or that `N` is an extension of `M`.
+
+Note: the other conditions for `η` being an `L`-embedding follow from the
+definition of `coe`.
+-/
+structure substruc {L : lang} (N : struc L) : Type :=
+(univ : set N.univ)              -- a subset of N.univ
+(η : univ → N.univ := coe)      -- the inclusion map
+(η_inj : function.injective η)  -- should be one-to-one
+
 /-! ## Terms -/
 
 /-- We define terms in a language to be constants, variables, functions or
