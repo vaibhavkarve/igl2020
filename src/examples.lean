@@ -385,13 +385,27 @@ def DLO_axioms : set (formula DLO_lang) :=
    ∀'1 (∃'2 (φ₂)),
    ∀'1 (∀'2 (φ₁ →' ∃'3(φ₅ ∧' φ₄)))}
 
+
+def DLO_theory : set (sentence DLO_lang) :=
+ { (⟨∀'1 (∀'2 (¬' φ₆)), by { simp [var_occurs_freely, φ₆, vars_in_list],
+                             intros _ _ _,
+                             apply finset.not_mem_singleton.mpr,
+                             assumption}⟩),
+   --∀'1 (∀'2 (∀'3 (φ₁ →' (φ₃ →' φ₅)))),
+   --∀'1 (∀'2 (∀' 3 ((φ₁ ∨' φ₂) ∨' (var 1 =' var 2)))),
+   --∀'1 (∃'2 (φ₁)),
+   --∀'1 (∃'2 (φ₂)),
+   --∀'1 (∀'2 (φ₁ →' ∃'3(φ₅ ∧' φ₄)))
+   }
+
+
 def Q_Model_DLO : Model (DLO_axioms) :=
  { M := Q_struc,
-   va := function.const ℕ 0,
-   satis := begin
-intros σ,
-rintro (rfl | rfl | rfl | rfl | rfl | H);
-iterate {unfold models},
+   satis :=
+   begin
+   intros σ,
+   rintro (rfl | rfl | rfl | rfl | rfl | H);
+   iterate {unfold models},
  {intros x x₁ h,
   cases h,
   solve_by_elim},
