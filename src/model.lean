@@ -586,12 +586,11 @@ begin
       apply x,
       exact h₁},
   --suffices y : vars_in_term (vec.nth m) ⊆ vars_in_list vec.to_list, apply y,
-  cases (vec.nth m) with c var',
-  {unfold vars_in_term, tauto},
+  --cases (vec.nth m) with c var',
+  --{unfold vars_in_term, tauto},
 
-  simp,intro h₂, rw h₂,
+  --simp,intro h₂, rw h₂,
   sorry,
-  sorry
 end
 
 
@@ -683,7 +682,6 @@ begin
   split,
   rotate,
   use function.const ℕ (default M.univ),
-
  cases σ₁,
  repeat {sorry},
 end
