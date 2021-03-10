@@ -565,7 +565,7 @@ end
     iff it is also satisfied under `va₂`.
 -/
 lemma iff_models_formula_relation_of_identical_var_assign
-  (n : ℕ) (r : L.R n) (vec : vector (term L 0) n)
+  (n : ℕ+) (r : L.R n) (vec : vector (term L 0) n)
   (va₁ va₂ : ℕ → M.univ)
   (h : ∀ var ∈ vars_in_formula (formula.rel r vec), va₁ var = va₂ var) :
   (va₁ ⊨ (formula.rel r vec)) ↔ (va₂ ⊨ (formula.rel r vec)) :=
