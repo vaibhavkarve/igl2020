@@ -80,8 +80,6 @@ def app_vec {α : Type} : Π {n : ℕ+}, Func α n → vector α n → α
 | ⟨1, _⟩   f v := f v.head
 | ⟨n+2, _⟩ f v := @app_vec ⟨n+1, by linarith⟩ (f v.head) (v.tail)
 
-
-
 -- Under this notation, if `(f : Func α n)` and `(v : vector α n)`, then `(f ⊗
 -- n)` denotes the value in `α` obtained by feeding the `n` elements of `v` to
 -- `f`.
@@ -93,15 +91,23 @@ def app_fin {α : Type} {n : ℕ+} (f : Func α n) (v : fin n → α) : α :=
   f ⊗ (vector.of_fn v)
 
 
+/-- We can apply a Func to a vector of elements of the incorrect size as well.-/
+def app_vec_partial {α : Type} : Π (m n : ℕ), 0 < m → 0 < n →
+  m ≤ n → Func α n → vector α m → Func α (n-m)
+| 0     _     _  _  _ _ _ := by linarith
+| _     0     _  _  _ _ _ := by linarith
+| 1     1     _  _  _ f v := f v.head
+| (m+2) 1     h₁ h₂ h f v := by linarith
+| 1     (n+2) h₁ h₂ h f v := f v.head
+| (m+2) (n+2) _  _  _ f v := by
+    { simp only [nat.succ_sub_succ_eq_sub] at *,
+      have recursive_call :=
+         app_vec_partial (m+1) (n+1) (by norm_num) (by norm_num) (by linarith)
+                          (f v.head) v.tail,
+      simp only [nat.succ_sub_succ_eq_sub] at recursive_call,
+      exact recursive_call,
+    }
 
-
-def app_vec_partial' {α : Type} : Π (m n : ℕ),
-  m ≤ n → Func α (n+1) → vector α (m+1) → Func α (n-m)
-| 0     0     := λ h f v, f v.head
-| (m+1) 0     := sorry
-| 0     (n+1) := sorry
-| (m+1) (n+1) := sorry
---| (m+1) (n+1) := λ h f v, app_vec_partial' (_ : m ≤ n-1) (f v.head (by omega)) (v.tail)
 
 /-! ## Languages -/
 
