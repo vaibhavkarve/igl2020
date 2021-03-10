@@ -91,6 +91,10 @@ def app_fin {α : Type} {n : ℕ+} (f : Func α n) (v : fin n → α) : α :=
   f ⊗ (vector.of_fn v)
 
 
+def Func.map {n : ℕ+} {α : Type} {A : set α} (F : Func α n) {f : A → α} :
+ (∀ v : vector A n, F ⊗ v.map f ∈ A) → Func A n :=
+ λ h, mk_Func_of_total (λ v, ⟨F ⊗ (v.map f), h v⟩)
+
 /-- We can apply a Func to a vector of elements of the incorrect size as well.-/
 def app_vec_partial {α : Type} : Π (m n : ℕ), 0 < m → 0 < n →
   m ≤ n → Func α n → vector α m → Func α (n-m)
