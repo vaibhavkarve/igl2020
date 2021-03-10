@@ -183,9 +183,9 @@ on the domain and preserves the interpretation of all the symbols of L.-/
 structure embedding {L : lang} (M N : struc L) : Type :=
 (η : M.univ → N.univ)                        -- map of underlying domains
 (η_inj : function.injective η)               -- should be one-to-one
-(η_F : ∀ n (f : L.F (n+1)) (v : vector M.univ (n+1)),
+(η_F : ∀ n (f : L.F n) (v : vector M.univ n),
      η (f^M ⊗ v) = f^N ⊗ vector.map η v)    -- preserves action of each function
-(η_R : ∀ n (r : L.R (n+1)) (v : vector M.univ (n+1)),
+(η_R : ∀ n (r : L.R n) (v : vector M.univ n),
      v ∈ (r̂M) ↔ (vector.map η v) ∈ (r̂N))   -- preserves each relation
 (η_C : ∀ c, η (M.C c) = N.C c)               -- preserves constants
 
