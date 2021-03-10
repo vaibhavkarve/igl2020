@@ -371,7 +371,7 @@ inductive formula (L : lang)
 | tt : formula
 | ff : formula
 | eq  : term L 0 → term L 0 → formula
-| rel : Π {n : ℕ}, L.R n → vector (term L 0) n → formula
+| rel : Π {n : ℕ+}, L.R n → vector (term L 0) n → formula
 | neg : formula → formula
 | and : formula → formula → formula
 | or  : formula → formula → formula
