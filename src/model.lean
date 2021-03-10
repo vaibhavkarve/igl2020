@@ -760,9 +760,10 @@ begin
 end
 
 
+class has_infinite_model (t : theory L) : Type 1 :=
+(μ : Model t)
+(big : cardinal.omega ≤ μ.card)
 
-class has_infinite_model (t : theory L) :=
-(big:  ∃ μ : Model t, μ.card ≥ cardinal.omega)
 
 
 /-- Lowenheim-Skolem asserts that for a theory over a language L, if that theory
