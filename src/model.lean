@@ -162,14 +162,16 @@ structure struc (L : lang) : Type 1 :=
 
 instance struc.inhabited {L : lang} : inhabited (struc L) :=
   {default := {univ := unit,  -- The domain must have at least one term
-               F := λ _ _, mk_Func_of_total (function.const _ unit.star) unit.star,
-               R := λ _ _, ∅}
+               F := λ _ _, mk_Func_of_total (function.const _ unit.star),
+               R := λ _ _, ∅,
+               C := function.const L.C unit.star}
   }
 
 
 local notation f^M := M.F f -- f^M denotes the interpretation of f in M.
 local notation r`̂`M : 150 := M.R r -- r̂M denotes the interpretation of r in
                                  -- M. (type as a variant of \^)
+
 
 def struc.card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 
