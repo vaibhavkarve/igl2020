@@ -155,10 +155,9 @@ def lang.card (L : lang) : cardinal :=
  constants to appropriate elements of a domain/universe type.-/
 structure struc (L : lang) : Type 1 :=
 (univ : Type)                                   -- universe/domain
-(F {n : ℕ} (f : L.F n) : Func univ n)          -- interpretation of each function
-(R {n : ℕ} (r : L.R n) : set (vector univ n))  -- interpretation of each relation
-
-def struc.C {L : lang} (M : struc L) : L.C → M.univ := @struc.F L M 0
+(F {n : ℕ+} (f : L.F n) : Func univ n)          -- interpretation of each function
+(R {n : ℕ+} (r : L.R n) : set (vector univ n))  -- interpretation of each relation
+(C : L.C → univ)                                -- interpretation of each constant
 
 
 instance struc.inhabited {L : lang} : inhabited (struc L) :=
