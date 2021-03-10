@@ -249,6 +249,17 @@ Intersection only makes sense for sets, not types.
 /-- A substructure is finite if it has only finitely many domain elements.-/
 class fin_substruc {L : lang} {N : struc L} (S : substruc N) :=
 (finite : set.finite S.univ)
+
+
+/-- Every substruc is a struc.-/
+instance substruc.has_coe {L: lang} {M : struc L} : has_coe (substruc M) (struc L)
+:= {coe := λ (S : substruc M),
+           {univ := S.univ,
+              F := λ n f, (f^M).map (S.univ_invar_F n f),
+              R := λ _ r v, v.map coe ∈ (r̂M),
+              C := λ c, ⟨M.C c, S.univ_invar_C c⟩}}
+
+
 /-! ## Terms -/
 
 /-- We define terms in a language to be constants, variables, functions or
