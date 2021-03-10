@@ -118,11 +118,10 @@ def app_vec_partial {α : Type} : Π (m n : ℕ), 0 < m → 0 < n →
 /-- A language is given by specifying functions, relations and constants
 along with the arity of each function and each relation.-/
 structure lang : Type 1 :=
-(F : ℕ → Type)    -- functions. ℕ keeps track of arity.
-(R : ℕ → Type)    -- relations
+(F : ℕ+ → Type)    -- functions. ℕ keeps track of arity.
+(R : ℕ+ → Type)    -- relations
+(C : Type)         -- constants
 
-/-- Constants of a language are simply its 0-ary functions. -/
-def lang.C (L : lang) : Type := L.F 0
 
 
 /-- A dense linear ordering without endpoints is a language containg a
