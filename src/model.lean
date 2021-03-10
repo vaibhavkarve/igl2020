@@ -134,9 +134,10 @@ structure lang : Type 1 :=
 -- 6. ∀x ∀y (x ≤ y → ∃z (x ≤ z ∧ z ≤ y)).
 
 The  language contains exactly one relation: ≤, and no functions or constants-/
-def DLO_lang : lang := {R := λ n : ℕ,
+def DLO_lang : lang := {R := λ n : ℕ+,
                         if n = 2 then unit else empty,  -- one binary relation
-                        F := function.const ℕ empty}
+                        F := function.const ℕ+ empty,   -- no functions
+                        C := empty}                     -- no constants
 
 /-- Having defined a DLO_lang, we now use it to declare that lang is an
 inhabited type.-/
