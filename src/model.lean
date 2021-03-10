@@ -273,9 +273,10 @@ so we can switch to using finvec.
 inductive term (L : lang) : ℕ → Type
 | con : L.C → term 0
 | var : ℕ → term 0
-| func {n : ℕ} : L.F (n+1) → term (n+1)
-| app {n : ℕ} : term (n + 1) → term 0 → term n
+| func {n : ℕ+} : L.F n → term n
+| app {n : ℕ} : term (n+1) → term 0 → term n
 open term
+
 
 
 variables {L : lang} {M : struc L}
