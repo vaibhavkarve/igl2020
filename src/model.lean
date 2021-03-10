@@ -56,16 +56,17 @@ it into a partial function of the same arity.
 
 1. This constructor can only make functions of arity ≥ 1.
 2. This constructor makes a recursive call to itself. -/
-def mk_Func_of_total {α : Type} : Π {n : ℕ}, (vector α (n+1) → α) → Func α (n+1)
-| 0     := λ f a, f ⟨[a], by norm_num⟩                -- this produces a 1-ary func
-| (n+1) := λ f a, mk_Func_of_total (λ v, f (a ::ᵥ v))  -- an (n+2)-ary function
+def mk_Func_of_total {α : Type} : Π {n : ℕ+}, (vector α n → α) → Func α n
+| ⟨0, _⟩ f := by linarith
+| ⟨1, _⟩ f := λ a, f ⟨[a], by norm_num⟩ -- this produces a 1-ary func
+| ⟨n+2, h⟩ f := λ a, @mk_Func_of_total ⟨n+1, by linarith⟩ (λ v, f (a ::ᵥ v)) -- an (n+1)-ary function
 
 
 /-- We can apply a Func to an element. This will give us a lower-level
 function.
 
 **Deprecation warning**: this function will be removed from future iterations.-/
-def app_elem {α : Type} {n : ℕ} (f : Func α (n+1)) (a : α) : Func α n := f a
+def app_elem {α : Type} {n : ℕ+} (f : Func α (n+1)) (a : α) : Func α n := f a
 
 
 /-- A Func can be applied to a vector of elements of the right size.
@@ -74,9 +75,12 @@ def app_elem {α : Type} {n : ℕ} (f : Func α (n+1)) (a : α) : Func α n := f
 2. In the recursive case, we can apply an (n+2)-ary function to (n+2) elements
    by applying it to the head and then recursively calling the result on the
    remaining (n+1)-sized tail. -/
-def app_vec {α : Type} : Π {n : ℕ}, Func α (n+1) → vector α (n+1) → α
-| 0     := λ f v, f v.head
-| (n+1) := λ f v, app_vec (f v.head) (v.tail)
+def app_vec {α : Type} : Π {n : ℕ+}, Func α n → vector α n → α
+| ⟨0, _⟩   f v := by linarith
+| ⟨1, _⟩   f v := f v.head
+| ⟨n+2, _⟩ f v := @app_vec ⟨n+1, by linarith⟩ (f v.head) (v.tail)
+
+
 
 -- Under this notation, if `(f : Func α n)` and `(v : vector α n)`, then `(f ⊗
 -- n)` denotes the value in `α` obtained by feeding the `n` elements of `v` to
@@ -85,7 +89,7 @@ local infix `⊗` : 70 := app_vec
 
 
 /-- Apply a Func to a function on `fin n`.-/
-def app_fin {α : Type} {n : ℕ} (f : Func α (n+1)) (v : fin (n+1) → α) : α :=
+def app_fin {α : Type} {n : ℕ+} (f : Func α n) (v : fin n → α) : α :=
   f ⊗ (vector.of_fn v)
 
 
