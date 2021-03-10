@@ -238,6 +238,14 @@ structure substruc {L : lang} (N : struc L) : Type :=
 (univ_invar_C : ∀ (c : L.C), N.C c ∈ univ) -- univ contains all constants
 
 
+/- TODO : The intersection of 2 structures (on the same language) is a structure.-
+
+Problem: How would we even define the intersection of M.univ and N.univ?
+Intersection only makes sense for sets, not types.
+-/
+
+
+
 /-- A substructure is finite if it has only finitely many domain elements.-/
 class fin_substruc {L : lang} {N : struc L} (S : substruc N) :=
 (finite : set.finite S.univ)
