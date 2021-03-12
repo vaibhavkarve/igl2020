@@ -711,24 +711,6 @@ def Model.card {t : theory L} (μ : Model t) : cardinal := μ.M.card
 def satisfiable_theory (t : theory L) : Prop := nonempty (Model t)
 
 
--- TODO: [Hard] Completeness of the DLO_theory
--- Everything that is true in ℚ can be proved from DLO_axioms.
-
--- Alternate statement: If something is true for ℚ then it is true for every
--- model for DLO_axioms.  (because they all have the same theory).
-
--- TODO: Vaught's theorem
-
--- [This is Hard as well] Alternate Branch of Work: Godel encoding?
--- Map from ℕ to the long strings enconding prime factorization.
-
--- TODO: Quantifier elimination in DLO_theory
--- TODOs: Definability, o-minimality
--- x<2 in ℝ defines (-∞, 2)
--- x=y in ℝ defines a line at 45 degrees.
--- Non-definable: (ℤ, +). ∃x, x+x=x defines {0}. Cannot define {1}.
--- Is ℤ definable?
--- Are even numbers (ℤ, +) ∃ y, x=y+y → (ℤ, +) is not o-minimal.
 
 /-! ## Definability -/
 
