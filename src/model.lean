@@ -672,7 +672,7 @@ end
 either `M ⊨ σ[s]` for all variable assignments or `M ⊨ σ[s]` for no
 variable assignment.-/
 lemma models_formula_all_or_none_sentences {L: lang} (M : struc L)
-  [inhabited M.univ] (σ : sentence L) :
+  [nonempty M.univ] (σ : sentence L) :
   xor (∀ va : ℕ → M.univ, va ⊨ σ.val) (∀ va' : ℕ → M.univ, ¬ va' ⊨ σ.val) :=
 begin
   unfold xor,
@@ -681,6 +681,7 @@ begin
   left,
   split,
   rotate,
+  inhabit M.univ,
   use function.const ℕ (arbitrary M.univ),
  cases σ₁,
  repeat {sorry},
