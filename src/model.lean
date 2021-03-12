@@ -764,6 +764,12 @@ class has_infinite_model (t : theory L) : Type 1 :=
 (big : cardinal.omega ≤ μ.card)
 
 
+instance nonempty_universe_of_theory_with_infinite_model
+  (t : theory L) [h : has_infinite_model t] : nonempty h.μ.M.univ :=
+  by { haveI infinite_univ := cardinal.infinite_iff.mpr h.big,
+       inhabit h.μ.M.univ,
+       apply infinite.nonempty,
+     }
 
 /-- Lowenheim-Skolem asserts that for a theory over a language L, if that theory
     has an infinite model, then it has a model for any cardinality greater than
