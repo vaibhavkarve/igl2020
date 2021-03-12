@@ -814,7 +814,30 @@ begin
   -- M₃ and M₄ both model T.
   -- But by kcategoricity, M₃ and M₄ are isomorphic.
   -- Achieve a contradiction using isomorphic_struc_satisfy_same_theory.
+  fconstructor,
+  { use _inst_1.μ.M,
+    intros σ hσ,
+    cases _inst_1.μ,
+    simp,
+    apply satis,
+    assumption,
+},
+intros μ₁ μ₂ σ hσ,
+split,
+intro hM₁,
+unfold theory_kcategorical at hkc,
+--by_contradiction not_satis,
 
+
+by_cases same_card : (μ₁.card = k) ∧ (μ₂.card = k),
+{
+ have x := hkc μ₁ μ₂ same_card,
+ exact isomorphic_struc_satisfy_same_theory μ₁.M μ₂.M (x.default) σ hM₁,
+ },
+have LS := LS_Lou k h,
+by_contradiction,
+push_neg at same_card,
+sorry,
 sorry,
 end
 
