@@ -690,7 +690,10 @@ end
 /-- An `L`-theory `T` is simply a set of `L`-sentences. We say that `M` is
 a model of `T` and write `M ⊨ T` if `M ⊨ φ` for all sentences `φ ∈ T`.-/
 def theory (L : lang) : Type := set (sentence L)
+
 instance theory.has_mem : has_mem (sentence L) (theory L) := ⟨set.mem⟩
+instance theory.has_union : has_union (theory L) := set.has_union
+instance theory.has_singleton : has_singleton (sentence L) (theory L) := set.has_singleton
 
 
 /-- We now define a model to be a structure that models a set of sentences
