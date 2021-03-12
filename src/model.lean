@@ -681,7 +681,7 @@ begin
   left,
   split,
   rotate,
-  use function.const ℕ (default M.univ),
+  use function.const ℕ (arbitrary M.univ),
  cases σ₁,
  repeat {sorry},
 end
