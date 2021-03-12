@@ -795,6 +795,12 @@ def theory_kcategorical (k : cardinal) (t : theory L) :=
   ∀ (M₁ M₂ : Model t), M₁.card = k ∧ M₂.card = k → inhabited (isomorphism M₁.M M₂.M)
 
 
+def model_of_extended {t : theory L} {μ : Model t} {σ : sentence L} (sat_σ: μ.M ⊨ σ) :
+  Model (t ∪ {σ}) :=
+begin
+  sorry,
+end
+
 
 /-- If a theory is k-categorical and has an infinite model,
     it is complete.-/
