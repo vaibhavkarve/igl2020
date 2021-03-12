@@ -789,7 +789,7 @@ axiom LS_Lou (k : cardinal) (h : L.card ≤ k) (t : theory L) [has_infinite_mode
 /- A theory is k-categorical if all models of cardinality k are isomorphic as
    structures.-/
 def theory_kcategorical (k : cardinal) (t : theory L) :=
-  ∀ (M₁ M₂ : Model t), M₁.card = k ∧ M₂.card = k → nonempty (isomorphism M₁.M M₂.M)
+  ∀ (M₁ M₂ : Model t), M₁.card = k ∧ M₂.card = k → inhabited (isomorphism M₁.M M₂.M)
 
 
 
