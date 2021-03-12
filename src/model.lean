@@ -681,7 +681,7 @@ begin
   left,
   split,
   rotate,
-  use function.const ℕ (default M.univ),
+  use function.const ℕ (arbitrary M.univ),
  cases σ₁,
  repeat {sorry},
 end
@@ -690,7 +690,10 @@ end
 /-- An `L`-theory `T` is simply a set of `L`-sentences. We say that `M` is
 a model of `T` and write `M ⊨ T` if `M ⊨ φ` for all sentences `φ ∈ T`.-/
 def theory (L : lang) : Type := set (sentence L)
+
 instance theory.has_mem : has_mem (sentence L) (theory L) := ⟨set.mem⟩
+instance theory.has_union : has_union (theory L) := set.has_union
+instance theory.has_singleton : has_singleton (sentence L) (theory L) := set.has_singleton
 
 
 /-- We now define a model to be a structure that models a set of sentences
@@ -745,8 +748,7 @@ def coeset : set(sentence L) → set(formula L) := set.image coe
 /-- A theory is complete if any pair of models satisfies exactly the same
 sentences.-/
 structure complete_theory (t : theory L) :=
-(has_model : ∃ (A : struc L), ∀ (va : ℕ → A.univ), ∀ (σ ∈ t),
-  va ⊨ ↑σ)
+(has_model : ∃ (A : struc L), ∀ (σ ∈ t), A ⊨ σ)
 (models_iff_models : ∀ (A₁ A₂ : Model t), ∀ (σ ∈ t),
   A₁.M ⊨ σ ↔ A₂.M ⊨ σ)
 
@@ -765,6 +767,20 @@ class has_infinite_model (t : theory L) : Type 1 :=
 (big : cardinal.omega ≤ μ.card)
 
 
+instance nonempty_universe_of_theory_with_infinite_model
+  (t : theory L) [h : has_infinite_model t] : nonempty h.μ.M.univ :=
+  by { haveI infinite_univ := cardinal.infinite_iff.mpr h.big,
+       inhabit h.μ.M.univ,
+       apply infinite.nonempty,
+     }
+
+
+noncomputable instance inhabited_universe_of_theory_with_infinite_model
+  (t : theory L) [h : has_infinite_model t] : inhabited h.μ.M.univ :=
+  {default := by {inhabit h.μ.M.univ,
+                  exact arbitrary h.μ.M.univ}
+  }
+
 
 /-- Lowenheim-Skolem asserts that for a theory over a language L, if that theory
     has an infinite model, then it has a model for any cardinality greater than
@@ -776,8 +792,14 @@ axiom LS_Lou (k : cardinal) (h : L.card ≤ k) (t : theory L) [has_infinite_mode
 /- A theory is k-categorical if all models of cardinality k are isomorphic as
    structures.-/
 def theory_kcategorical (k : cardinal) (t : theory L) :=
-  ∀ (M₁ M₂ : Model t), M₁.card = k ∧ M₂.card = k → nonempty (isomorphism M₁.M M₂.M)
+  ∀ (M₁ M₂ : Model t), M₁.card = k ∧ M₂.card = k → inhabited (isomorphism M₁.M M₂.M)
 
+
+def model_of_extended {t : theory L} {μ : Model t} {σ : sentence L} (sat_σ: μ.M ⊨ σ) :
+  Model (t ∪ {σ}) :=
+begin
+  sorry,
+end
 
 
 /-- If a theory is k-categorical and has an infinite model,
@@ -792,7 +814,30 @@ begin
   -- M₃ and M₄ both model T.
   -- But by kcategoricity, M₃ and M₄ are isomorphic.
   -- Achieve a contradiction using isomorphic_struc_satisfy_same_theory.
+  fconstructor,
+  { use _inst_1.μ.M,
+    intros σ hσ,
+    cases _inst_1.μ,
+    simp,
+    apply satis,
+    assumption,
+},
+intros μ₁ μ₂ σ hσ,
+split,
+intro hM₁,
+unfold theory_kcategorical at hkc,
+--by_contradiction not_satis,
 
+
+by_cases same_card : (μ₁.card = k) ∧ (μ₂.card = k),
+{
+ have x := hkc μ₁ μ₂ same_card,
+ exact isomorphic_struc_satisfy_same_theory μ₁.M μ₂.M (x.default) σ hM₁,
+ },
+have LS := LS_Lou k h,
+by_contradiction,
+push_neg at same_card,
+sorry,
 sorry,
 end
 
@@ -800,8 +845,8 @@ def extend_struc_by_element : sorry := sorry
 
 
 def extension_of_isomorphism (t : theory L) (M₁ M₂ : Model t) :
-  ∀ (S₁ : substruc M₁.M) (S₂ : substruc M₂.M) [fin_substruc S₁] [fin_substruc S₂]
-  (η : isomorphism S₁ S₂),
+  ∀ (S₁ : substruc M₁.M) (S₂ : substruc M₂.M) [fin_substruc S₁] [fin_substruc S₂],
+  ∀ (η : @isomorphism L ↑S₁ ↑S₂),
   ∀ (m : M₁.M.univ), ∃ (m': M₂.M.univ),
   ∃ (η' : extend_struc_by_element S₁ m → extend_struc_by_element S₂ m'),
   η' is_isomorphism ∧ (η' m = m') ∧ (η = η' on S₁)
