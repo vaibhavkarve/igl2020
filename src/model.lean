@@ -845,8 +845,8 @@ def extend_struc_by_element : sorry := sorry
 
 
 def extension_of_isomorphism (t : theory L) (M₁ M₂ : Model t) :
-  ∀ (S₁ : substruc M₁.M) (S₂ : substruc M₂.M) [fin_substruc S₁] [fin_substruc S₂]
-  (η : isomorphism S₁ S₂),
+  ∀ (S₁ : substruc M₁.M) (S₂ : substruc M₂.M) [fin_substruc S₁] [fin_substruc S₂],
+  ∀ (η : @isomorphism L ↑S₁ ↑S₂),
   ∀ (m : M₁.M.univ), ∃ (m': M₂.M.univ),
   ∃ (η' : extend_struc_by_element S₁ m → extend_struc_by_element S₂ m'),
   η' is_isomorphism ∧ (η' m = m') ∧ (η = η' on S₁)
