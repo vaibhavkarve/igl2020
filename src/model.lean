@@ -745,8 +745,7 @@ def coeset : set(sentence L) → set(formula L) := set.image coe
 /-- A theory is complete if any pair of models satisfies exactly the same
 sentences.-/
 structure complete_theory (t : theory L) :=
-(has_model : ∃ (A : struc L), ∀ (va : ℕ → A.univ), ∀ (σ ∈ t),
-  va ⊨ ↑σ)
+(has_model : ∃ (A : struc L), ∀ (σ ∈ t), A ⊨ σ)
 (models_iff_models : ∀ (A₁ A₂ : Model t), ∀ (σ ∈ t),
   A₁.M ⊨ σ ↔ A₂.M ⊨ σ)
 
