@@ -771,6 +771,14 @@ instance nonempty_universe_of_theory_with_infinite_model
        apply infinite.nonempty,
      }
 
+
+noncomputable instance inhabited_universe_of_theory_with_infinite_model
+  (t : theory L) [h : has_infinite_model t] : inhabited h.μ.M.univ :=
+  {default := by {inhabit h.μ.M.univ,
+                  exact arbitrary h.μ.M.univ}
+  }
+
+
 /-- Lowenheim-Skolem asserts that for a theory over a language L, if that theory
     has an infinite model, then it has a model for any cardinality greater than
     or equal to |L|-/
