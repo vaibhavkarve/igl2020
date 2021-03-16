@@ -56,17 +56,16 @@ it into a partial function of the same arity.
 
 1. This constructor can only make functions of arity ≥ 1.
 2. This constructor makes a recursive call to itself. -/
-def mk_Func_of_total {α : Type} : Π {n : ℕ+}, (vector α n → α) → Func α n
-| ⟨0, _⟩ f := by linarith
-| ⟨1, _⟩ f := λ a, f ⟨[a], by norm_num⟩ -- this produces a 1-ary func
-| ⟨n+2, h⟩ f := λ a, @mk_Func_of_total ⟨n+1, by linarith⟩ (λ v, f (a ::ᵥ v)) -- an (n+1)-ary function
+def mk_Func_of_total {α : Type} : Π {n : ℕ}, (vector α (n+1) → α) → Func α (n+1)
+| 0     := λ f a, f ⟨[a], by norm_num⟩                -- this produces a 1-ary func
+| (n+1) := λ f a, mk_Func_of_total (λ v, f (a ::ᵥ v))  -- an (n+2)-ary function
 
 
 /-- We can apply a Func to an element. This will give us a lower-level
 function.
 
 **Deprecation warning**: this function will be removed from future iterations.-/
-def app_elem {α : Type} {n : ℕ+} (f : Func α (n+1)) (a : α) : Func α n := f a
+def app_elem {α : Type} {n : ℕ} (f : Func α (n+1)) (a : α) : Func α n := f a
 
 
 /-- A Func can be applied to a vector of elements of the right size.
@@ -75,10 +74,9 @@ def app_elem {α : Type} {n : ℕ+} (f : Func α (n+1)) (a : α) : Func α n := 
 2. In the recursive case, we can apply an (n+2)-ary function to (n+2) elements
    by applying it to the head and then recursively calling the result on the
    remaining (n+1)-sized tail. -/
-def app_vec {α : Type} : Π {n : ℕ+}, Func α n → vector α n → α
-| ⟨0, _⟩   f v := by linarith
-| ⟨1, _⟩   f v := f v.head
-| ⟨n+2, _⟩ f v := @app_vec ⟨n+1, by linarith⟩ (f v.head) (v.tail)
+def app_vec {α : Type} : Π {n : ℕ}, Func α (n+1) → vector α (n+1) → α
+| 0     := λ f v, f v.head
+| (n+1) := λ f v, app_vec (f v.head) (v.tail)
 
 -- Under this notation, if `(f : Func α n)` and `(v : vector α n)`, then `(f ⊗
 -- n)` denotes the value in `α` obtained by feeding the `n` elements of `v` to
@@ -87,41 +85,43 @@ local infix `⊗` : 70 := app_vec
 
 
 /-- Apply a Func to a function on `fin n`.-/
-def app_fin {α : Type} {n : ℕ+} (f : Func α n) (v : fin n → α) : α :=
+def app_fin {α : Type} {n : ℕ} (f : Func α (n+1)) (v : fin (n+1) → α) : α :=
   f ⊗ (vector.of_fn v)
 
 
-def Func.map {n : ℕ+} {α : Type} {A : set α} (F : Func α n) {f : A → α} :
- (∀ v : vector A n, F ⊗ v.map f ∈ A) → Func A n :=
- λ h, mk_Func_of_total (λ v, ⟨F ⊗ (v.map f), h v⟩)
+/-- We can apply a Func to a vector of elements of the incorrect size as well.
+TODO: Turn this into patter-matched term-style definition.
+-/
+def app_vec_partial {α : Type} {n m : ℕ} (h : m ≤ n) (f : Func α (n+1))
+  (v : vector α (m+1)) : Func α (n-m) :=
+begin
+ induction m with m mih,
+   { exact f v.head},
+  have nat_ineq : n-m.succ+1 = n-m := by omega,
+  have f' : Func α (n-m) := mih (by omega) v.tail,
+  rw ← nat_ineq at f',
+  exact f' v.head,
+end
 
-/-- We can apply a Func to a vector of elements of the incorrect size as well.-/
-def app_vec_partial {α : Type} : Π (m n : ℕ), 0 < m → 0 < n →
-  m ≤ n → Func α n → vector α m → Func α (n-m)
-| 0     _     _  _  _ _ _ := by linarith
-| _     0     _  _  _ _ _ := by linarith
-| 1     1     _  _  _ f v := f v.head
-| (m+2) 1     h₁ h₂ h f v := by linarith
-| 1     (n+2) h₁ h₂ h f v := f v.head
-| (m+2) (n+2) _  _  _ f v := by
-    { simp only [nat.succ_sub_succ_eq_sub] at *,
-      have recursive_call :=
-         app_vec_partial (m+1) (n+1) (by norm_num) (by norm_num) (by linarith)
-                          (f v.head) v.tail,
-      simp only [nat.succ_sub_succ_eq_sub] at recursive_call,
-      exact recursive_call,
-    }
 
+def app_vec_partial' {α : Type} : Π (m n : ℕ),
+  m ≤ n → Func α (n+1) → vector α (m+1) → Func α (n-m)
+| 0     0     := λ h f v, f v.head
+| (m+1) 0     := sorry
+| 0     (n+1) := sorry
+| (m+1) (n+1) := sorry
+--| (m+1) (n+1) := λ h f v, app_vec_partial' (_ : m ≤ n-1) (f v.head (by omega)) (v.tail)
 
 /-! ## Languages -/
 
 /-- A language is given by specifying functions, relations and constants
 along with the arity of each function and each relation.-/
 structure lang : Type 1 :=
-(F : ℕ+ → Type)    -- functions. ℕ keeps track of arity.
-(R : ℕ+ → Type)    -- relations
-(C : Type)         -- constants
+(F : ℕ → Type)    -- functions. ℕ keeps track of arity.
+(R : ℕ → Type)    -- relations
 
+/-- Constants of a language are simply its 0-ary functions. -/
+def lang.C (L : lang) : Type := L.F 0
 
 
 /-- A dense linear ordering without endpoints is a language containg a
@@ -134,10 +134,9 @@ structure lang : Type 1 :=
 -- 6. ∀x ∀y (x ≤ y → ∃z (x ≤ z ∧ z ≤ y)).
 
 The  language contains exactly one relation: ≤, and no functions or constants-/
-def DLO_lang : lang := {R := λ n : ℕ+,
+def DLO_lang : lang := {R := λ n : ℕ,
                         if n = 2 then unit else empty,  -- one binary relation
-                        F := function.const ℕ+ empty,   -- no functions
-                        C := empty}                     -- no constants
+                        F := function.const ℕ empty}
 
 /-- Having defined a DLO_lang, we now use it to declare that lang is an
 inhabited type.-/
@@ -155,23 +154,22 @@ def lang.card (L : lang) : cardinal :=
  constants to appropriate elements of a domain/universe type.-/
 structure struc (L : lang) : Type 1 :=
 (univ : Type)                                   -- universe/domain
-(F {n : ℕ+} (f : L.F n) : Func univ n)          -- interpretation of each function
-(R {n : ℕ+} (r : L.R n) : set (vector univ n))  -- interpretation of each relation
-(C : L.C → univ)                                -- interpretation of each constant
+(F {n : ℕ} (f : L.F n) : Func univ n)          -- interpretation of each function
+(R {n : ℕ} (r : L.R n) : set (vector univ n))  -- interpretation of each relation
+
+def struc.C {L : lang} (M : struc L) : L.C → M.univ := @struc.F L M 0
 
 
 instance struc.inhabited {L : lang} : inhabited (struc L) :=
   {default := {univ := unit,  -- The domain must have at least one term
-               F := λ _ _, mk_Func_of_total (function.const _ unit.star),
-               R := λ _ _, ∅,
-               C := function.const L.C unit.star}
+               F := λ _ _, mk_Func_of_total (function.const _ unit.star) unit.star,
+               R := λ _ _, ∅}
   }
 
 
 local notation f^M := M.F f -- f^M denotes the interpretation of f in M.
 local notation r`̂`M : 150 := M.R r -- r̂M denotes the interpretation of r in
                                  -- M. (type as a variant of \^)
-
 
 def struc.card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 
@@ -183,9 +181,9 @@ on the domain and preserves the interpretation of all the symbols of L.-/
 structure embedding {L : lang} (M N : struc L) : Type :=
 (η : M.univ → N.univ)                        -- map of underlying domains
 (η_inj : function.injective η)               -- should be one-to-one
-(η_F : ∀ n (f : L.F n) (v : vector M.univ n),
+(η_F : ∀ n (f : L.F (n+1)) (v : vector M.univ (n+1)),
      η (f^M ⊗ v) = f^N ⊗ vector.map η v)    -- preserves action of each function
-(η_R : ∀ n (r : L.R n) (v : vector M.univ n),
+(η_R : ∀ n (r : L.R (n+1)) (v : vector M.univ (n+1)),
      v ∈ (r̂M) ↔ (vector.map η v) ∈ (r̂N))   -- preserves each relation
 (η_C : ∀ c, η (M.C c) = N.C c)               -- preserves constants
 
@@ -233,33 +231,16 @@ definition of `coe`.
 -/
 structure substruc {L : lang} (N : struc L) : Type :=
 (univ : set N.univ)              -- a subset of N.univ
-(univ_invar_F :  ∀ (n : ℕ+) (f : L.F n) (v : vector univ n),
-                 f^N ⊗ (v.map coe) ∈ univ)  -- univ is invariant over f
-(univ_invar_C : ∀ (c : L.C), N.C c ∈ univ) -- univ contains all constants
+(η : univ → N.univ := coe)      -- the inclusion map
+(η_inj : function.injective η)  -- should be one-to-one
 
 
-/- TODO : The intersection of 2 structures (on the same language) is a structure.-
-
-Problem: How would we even define the intersection of M.univ and N.univ?
-Intersection only makes sense for sets, not types.
--/
-
-
-
+/-- The substructure generated by a subset of `N.univ`.-/
+def substruc.closure {L : lang} {N : struc L} (M : set N.univ) : substruc N :=
+  ⟨M, coe, subtype.coe_injective⟩
 /-- A substructure is finite if it has only finitely many domain elements.-/
 class fin_substruc {L : lang} {N : struc L} (S : substruc N) :=
 (finite : set.finite S.univ)
-
-
-/-- Every substruc is a struc.-/
-instance substruc.has_coe {L: lang} {M : struc L} : has_coe (substruc M) (struc L)
-:= {coe := λ (S : substruc M),
-           {univ := S.univ,
-              F := λ n f, (f^M).map (S.univ_invar_F n f),
-              R := λ _ r v, v.map coe ∈ (r̂M),
-              C := λ c, ⟨M.C c, S.univ_invar_C c⟩}}
-
-
 /-! ## Terms -/
 
 /-- We define terms in a language to be constants, variables, functions or
@@ -273,10 +254,9 @@ so we can switch to using finvec.
 inductive term (L : lang) : ℕ → Type
 | con : L.C → term 0
 | var : ℕ → term 0
-| func {n : ℕ+} : L.F n → term n
-| app {n : ℕ} : term (n+1) → term 0 → term n
+| func {n : ℕ} : L.F (n+1) → term (n+1)
+| app {n : ℕ} : term (n + 1) → term 0 → term n
 open term
-
 
 
 variables {L : lang} {M : struc L}
@@ -371,7 +351,7 @@ inductive formula (L : lang)
 | tt : formula
 | ff : formula
 | eq  : term L 0 → term L 0 → formula
-| rel : Π {n : ℕ+}, L.R n → vector (term L 0) n → formula
+| rel : Π {n : ℕ}, L.R n → vector (term L 0) n → formula
 | neg : formula → formula
 | and : formula → formula → formula
 | or  : formula → formula → formula
@@ -456,13 +436,19 @@ language.
 In Lou's book (more general): we start instead with C ⊂ M.univ, and then add
 only elements of C as constants to the language. -/
 @[reducible] def expanded_lang (L : lang) (M : struc L) : lang :=
-  {C := M.univ ⊕ L.C,
+  {F := function.update L.F 0 (M.univ ⊕ L.C),
    .. L}
 
 
 /-- Define expanded structures. -/
 def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
-  {C := λ c, sum.cases_on c id M.C,
+  {F := λ n f, by {dsimp only at f,
+                   unfold function.update at f,
+                   split_ifs at f with h,
+                   simp only [eq_rec_constant] at f,
+                   rw h,
+                   exact sum.cases_on f id M.C,
+                   exact f^M},
    .. M}
 
 
@@ -498,13 +484,39 @@ infix `≡` := elementarily_equivalent
 
 
 /-- The full theory of `M` is the set of `L`-sentences `φ` such that `M ⊨ φ`.-/
-def full_theory : set (sentence L) := sorry
+def full_theory (M : struc L): set (sentence L) := {ϕ : sentence L | M ⊨ ϕ}
 
 
 /-- `M ≡ N` iff their full theories match.-/
-lemma eq_full_theory_iff_elementary_equivalent : sorry :=
+lemma eq_full_theory_iff_elementary_equivalent {M N : struc L} : 
+      full_theory M = full_theory N ↔ M ≡ N :=
 begin
-  sorry
+  unfold full_theory,
+  unfold elementarily_equivalent,
+  split,
+  {
+    intro h,
+    intro σ,
+    split,
+    {
+      intro hm,
+      have hs : σ ∈ {ϕ : sentence L | M ⊨ ϕ} := by solve_by_elim,
+      rw h at hs,
+      have hn : N ⊨ σ := by solve_by_elim,
+      exact hn,
+    },
+    {
+      intro hn,
+      have hs : σ ∈ {ϕ : sentence L | N ⊨ ϕ} := by solve_by_elim,
+      rw← h at hs,
+      have hm : M ⊨ σ := by solve_by_elim,
+      exact hm,
+    },
+  },
+  {
+    intro h,
+    finish,
+  }
 end
 
 
@@ -512,7 +524,15 @@ end
 theorem full_theory_is_isomorphism_invariant {M N : struc L}
  (η : isomorphism M N) : M ≡ N :=
 begin
- sorry
+ unfold elementarily_equivalent,
+ intro σ,
+ split,
+ {
+   sorry,
+ },
+ {
+   sorry,
+ }
 end
 
 
@@ -565,7 +585,7 @@ end
     iff it is also satisfied under `va₂`.
 -/
 lemma iff_models_formula_relation_of_identical_var_assign
-  (n : ℕ+) (r : L.R n) (vec : vector (term L 0) n)
+  (n : ℕ) (r : L.R n) (vec : vector (term L 0) n)
   (va₁ va₂ : ℕ → M.univ)
   (h : ∀ var ∈ vars_in_formula (formula.rel r vec), va₁ var = va₂ var) :
   (va₁ ⊨ (formula.rel r vec)) ↔ (va₂ ⊨ (formula.rel r vec)) :=
@@ -586,11 +606,12 @@ begin
       apply x,
       exact h₁},
   --suffices y : vars_in_term (vec.nth m) ⊆ vars_in_list vec.to_list, apply y,
-  --cases (vec.nth m) with c var',
-  --{unfold vars_in_term, tauto},
+  cases (vec.nth m) with c var',
+  {unfold vars_in_term, tauto},
 
-  --simp,intro h₂, rw h₂,
+  simp,intro h₂, rw h₂,
   sorry,
+  sorry
 end
 
 
@@ -672,7 +693,7 @@ end
 either `M ⊨ σ[s]` for all variable assignments or `M ⊨ σ[s]` for no
 variable assignment.-/
 lemma models_formula_all_or_none_sentences {L: lang} (M : struc L)
-  [nonempty M.univ] (σ : sentence L) :
+  [inhabited M.univ] (σ : sentence L) :
   xor (∀ va : ℕ → M.univ, va ⊨ σ.val) (∀ va' : ℕ → M.univ, ¬ va' ⊨ σ.val) :=
 begin
   unfold xor,
@@ -681,8 +702,8 @@ begin
   left,
   split,
   rotate,
-  inhabit M.univ,
-  use function.const ℕ (arbitrary M.univ),
+  use function.const ℕ (default M.univ),
+
  cases σ₁,
  repeat {sorry},
 end
@@ -691,10 +712,7 @@ end
 /-- An `L`-theory `T` is simply a set of `L`-sentences. We say that `M` is
 a model of `T` and write `M ⊨ T` if `M ⊨ φ` for all sentences `φ ∈ T`.-/
 def theory (L : lang) : Type := set (sentence L)
-
 instance theory.has_mem : has_mem (sentence L) (theory L) := ⟨set.mem⟩
-instance theory.has_union : has_union (theory L) := set.has_union
-instance theory.has_singleton : has_singleton (sentence L) (theory L) := set.has_singleton
 
 
 /-- We now define a model to be a structure that models a set of sentences
@@ -711,6 +729,24 @@ def Model.card {t : theory L} (μ : Model t) : cardinal := μ.M.card
 def satisfiable_theory (t : theory L) : Prop := nonempty (Model t)
 
 
+-- TODO: [Hard] Completeness of the DLO_theory
+-- Everything that is true in ℚ can be proved from DLO_axioms.
+
+-- Alternate statement: If something is true for ℚ then it is true for every
+-- model for DLO_axioms.  (because they all have the same theory).
+
+-- TODO: Vaught's theorem
+
+-- [This is Hard as well] Alternate Branch of Work: Godel encoding?
+-- Map from ℕ to the long strings enconding prime factorization.
+
+-- TODO: Quantifier elimination in DLO_theory
+-- TODOs: Definability, o-minimality
+-- x<2 in ℝ defines (-∞, 2)
+-- x=y in ℝ defines a line at 45 degrees.
+-- Non-definable: (ℤ, +). ∃x, x+x=x defines {0}. Cannot define {1}.
+-- Is ℤ definable?
+-- Are even numbers (ℤ, +) ∃ y, x=y+y → (ℤ, +) is not o-minimal.
 
 /-! ## Definability -/
 
@@ -724,6 +760,10 @@ def satisfiable_theory (t : theory L) : Prop := nonempty (Model t)
 def logical_consequence (t : theory L) (ϕ : sentence L) : Prop :=
   (∀ A : Model t, A.M ⊨ ϕ)
 
+def proof (t : theory L) (ϕ : sentence L) : Prop := sorry
+
+def proves (t : theory L) (ϕ : sentence L) : Prop := ∃ (p : proof t ϕ)
+
 /-- Coercion over a set.-/
 def coeset : set(sentence L) → set(formula L) := set.image coe
 
@@ -731,7 +771,8 @@ def coeset : set(sentence L) → set(formula L) := set.image coe
 /-- A theory is complete if any pair of models satisfies exactly the same
 sentences.-/
 structure complete_theory (t : theory L) :=
-(has_model : ∃ (A : struc L), ∀ (σ ∈ t), A ⊨ σ)
+(has_model : ∃ (A : struc L), ∀ (va : ℕ → A.univ), ∀ (σ ∈ t),
+  va ⊨ ↑σ)
 (models_iff_models : ∀ (A₁ A₂ : Model t), ∀ (σ ∈ t),
   A₁.M ⊨ σ ↔ A₂.M ⊨ σ)
 
@@ -745,24 +786,9 @@ begin
 end
 
 
-class has_infinite_model (t : theory L) : Type 1 :=
-(μ : Model t)
-(big : cardinal.omega ≤ μ.card)
 
-
-instance nonempty_universe_of_theory_with_infinite_model
-  (t : theory L) [h : has_infinite_model t] : nonempty h.μ.M.univ :=
-  by { haveI infinite_univ := cardinal.infinite_iff.mpr h.big,
-       inhabit h.μ.M.univ,
-       apply infinite.nonempty,
-     }
-
-
-noncomputable instance inhabited_universe_of_theory_with_infinite_model
-  (t : theory L) [h : has_infinite_model t] : inhabited h.μ.M.univ :=
-  {default := by {inhabit h.μ.M.univ,
-                  exact arbitrary h.μ.M.univ}
-  }
+class has_infinite_model (t : theory L) :=
+(big:  ∃ μ : Model t, μ.card ≥ cardinal.omega)
 
 
 /-- Lowenheim-Skolem asserts that for a theory over a language L, if that theory
@@ -775,14 +801,8 @@ axiom LS_Lou (k : cardinal) (h : L.card ≤ k) (t : theory L) [has_infinite_mode
 /- A theory is k-categorical if all models of cardinality k are isomorphic as
    structures.-/
 def theory_kcategorical (k : cardinal) (t : theory L) :=
-  ∀ (M₁ M₂ : Model t), M₁.card = k ∧ M₂.card = k → inhabited (isomorphism M₁.M M₂.M)
+  ∀ (M₁ M₂ : Model t), M₁.card = k ∧ M₂.card = k → nonempty (isomorphism M₁.M M₂.M)
 
-
-def model_of_extended {t : theory L} {μ : Model t} {σ : sentence L} (sat_σ: μ.M ⊨ σ) :
-  Model (t ∪ {σ}) :=
-begin
-  sorry,
-end
 
 
 /-- If a theory is k-categorical and has an infinite model,
@@ -797,40 +817,38 @@ begin
   -- M₃ and M₄ both model T.
   -- But by kcategoricity, M₃ and M₄ are isomorphic.
   -- Achieve a contradiction using isomorphic_struc_satisfy_same_theory.
-  fconstructor,
-  { use _inst_1.μ.M,
-    intros σ hσ,
-    cases _inst_1.μ,
-    simp,
-    apply satis,
-    assumption,
-},
-intros μ₁ μ₂ σ hσ,
-split,
-intro hM₁,
-unfold theory_kcategorical at hkc,
---by_contradiction not_satis,
 
-
-by_cases same_card : (μ₁.card = k) ∧ (μ₂.card = k),
-{
- have x := hkc μ₁ μ₂ same_card,
- exact isomorphic_struc_satisfy_same_theory μ₁.M μ₂.M (x.default) σ hM₁,
- },
-have LS := LS_Lou k h,
-by_contradiction,
-push_neg at same_card,
-sorry,
 sorry,
 end
 
 def extend_struc_by_element : sorry := sorry
 
-
+/-
 def extension_of_isomorphism (t : theory L) (M₁ M₂ : Model t) :
-  ∀ (S₁ : substruc M₁.M) (S₂ : substruc M₂.M) [fin_substruc S₁] [fin_substruc S₂],
-  ∀ (η : @isomorphism L ↑S₁ ↑S₂),
+  ∀ (S₁ : substruc M₁.M) (S₂ : substruc M₂.M) [fin_substruc S₁] [fin_substruc S₂]
+  (η : isomorphism S₁ S₂),
   ∀ (m : M₁.M.univ), ∃ (m': M₂.M.univ),
   ∃ (η' : extend_struc_by_element S₁ m → extend_struc_by_element S₂ m'),
   η' is_isomorphism ∧ (η' m = m') ∧ (η = η' on S₁)
 -- TODO: Show that this is true for DLOs.
+-/
+
+/-Completeness and Compactness theorems-/
+
+lemma consequence_if_proves {L : lang} (t : theory L) : ∀ (ϕ : sentence L), 
+      proves t ϕ → logical_consequence t ϕ :=
+  begin
+    sorry,
+  end
+
+theorem completeness {L : lang} (t : theory L) : ∀ (ϕ : sentence L), 
+        proves t ϕ ↔ logical_consequence t ϕ :=
+  begin
+    sorry,
+  end
+
+theorem compactness {L : lang} (t : theory L) : ∀ (ϕ : sentence L), 
+        logical_consequence t ϕ → ∃ (t' ⊂ t), logical_consequence t' ϕ := 
+  begin
+    sorry,
+  end
