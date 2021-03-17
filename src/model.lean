@@ -201,7 +201,7 @@ instance embedding.inhabited {L : lang} {M : struc L} : inhabited (embedding M M
 
 /-- A bijective embedding between two `L`-structures is called an isomorphism.-/
 structure isomorphism {L: lang} (M N : struc L) extends (embedding M N) : Type :=
-(η_bij : function.bijective η)
+(η_bij : function.bijective η) (η_inv : embedding N M)
 
 
 /-- We argue that every structure has an isomorphism to itself via the identity
@@ -520,6 +520,16 @@ begin
 end
 
 
+theorem isomorphic_struc_satisfy_same_theory' (M₁ M₂ : struc L)
+  (η : isomorphism M₁ M₂) (σ : sentence L) : M₁ ⊨ σ → M₂ ⊨ σ :=
+begin
+  unfold models_sentence,
+  intro h1,
+  induction σ,
+  induction σ_val,
+  sorry,
+end
+
 /-- The full theory is an isomorphism invariant.-/
 theorem full_theory_is_isomorphism_invariant {M N : struc L}
  (η : isomorphism M N) : M ≡ N :=
@@ -528,10 +538,11 @@ begin
  intro σ,
  split,
  {
-   sorry,
+   exact isomorphic_struc_satisfy_same_theory' M N η σ,
  },
  {
    sorry,
+   --exact isomorphic_struc_satisfy_same_theory' N M σ,
  }
 end
 
