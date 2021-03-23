@@ -520,6 +520,48 @@ begin
 end
 
 
+-- TODO: Theorem: If two structures are isomorphic then they must satisfy the
+-- same theory.  Proof by induction on formulas.
+theorem isomorphic_struc_satisfy_same_theory (M₁ M₂ : struc L)
+  (η : isomorphism M₁ M₂) (σ : sentence L) : M₁ ⊨ σ → M₂ ⊨ σ :=
+begin
+  sorry
+end
+
+#check function.
+#check @function.inv_fun
+
+def isomorphism_inverse (M N : struc L) [nonempty M.univ] [nonempty N.univ]
+  (η : isomorphism M N) : isomorphism N M :=
+begin
+  let ηi := function.inv_fun η.η,
+  fconstructor,
+  { fconstructor,
+    { exact ηi,
+    },
+    { apply function.bijective.injective,
+      rw function.bijective_iff_has_inverse,
+      use η.η,
+      split,
+      have z := function.left_inverse.comp_eq_id,
+      unfold function.left_inverse,
+      intro x,
+
+      apply @function.inv_fun_eq,
+      use ηi x,
+
+
+      --refine function.right_inverse.left_inverse _,
+
+
+    sorry},
+  repeat {sorry},
+  },
+
+{sorry},
+end
+
+
 /-- The full theory is an isomorphism invariant.-/
 theorem full_theory_is_isomorphism_invariant {M N : struc L}
  (η : isomorphism M N) : M ≡ N :=
@@ -528,7 +570,7 @@ begin
  intro σ,
  split,
  {
-   sorry,
+   exact isomorphic_struc_satisfy_same_theory M N η σ,
  },
  {
    sorry,
@@ -775,15 +817,6 @@ structure complete_theory (t : theory L) :=
   va ⊨ ↑σ)
 (models_iff_models : ∀ (A₁ A₂ : Model t), ∀ (σ ∈ t),
   A₁.M ⊨ σ ↔ A₂.M ⊨ σ)
-
-
--- TODO: Theorem: If two structures are isomorphic then they must satisfy the
--- same theory.  Proof by induction on formulas.
-theorem isomorphic_struc_satisfy_same_theory (M₁ M₂ : struc L)
-  (η : isomorphism M₁ M₂) (σ : sentence L) : M₁ ⊨ σ → M₂ ⊨ σ :=
-begin
-  sorry
-end
 
 
 
