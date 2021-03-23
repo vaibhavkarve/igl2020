@@ -868,20 +868,20 @@ def extension_of_isomorphism (t : theory L) (M₁ M₂ : Model t) :
 
 /-Completeness and Compactness theorems-/
 
-lemma consequence_if_proves {L : lang} (t : theory L) : ∀ (ϕ : sentence L), 
+lemma consequence_if_proves {L : lang} (t : theory L) : ∀ (ϕ : sentence L),
       proves t ϕ → logical_consequence t ϕ :=
   begin
     sorry,
   end
 
-theorem completeness {L : lang} (t : theory L) : ∀ (ϕ : sentence L), 
+theorem completeness {L : lang} (t : theory L) : ∀ (ϕ : sentence L),
         proves t ϕ ↔ logical_consequence t ϕ :=
   begin
     sorry,
   end
 
-theorem compactness {L : lang} (t : theory L) : ∀ (ϕ : sentence L), 
-        logical_consequence t ϕ → ∃ (t' ⊂ t), logical_consequence t' ϕ := 
+theorem compactness {L : lang} (t : theory L) : ∀ (ϕ : sentence L),
+        logical_consequence t ϕ → ∃ (t' ⊂ t), logical_consequence t' ϕ :=
   begin
     sorry,
   end
