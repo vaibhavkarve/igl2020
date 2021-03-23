@@ -422,7 +422,10 @@ def var_occurs_freely (var : ℕ) : formula L → Prop
 def sentence (L : lang) : Type :=
   {ϕ : formula L // ∀ var, ¬ var_occurs_freely var ϕ}
 
-
+/- TODO: Fix mismatch error. The formula ⊤ is vacuously a sentence, but
+   Lean doesn't like that it's of type formula, not sentence. -/
+instance sentence.inhabited {L : lang} {n : ℕ}: inhabited (sentence L) :=
+  {default := ⊤'}
 
 /-- Since sentences are a subtype of formula, we define a coercion map for
     conveniently casting any sentence `s` to a formula by writing `↑s`.-/
