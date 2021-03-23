@@ -393,7 +393,9 @@ def vars_in_formula : formula L → finset ℕ
 | (∃' v ϕ)           := vars_in_formula ϕ ∪ {v}
 | (∀' v ϕ)           := vars_in_formula ϕ ∪ {v}
 
-
+/- The set of L-formulas for any language L must have ⊤ as a formula -/
+instance formula.inhabited {L : lang} : inhabited (formula L) :=
+  {default := formula.tt}
 
 /-- A variable occurs freely in a formula
     1. if it occurs in the formula, AND
@@ -419,6 +421,7 @@ def var_occurs_freely (var : ℕ) : formula L → Prop
     subtype of `L`-formulas that we call `L`-sentences.-/
 def sentence (L : lang) : Type :=
   {ϕ : formula L // ∀ var, ¬ var_occurs_freely var ϕ}
+
 
 
 /-- Since sentences are a subtype of formula, we define a coercion map for
