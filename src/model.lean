@@ -856,3 +856,25 @@ def extension_of_isomorphism (t : theory L) (M₁ M₂ : Model t) :
   ∃ (η' : extend_struc_by_element S₁ m → extend_struc_by_element S₂ m'),
   η' is_isomorphism ∧ (η' m = m') ∧ (η = η' on S₁)
 -- TODO: Show that this is true for DLOs.
+
+
+
+/-Completeness and Compactness theorems-/
+
+lemma consequence_if_proves {L : lang} (t : theory L) : ∀ (ϕ : sentence L),
+      proves t ϕ → logical_consequence t ϕ :=
+  begin
+    sorry,
+  end
+
+theorem completeness {L : lang} (t : theory L) : ∀ (ϕ : sentence L),
+        proves t ϕ ↔ logical_consequence t ϕ :=
+  begin
+    sorry,
+  end
+
+theorem compactness {L : lang} (t : theory L) : ∀ (ϕ : sentence L),
+        logical_consequence t ϕ → ∃ (t' ⊂ t), logical_consequence t' ϕ :=
+  begin
+    sorry,
+  end
