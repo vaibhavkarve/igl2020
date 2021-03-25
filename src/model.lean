@@ -436,7 +436,7 @@ instance coe_sentence_formula : has_coe (sentence L) (formula L) := ⟨λ s, s.v
 /- The formula ⊤ previously used to prove that formulas are inhabited is also
    vacuously a sentence -/
 instance sentence.inhabited {L : lang} : inhabited (sentence L) :=
-  {default := 
+  {default :=  
   begin 
     fconstructor,
 
@@ -732,6 +732,9 @@ a model of `T` and write `M ⊨ T` if `M ⊨ φ` for all sentences `φ ∈ T`.-/
 def theory (L : lang) : Type := set (sentence L)
 instance theory.has_mem : has_mem (sentence L) (theory L) := ⟨set.mem⟩
 
+/- A theory that is guaranteed to exist is the set {⊤'}, since ⊤' is guaranteed to be a sentence -/
+instance theory.inhabited {L : lang} : inhabited (theory L) :=
+  {default := }
 
 /-- We now define a model to be a structure that models a set of sentences
 and show `(ℚ, <)` models the axioms for DLO.-/
