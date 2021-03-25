@@ -422,15 +422,21 @@ def var_occurs_freely (var : ℕ) : formula L → Prop
 def sentence (L : lang) : Type :=
   {ϕ : formula L // ∀ var, ¬ var_occurs_freely var ϕ}
 
-/- TODO: Fix mismatch error. The formula ⊤ is vacuously a sentence, but
-   Lean doesn't like that it's of type formula, not sentence. -/
-instance sentence.inhabited {L : lang} {n : ℕ}: inhabited (sentence L) :=
-  {default := ⊤'}
 
 /-- Since sentences are a subtype of formula, we define a coercion map for
     conveniently casting any sentence `s` to a formula by writing `↑s`.-/
 instance coe_sentence_formula : has_coe (sentence L) (formula L) := ⟨λ s, s.val⟩
 
+/- The formula ⊤ previously used to prove that formulas are inhabited is also
+   vacuously a sentence -/
+instance sentence.inhabited {L : lang} : inhabited (sentence L) :=
+  {default := 
+  begin 
+    fconstructor,
+
+    exact default (formula L),
+    tauto,
+  end}
 
 /-! ## Satisfiability and Models -/
 
