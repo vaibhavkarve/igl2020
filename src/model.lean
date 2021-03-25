@@ -241,6 +241,12 @@ def substruc.closure {L : lang} {N : struc L} (M : set N.univ) : substruc N :=
 /-- A substructure is finite if it has only finitely many domain elements.-/
 class fin_substruc {L : lang} {N : struc L} (S : substruc N) :=
 (finite : set.finite S.univ)
+
+/- For a given structure N on a language L, an inhabited substructure can be generated from any subset 
+   of N.univ via substruc.closure -/
+instance substruc.inhabited {L : lang} {N : struc L} {α : set N.univ}: inhabited (substruc N) :=
+  {default := substruc.closure α}
+
 /-! ## Terms -/
 
 /-- We define terms in a language to be constants, variables, functions or
