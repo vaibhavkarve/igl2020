@@ -436,13 +436,7 @@ instance coe_sentence_formula : has_coe (sentence L) (formula L) := ⟨λ s, s.v
 /- The formula ⊤ previously used to prove that formulas are inhabited is also
    vacuously a sentence -/
 instance sentence.inhabited {L : lang} : inhabited (sentence L) :=
-  {default :=  
-  begin 
-    fconstructor,
-
-    exact default (formula L),
-    tauto,
-  end}
+  {default := ⟨default (formula L), by tauto⟩}
 
 /-! ## Satisfiability and Models -/
 
