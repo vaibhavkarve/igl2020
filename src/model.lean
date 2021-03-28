@@ -779,6 +779,8 @@ def is_complete_theory (t : theory L) : Prop :=
   ∀ (A₁ A₂ : Model t), A₁.M ≡ A₂.M
 
 
+lemma is_consistent_theory_full_theory (M : struc L) :
+  is_consistent_theory (full_theory M) := by {use M, tauto}
 
 -- TODO: Theorem: If two structures are isomorphic then they must satisfy the
 -- same theory.  Proof by induction on formulas.
