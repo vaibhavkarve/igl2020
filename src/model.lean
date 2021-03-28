@@ -443,8 +443,8 @@ def sentence (L : lang) : Type :=
 variables (ϕ : formula L) (σ: sentence L)
 
 /-- Since sentences are a subtype of formula, we define a coercion map for
-    conveniently casting any sentence `s` to a formula by writing `↑s`.-/
-instance coe_sentence_formula : has_coe (sentence L) (formula L) := ⟨λ s, s.val⟩
+    conveniently casting any sentence `σ` to a formula by writing `↑σ`.-/
+instance coe_sentence_formula : has_coe (sentence L) (formula L) := ⟨λ σ, σ.val⟩
 
 
 /-! ## Satisfiability and Models -/
