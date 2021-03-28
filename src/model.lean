@@ -489,6 +489,12 @@ infix ` ⊨ ` : 100 := models_formula  -- Type this as a variant of \entails.
 def models_sentence (M : struc L) (σ : sentence L) : Prop := ∃ va : ℕ → M.univ, va ⊨ σ
 notation M` ⊨ `σ : 100 := models_sentence M σ -- Type this as a variant of \entails.
 
+lemma models_formula_or_negation (va : ℕ → M.univ) :
+  models_formula va ϕ ∨ models_formula va (¬' ϕ) :=
+begin
+  by_cases (va ⊨ ϕ),
+  repeat {tauto},
+end
 
 /-- We say that two `L`-structures `M` and `N` are elementarily equivalent
 and write `M ≡ N` if : `M ⊨ φ` if and only if `N ⊨ φ` for all `L`-sentences
