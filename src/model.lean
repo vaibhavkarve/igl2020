@@ -833,7 +833,7 @@ def theory_kcategorical (k : cardinal) (t : theory L) :=
 /-- If a theory is k-categorical and has an infinite model,
     it is complete.-/
 theorem Vaught (k : cardinal) (h : L.card ≤ k) (t : theory L)
-  [has_infinite_model t] (hkc : theory_kcategorical k t) : complete_theory t :=
+  [has_infinite_model t] (hkc : theory_kcategorical k t) : is_complete_theory t :=
 begin
   -- Proceed by contradiction.
   -- ∃ σ, two models of T that satisfy σ and ¬σ respectively. Call them M₁ and M₂.
