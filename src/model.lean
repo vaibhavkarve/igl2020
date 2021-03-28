@@ -782,6 +782,25 @@ def is_complete_theory (t : theory L) : Prop :=
 lemma is_consistent_theory_full_theory (M : struc L) :
   is_consistent_theory (full_theory M) := by {use M, tauto}
 
+lemma is_complete_theory_full_theory (M : struc L) :
+  is_complete_theory (full_theory M) :=
+begin
+  unfold is_complete_theory,
+  intros A₁ A₂,
+  unfold elementarily_equivalent,
+  intros σ,
+  by_cases (σ ∈ full_theory M),
+  have H₁ : A₁.M ⊨ σ := A₁.satis σ h,
+  have H₂ : A₂.M ⊨ σ := A₂.satis σ h,
+  tauto,
+
+  have va : ℕ → A₁.M.univ := sorry,
+  --have H₁ : models_formula va A₁.M (¬' ↑σ) := suggest,
+  sorry,
+end
+
+
+
 -- TODO: Theorem: If two structures are isomorphic then they must satisfy the
 -- same theory.  Proof by induction on formulas.
 theorem isomorphic_struc_satisfy_same_theory (M₁ M₂ : struc L)
