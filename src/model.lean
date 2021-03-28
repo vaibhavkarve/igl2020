@@ -496,6 +496,14 @@ begin
   repeat {tauto},
 end
 
+lemma neg_of_sentece_is_sentence :
+   ∀ var, ¬ var_occurs_freely var (¬' (↑σ : formula L)) :=
+begin
+  intros v,
+  unfold var_occurs_freely,
+  cases σ,
+  exact σ_property v,
+end
 /-- We say that two `L`-structures `M` and `N` are elementarily equivalent
 and write `M ≡ N` if : `M ⊨ φ` if and only if `N ⊨ φ` for all `L`-sentences
 `φ`.-/
