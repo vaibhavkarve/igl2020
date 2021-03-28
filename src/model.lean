@@ -422,7 +422,7 @@ def vars_in_formula : formula L → finset ℕ
     For example, this function returns `false` on input `(var, ϕ)` in any of
     the following scenarios --
     - `var` does not occur in `ϕ` at all.
-    - `var` occurs in `ϕ` by only after a quantifier.-/
+    - `var` occurs in `ϕ` but only after a quantifier.-/
 def var_occurs_freely (var : ℕ) : formula L → Prop
 | ⊤'                 := false  -- doesn't occur
 | ⊥'                 := false  -- doesn't occur
@@ -439,6 +439,7 @@ def var_occurs_freely (var : ℕ) : formula L → Prop
     subtype of `L`-formulas that we call `L`-sentences.-/
 def sentence (L : lang) : Type :=
   {ϕ : formula L // ∀ var, ¬ var_occurs_freely var ϕ}
+
 
 
 /-- Since sentences are a subtype of formula, we define a coercion map for
