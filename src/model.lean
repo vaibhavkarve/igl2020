@@ -440,7 +440,7 @@ def var_occurs_freely (var : ℕ) : formula L → Prop
 def sentence (L : lang) : Type :=
   {ϕ : formula L // ∀ var, ¬ var_occurs_freely var ϕ}
 
-
+variables (ϕ : formula L) (σ: sentence L)
 
 /-- Since sentences are a subtype of formula, we define a coercion map for
     conveniently casting any sentence `s` to a formula by writing `↑s`.-/
