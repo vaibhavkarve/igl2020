@@ -768,13 +768,16 @@ def logical_consequence (t : theory L) (ϕ : sentence L) : Prop :=
 def coeset : set(sentence L) → set(formula L) := set.image coe
 
 
+-- Every inconsistent theory is complete
+
+def is_consistent_theory (t : theory L) : Prop :=
+  ∃ (M : struc L), ∀ (σ ∈ t), M ⊨ σ
+
 /-- A theory is complete if any pair of models satisfies exactly the same
 sentences.-/
-structure complete_theory (t : theory L) :=
-(has_model : ∃ (A : struc L), ∀ (va : ℕ → A.univ), ∀ (σ ∈ t),
-  va ⊨ ↑σ)
-(models_iff_models : ∀ (A₁ A₂ : Model t), ∀ (σ ∈ t),
-  A₁.M ⊨ σ ↔ A₂.M ⊨ σ)
+def is_complete_theory (t : theory L) : Prop :=
+  ∀ (A₁ A₂ : Model t), A₁.M ≡ A₂.M
+
 
 
 -- TODO: Theorem: If two structures are isomorphic then they must satisfy the
