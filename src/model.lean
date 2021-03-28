@@ -513,6 +513,8 @@ begin
   --by_cases (va ⊨ ϕ),
   --repeat {tauto},
 end
+
+
 /-- We say that two `L`-structures `M` and `N` are elementarily equivalent
 and write `M ≡ N` if : `M ⊨ φ` if and only if `N ⊨ φ` for all `L`-sentences
 `φ`.-/
