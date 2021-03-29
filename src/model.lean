@@ -527,7 +527,7 @@ def full_theory (M : struc L) : set (sentence L) := {ϕ : sentence L | M ⊨ ϕ}
 
 
 /-- `M ≡ N` iff their full theories match.-/
-lemma eq_full_theory_iff_elementary_equivalent {M N : struc L} : 
+lemma eq_full_theory_iff_elementary_equivalent {M N : struc L} :
       full_theory M = full_theory N ↔ M ≡ N :=
 begin
   unfold full_theory,
@@ -803,14 +803,29 @@ lemma models_formula_all_or_none_sentences {L: lang} (M : struc L)
   xor (∀ va : ℕ → M.univ, va ⊨ σ.val) (∀ va' : ℕ → M.univ, ¬ va' ⊨ σ.val) :=
 begin
   unfold xor,
-  cases σ with σ₁ σ₂ ,
+  cases σ with ϕ hϕ,
   simp,
-  left,
-  split,
-  rotate,
-  use function.const ℕ (default M.univ),
- cases σ₁,
- repeat {sorry},
+  have va := function.const ℕ (default M.univ),
+  cases ϕ,
+    case formula.tt
+    { simp [models_formula]},           -- every var-assignment satisfies ⊤'
+    case formula.ff
+    { simp [models_formula]},           -- every var-assign falsifies ⊥'
+    case formula.eq : t₁ t₂
+    { simp [models_formula],            -- Question/TODO: Not sure how to proceed.
+      sorry },
+    case formula.rel : n r vec
+    { admit },
+    case formula.neg : ϕ₁
+    { admit },
+    case formula.and : ϕ₁ ϕ₂
+    { admit },
+    case formula.or : ϕ₁ ϕ₂
+    { admit },
+    case formula.exi : x ϕ₁
+    { admit },
+    case formula.all : x ϕ₁
+    { admit },
 end
 
 
