@@ -457,8 +457,7 @@ language.
 In Lou's book (more general): we start instead with C ⊂ M.univ, and then add
 only elements of C as constants to the language. -/
 @[reducible] def expanded_lang (L : lang) (M : struc L) : lang :=
-  {C := M.univ ⊕ L.C,
-   .. L}
+  {C := M.univ ⊕ L.C, .. L}
 
 
 /-- Define expanded structures. -/
@@ -528,9 +527,77 @@ def full_theory (M : struc L) : set (sentence L) := {ϕ : sentence L | M ⊨ ϕ}
 
 
 /-- `M ≡ N` iff their full theories match.-/
-lemma eq_full_theory_iff_elementary_equivalent : sorry :=
+lemma eq_full_theory_iff_elementary_equivalent {M N : struc L} : 
+      full_theory M = full_theory N ↔ M ≡ N :=
+begin
+  unfold full_theory,
+  unfold elementarily_equivalent,
+  split,
+  {
+    intro h,
+    intro σ,
+    split,
+    {
+      intro hm,
+      have hs : σ ∈ {ϕ : sentence L | M ⊨ ϕ} := by solve_by_elim,
+      rw h at hs,
+      have hn : N ⊨ σ := by solve_by_elim,
+      exact hn,
+    },
+    {
+      intro hn,
+      have hs : σ ∈ {ϕ : sentence L | N ⊨ ϕ} := by solve_by_elim,
+      rw← h at hs,
+      have hm : M ⊨ σ := by solve_by_elim,
+      exact hm,
+    },
+  },
+  {
+    intro h,
+    finish,
+  }
+end
+
+
+-- TODO: Theorem: If two structures are isomorphic then they must satisfy the
+-- same theory.  Proof by induction on formulas.
+theorem isomorphic_struc_satisfy_same_theory (M₁ M₂ : struc L)
+  (η : isomorphism M₁ M₂) (σ : sentence L) : M₁ ⊨ σ → M₂ ⊨ σ :=
 begin
   sorry
+end
+
+#check function.
+#check @function.inv_fun
+
+def isomorphism_inverse (M N : struc L) [nonempty M.univ] [nonempty N.univ]
+  (η : isomorphism M N) : isomorphism N M :=
+begin
+  let ηi := function.inv_fun η.η,
+  fconstructor,
+  { fconstructor,
+    { exact ηi,
+    },
+    { apply function.bijective.injective,
+      rw function.bijective_iff_has_inverse,
+      use η.η,
+      split,
+      have z := function.left_inverse.comp_eq_id,
+      unfold function.left_inverse,
+      intro x,
+
+      apply @function.inv_fun_eq,
+      use ηi x,
+
+
+      --refine function.right_inverse.left_inverse _,
+
+
+    sorry},
+  repeat {sorry},
+  },
+
+{sorry},
 end
 
 
@@ -538,7 +605,15 @@ end
 theorem full_theory_is_isomorphism_invariant {M N : struc L}
  (η : isomorphism M N) : M ≡ N :=
 begin
- sorry
+ unfold elementarily_equivalent,
+ intro σ,
+ split,
+ {
+   exact isomorphic_struc_satisfy_same_theory M N η σ,
+ },
+ {
+   sorry,
+ }
 end
 
 
@@ -764,6 +839,10 @@ def satisfiable_theory (t : theory L) : Prop := nonempty (Model t)
 def logical_consequence (t : theory L) (ϕ : sentence L) : Prop :=
   (∀ A : Model t, A.M ⊨ ϕ)
 
+def proof (t : theory L) (ϕ : sentence L) : Prop := sorry
+
+def proves (t : theory L) (ϕ : sentence L) : Prop := ∃ (p : proof t ϕ)
+
 /-- Coercion over a set.-/
 def coeset : set(sentence L) → set(formula L) := set.image coe
 
@@ -813,6 +892,7 @@ end
 class has_infinite_model (t : theory L) : Type 1 :=
 (μ : Model t)
 (big : cardinal.omega ≤ μ.card)
+
 
 
 
