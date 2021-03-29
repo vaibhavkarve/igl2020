@@ -457,19 +457,12 @@ language.
 In Lou's book (more general): we start instead with C ⊂ M.univ, and then add
 only elements of C as constants to the language. -/
 @[reducible] def expanded_lang (L : lang) (M : struc L) : lang :=
-  {F := function.update L.F 0 (M.univ ⊕ L.C),
-   .. L}
+  {C := M.univ ⊕ L.C, .. L}
 
 
 /-- Define expanded structures. -/
 def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
-  {F := λ n f, by {dsimp only at f,
-                   unfold function.update at f,
-                   split_ifs at f with h,
-                   simp only [eq_rec_constant] at f,
-                   rw h,
-                   exact sum.cases_on f id M.C,
-                   exact f^M},
+  {C := λ c, sum.cases_on c id M.C,
    .. M}
 
 
