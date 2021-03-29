@@ -595,8 +595,6 @@ begin
     { admit }
 end
 
-#check function.
-#check @function.inv_fun
 
 def isomorphism_inverse (M N : struc L) [nonempty M.univ] [nonempty N.univ]
   (η : isomorphism M N) : isomorphism N M :=
@@ -869,14 +867,13 @@ def logical_consequence (t : theory L) (ϕ : sentence L) : Prop :=
 
 def proof (t : theory L) (ϕ : sentence L) : Prop := sorry
 
-def proves (t : theory L) (ϕ : sentence L) : Prop := ∃ (p : proof t ϕ)
+def proves (t : theory L) (ϕ : sentence L) : Prop := ∃ (p : proof t ϕ), sorry
 
 /-- Coercion over a set.-/
 def coeset : set(sentence L) → set(formula L) := set.image coe
 
 
 -- Every inconsistent theory is complete
-
 def is_consistent_theory (t : theory L) : Prop :=
   ∃ (M : struc L), ∀ (σ ∈ t), M ⊨ σ
 
