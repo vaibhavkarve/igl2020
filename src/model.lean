@@ -527,7 +527,7 @@ def full_theory (M : struc L) : set (sentence L) := {ϕ : sentence L | M ⊨ ϕ}
 
 
 /-- `M ≡ N` iff their full theories match.-/
-lemma eq_full_theory_iff_elementary_equivalent {M N : struc L} : 
+lemma eq_full_theory_iff_elementary_equivalent {M N : struc L} :
       full_theory M = full_theory N ↔ M ≡ N :=
 begin
   unfold full_theory,
