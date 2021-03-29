@@ -564,7 +564,35 @@ end
 theorem isomorphic_struc_satisfy_same_theory (M₁ M₂ : struc L)
   (η : isomorphism M₁ M₂) (σ : sentence L) : M₁ ⊨ σ → M₂ ⊨ σ :=
 begin
-  sorry
+  cases σ with ϕ hϕ,
+  rintros ⟨va, va_models_ϕ⟩,
+  have η_map := η.η,
+  use η_map ∘ va,
+  unfold_coes at *,
+  cases ϕ,
+    case formula.tt
+    { unfold models_formula},      -- every variable assignment satisfies T'
+    case formula.ff
+    { unfold models_formula at *,  -- no variable assignment can satisfy ⊥'
+      tauto,                       -- thus the hypothesis is impossible
+    },
+    case formula.eq : t₁ t₂
+    { unfold models_formula at *,
+      -- Question/TODO: term-interpret of t₁ under (η_map∘va) is same as
+      -- term-interpret of t₂ under (η_map∘va). Why? How can we show this?
+      sorry},
+    case formula.rel : n r vec
+    { admit },
+    case formula.neg : ϕ
+    { admit },
+    case formula.and : ϕ₁ ϕ₂
+    { admit },
+    case formula.or : ϕ₁ ϕ₂
+    { admit },
+    case formula.exi : x ϕ
+    { admit },
+    case formula.all : x ϕ
+    { admit }
 end
 
 #check function.
