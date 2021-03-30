@@ -832,8 +832,12 @@ end
 /-- An `L`-theory `T` is simply a set of `L`-sentences. We say that `M` is
 a model of `T` and write `M ⊨ T` if `M ⊨ φ` for all sentences `φ ∈ T`.-/
 def theory (L : lang) : Type := set (sentence L)
-instance theory.has_mem : has_mem (sentence L) (theory L) := ⟨set.mem⟩
 
+/-- Add standard instances for theories. Each instance is derived from the
+parent type `set (sentence L).-/
+instance theory.has_mem : has_mem (sentence L) (theory L) := set.has_mem
+instance theory.has_singleton : has_singleton (sentence L) (theory L) := set.has_singleton
+instance theory.has_union : has_union (theory L) := set.has_union
 
 /-- We now define a model to be a structure that models a set of sentences
 and show `(ℚ, <)` models the axioms for DLO.-/
