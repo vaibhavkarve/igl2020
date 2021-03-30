@@ -596,7 +596,9 @@ begin
 end
 
 
-def isomorphism_inverse (M N : struc L) [nonempty M.univ] [nonempty N.univ]
+-- TODO: But put this on hold till we figure out how to prove that the
+-- inverse of bijective function is bijective.
+noncomputable def isomorphism_inverse (M N : struc L) [nonempty M.univ] [nonempty N.univ]
   (η : isomorphism M N) : isomorphism N M :=
 begin
   let ηi := function.inv_fun η.η,
@@ -604,7 +606,9 @@ begin
   { fconstructor,
     { exact ηi,
     },
-    { apply function.bijective.injective,
+    { suggest,
+
+      apply function.bijective.injective,
       rw function.bijective_iff_has_inverse,
       use η.η,
       split,
@@ -614,12 +618,8 @@ begin
 
       apply @function.inv_fun_eq,
       use ηi x,
-
-
       --refine function.right_inverse.left_inverse _,
-
-
-    sorry},
+    repeat{sorry}},
   repeat {sorry},
   },
 
