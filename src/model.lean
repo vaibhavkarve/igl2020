@@ -728,7 +728,14 @@ instance theory.has_mem : has_mem (sentence L) (theory L) := ⟨set.mem⟩
 
 /- A theory that is guaranteed to exist is the set {⊤'}, since ⊤' is guaranteed to be a sentence -/
 instance theory.inhabited {L : lang} : inhabited (theory L) :=
-  {default := }
+  {default := 
+  begin
+    have σ := default (sentence L),
+    have g : set (sentence L),
+    exact {σ},
+
+    assumption, 
+  end}
 
 /-- We now define a model to be a structure that models a set of sentences
 and show `(ℚ, <)` models the axioms for DLO.-/
@@ -791,6 +798,12 @@ structure complete_theory (t : theory L) :=
 (models_iff_models : ∀ (A₁ A₂ : Model t), ∀ (σ ∈ t),
   A₁.M ⊨ σ ↔ A₂.M ⊨ σ)
 
+instance complete_theory.inhabited (t: theory L): inhabited (complete_theory t) :=
+  {default := 
+    begin
+    fconstructor,
+
+    end}
 
 -- TODO: Theorem: If two structures are isomorphic then they must satisfy the
 -- same theory.  Proof by induction on formulas.
@@ -799,8 +812,6 @@ theorem isomorphic_struc_satisfy_same_theory (M₁ M₂ : struc L)
 begin
   sorry
 end
-
-
 
 class has_infinite_model (t : theory L) :=
 (big:  ∃ μ : Model t, μ.card ≥ cardinal.omega)
