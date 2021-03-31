@@ -970,9 +970,12 @@ begin
 sorry,
 end
 
-
-def model_of_extended {t : theory L} {μ : Model t} {σ : sentence L} (sat_σ: μ.M ⊨ σ) :
-  Model (t ∪ {σ}) := ⟨μ.M, λ σ' H, by {cases H, exact μ.satis σ' H, rwa [← H.symm]}⟩
+/-- A theory can always be extended by sentences modeled by its struc. Here, we
+define the singleton-version of this result.
+-/
+def model_of_extended {t : theory L} {μ : Model t} {σ : sentence L}
+  (sat_σ: μ.M ⊨ σ) : Model (t ∪ {σ}) :=
+  ⟨μ.M, λ σ' H, by {cases H, exact μ.satis σ' H, rwa [← H.symm]}⟩
 
 
 def extend_struc_by_element : sorry := sorry
