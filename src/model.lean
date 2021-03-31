@@ -596,7 +596,9 @@ begin
 end
 
 
-def isomorphism_inverse (M N : struc L) [nonempty M.univ] [nonempty N.univ]
+-- TODO: But put this on hold till we figure out how to prove that the
+-- inverse of bijective function is bijective.
+noncomputable def isomorphism_inverse (M N : struc L) [nonempty M.univ] [nonempty N.univ]
   (η : isomorphism M N) : isomorphism N M :=
 begin
   let ηi := function.inv_fun η.η,
@@ -604,7 +606,9 @@ begin
   { fconstructor,
     { exact ηi,
     },
-    { apply function.bijective.injective,
+    { suggest,
+
+      apply function.bijective.injective,
       rw function.bijective_iff_has_inverse,
       use η.η,
       split,
@@ -614,12 +618,8 @@ begin
 
       apply @function.inv_fun_eq,
       use ηi x,
-
-
       --refine function.right_inverse.left_inverse _,
-
-
-    sorry},
+    repeat{sorry}},
   repeat {sorry},
   },
 
@@ -832,8 +832,12 @@ end
 /-- An `L`-theory `T` is simply a set of `L`-sentences. We say that `M` is
 a model of `T` and write `M ⊨ T` if `M ⊨ φ` for all sentences `φ ∈ T`.-/
 def theory (L : lang) : Type := set (sentence L)
-instance theory.has_mem : has_mem (sentence L) (theory L) := ⟨set.mem⟩
 
+/-- Add standard instances for theories. Each instance is derived from the
+parent type `set (sentence L).-/
+instance theory.has_mem : has_mem (sentence L) (theory L) := set.has_mem
+instance theory.has_singleton : has_singleton (sentence L) (theory L) := set.has_singleton
+instance theory.has_union : has_union (theory L) := set.has_union
 
 /-- We now define a model to be a structure that models a set of sentences
 and show `(ℚ, <)` models the axioms for DLO.-/
@@ -965,6 +969,14 @@ begin
 
 sorry,
 end
+
+/-- A theory can always be extended by sentences modeled by its struc. Here, we
+define the singleton-version of this result.
+-/
+def model_of_extended {t : theory L} {μ : Model t} {σ : sentence L}
+  (sat_σ: μ.M ⊨ σ) : Model (t ∪ {σ}) :=
+  ⟨μ.M, λ σ' H, by {cases H, exact μ.satis σ' H, rwa [← H.symm]}⟩
+
 
 def extend_struc_by_element : sorry := sorry
 
