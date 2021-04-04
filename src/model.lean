@@ -250,7 +250,6 @@ Intersection only makes sense for sets, not types.
 class fin_substruc {L : lang} {N : struc L} (S : substruc N) :=
 (finite : set.finite S.univ)
 
-
 /-- Every substruc is a struc.-/
 instance substruc.has_coe {L: lang} {M : struc L} : has_coe (substruc M) (struc L)
 := {coe := λ (S : substruc M),
@@ -259,6 +258,10 @@ instance substruc.has_coe {L: lang} {M : struc L} : has_coe (substruc M) (struc 
               R := λ _ r v, v.map coe ∈ (r̂M),
               C := λ c, ⟨M.C c, S.univ_invar_C c⟩}}
 
+/- For a given structure N on a language L, an inhabited substructure can be generated from any subset 
+   of N.univ via substruc.closure -/
+instance substruc.inhabited {L : lang} {N : struc L} {α : set N.univ}: inhabited (substruc N) :=
+ {default := substruc.closure α}
 
 /-! ## Terms -/
 
@@ -413,7 +416,9 @@ def vars_in_formula : formula L → finset ℕ
 | (∃' v ϕ)           := vars_in_formula ϕ ∪ {v}
 | (∀' v ϕ)           := vars_in_formula ϕ ∪ {v}
 
-
+/- The set of L-formulas for any language L must have ⊤ as a formula -/
+instance formula.inhabited {L : lang} : inhabited (formula L) :=
+  {default := formula.tt}
 
 /-- A variable occurs freely in a formula
     1. if it occurs in the formula, AND
@@ -446,6 +451,10 @@ variables (ϕ : formula L) (σ: sentence L)
     conveniently casting any sentence `σ` to a formula by writing `↑σ`.-/
 instance coe_sentence_formula : has_coe (sentence L) (formula L) := ⟨λ σ, σ.val⟩
 
+/- The formula ⊤ previously used to prove that formulas are inhabited is also
+   vacuously a sentence -/
+instance sentence.inhabited {L : lang} : inhabited (sentence L) :=
+  {default := ⟨formula.tt, by tauto⟩}
 
 /-! ## Satisfiability and Models -/
 
@@ -720,7 +729,6 @@ begin
   sorry,
 end
 
-
 /-- Suppose that va₁ and va₂ are variable assignment functions into a structure M
 such that va₁(v) = va₂(v) for every free variable v in the formula ϕ.
 Then M ⊨ ϕ[va₁] iff M ⊨ ϕ[va₂]. -/
@@ -839,6 +847,17 @@ instance theory.has_mem : has_mem (sentence L) (theory L) := set.has_mem
 instance theory.has_singleton : has_singleton (sentence L) (theory L) := set.has_singleton
 instance theory.has_union : has_union (theory L) := set.has_union
 
+/- A theory that is guaranteed to exist is the set {⊤'}, since ⊤' is guaranteed to be a sentence -/
+instance theory.inhabited {L : lang} : inhabited (theory L) :=
+  {default := 
+  begin
+    have σ := default (sentence L),
+    have g : set (sentence L),
+    exact {σ},
+
+    assumption, 
+  end}
+
 /-- We now define a model to be a structure that models a set of sentences
 and show `(ℚ, <)` models the axioms for DLO.-/
 structure Model {L : lang} (T : theory L)  :=
@@ -923,6 +942,12 @@ begin
 end
 
 
+instance complete_theory.inhabited (t: theory L): inhabited (complete_theory t) :=
+  {default := 
+    begin
+    fconstructor,
+
+    end}
 
 -- TODO: Theorem: If two structures are isomorphic then they must satisfy the
 -- same theory.  Proof by induction on formulas.
@@ -932,12 +957,9 @@ begin
   sorry
 end
 
-
 class has_infinite_model (t : theory L) : Type 1 :=
 (μ : Model t)
 (big : cardinal.omega ≤ μ.card)
-
-
 
 
 /-- Lowenheim-Skolem asserts that for a theory over a language L, if that theory
