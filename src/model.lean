@@ -245,8 +245,7 @@ class fin_substruc {L : lang} {N : struc L} (S : substruc N) :=
 /- For a given structure N on a language L, an inhabited substructure can be generated from any subset 
    of N.univ via substruc.closure -/
 instance substruc.inhabited {L : lang} {N : struc L} {α : set N.univ}: inhabited (substruc N) :=
-  {default := substruc.closure α}
-
+ {default := substruc.closure α}
 /-! ## Terms -/
 
 /-- We define terms in a language to be constants, variables, functions or
@@ -625,7 +624,6 @@ begin
   sorry,
   sorry
 end
-
 
 /-- Suppose that va₁ and va₂ are variable assignment functions into a structure M
 such that va₁(v) = va₂(v) for every free variable v in the formula ϕ.
