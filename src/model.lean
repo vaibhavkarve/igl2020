@@ -144,12 +144,13 @@ inhabited type.-/
 instance lang.inhabited : inhabited lang := {default := DLO_lang}
 
 
+/-- The cardinality of a language is defined to be the cardinality of the 
+    set of function symbols, constants and relations -/
 def lang.card (L : lang) : cardinal :=
   cardinal.sum (cardinal.mk ∘ L.F) + cardinal.sum (cardinal.mk ∘ L.R)
 
 
 /-! ## Structures -/
-
 
 /-- We now define an L-structure to be mapping of functions, relations and
  constants to appropriate elements of a domain/universe type.-/
@@ -172,11 +173,11 @@ local notation f^M := M.F f -- f^M denotes the interpretation of f in M.
 local notation r`̂`M : 150 := M.R r -- r̂M denotes the interpretation of r in
                                  -- M. (type as a variant of \^)
 
-
+/-- The cardinality of a structure is defined to be the cardinality of its universe -/
 def struc.card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 
-/-! ## Embeddings between Structures -/
 
+/-! ## Embeddings between Structures -/
 
 /-- An L-embedding is a map between two L-structures that is injective
 on the domain and preserves the interpretation of all the symbols of L.-/
@@ -213,6 +214,7 @@ instance isomorphism.inhabited {L : lang} {M : struc L} : inhabited (isomorphism
                .. default (embedding M M)}}
 
 
+/-- This definition has the same functionality as struc.card -/
 /-- The cardinality of a structure is the cardinality of its domain.-/
 def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 
@@ -221,7 +223,7 @@ def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
 /-- If η: M → N is an embedding, then the cardinality of N is at least the
   cardinality of M.-/
 lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
-  card M ≤ card N := cardinal.mk_le_of_injective η.η_inj
+  M.card ≤ N.card := cardinal.mk_le_of_injective η.η_inj
 
 
 
@@ -370,6 +372,15 @@ def term_sub_for_var (t' : term L 0) (k : ℕ) :
 
 /-! ##  Formulas and Sentences -/
 
+/-- An L-formula is a sequence of symbols from the union of L, Var, and {⊤, ⊥, =} where 
+    L is a language and Var is the set of variables. A formula can be inductively defined
+    as follows:
+    - ⊤ is a formula
+    - ⊥ is a formula
+    - t₁ = t₂, where t₁ and t₂ are formulas, is also a formula
+    - r t₁, ..., tₙ, where r is a n-ary relation in L and tᵢ is a formula, is also a formula
+    - ¬t₁, t₁ ∧ t₂, t₁ ∨ t₂, where t₁ and t₂ are formulas, are all also formulas 
+    - ∃x t, ∀x t, where x is a varible and t is a formula, are both also formulas -/
 inductive formula (L : lang)
 | tt : formula
 | ff : formula
@@ -391,9 +402,11 @@ notation ` ∀' ` : 110 := formula.all
 notation ` ⊤' ` : 110 := formula.tt
 notation ` ⊥' ` : 110 := formula.ff
 
+/-- φ₁ → φ₂ is logically equivalent to ¬φ₁ ∨ φ₂  -/
 def impl (φ₁ : formula L) (φ₂ : formula L) := ¬'φ₁ ∨' φ₂
 infix ` →' ` : 80 := impl
 
+/-- The biconditional is true when implication is true in both directions -/
 def bicond (φ₁ : formula L) (φ₂ : formula L) := (φ₁ →' φ₂)∧'(φ₂ →' φ₁)
 infix ` ↔' ` : 80 := bicond
 
@@ -494,6 +507,8 @@ def models_formula : (ℕ → M.univ) → formula L →  Prop
 
 infix ` ⊨ ` : 100 := models_formula  -- Type this as a variant of \entails.
 
+/-- We use the above definition for when a structure models a formala to define 
+   what it means to model a sentence, as all sentences are formulas -/
 def models_sentence (M : struc L) (σ : sentence L) : Prop := ∃ va : ℕ → M.univ, va ⊨ σ
 notation M` ⊨ `σ : 100 := models_sentence M σ -- Type this as a variant of \entails.
 
@@ -841,6 +856,7 @@ end
 a model of `T` and write `M ⊨ T` if `M ⊨ φ` for all sentences `φ ∈ T`.-/
 def theory (L : lang) : Type := set (sentence L)
 
+
 /-- Add standard instances for theories. Each instance is derived from the
 parent type `set (sentence L).-/
 instance theory.has_mem : has_mem (sentence L) (theory L) := set.has_mem
@@ -849,14 +865,7 @@ instance theory.has_union : has_union (theory L) := set.has_union
 
 /- A theory that is guaranteed to exist is the set {⊤'}, since ⊤' is guaranteed to be a sentence -/
 instance theory.inhabited {L : lang} : inhabited (theory L) :=
-  {default := 
-  begin
-    have σ := default (sentence L),
-    have g : set (sentence L),
-    exact {σ},
-
-    assumption, 
-  end}
+  {default := {default (sentence L)}}
 
 /-- We now define a model to be a structure that models a set of sentences
 and show `(ℚ, <)` models the axioms for DLO.-/
@@ -864,8 +873,8 @@ structure Model {L : lang} (T : theory L)  :=
 (M : struc L)
 (satis : ∀ σ ∈ T, M ⊨ σ)
 
+/-- The cardinality of a model is defined as the cardinality of its underlying structure -/
 def Model.card {t : theory L} (μ : Model t) : cardinal := μ.M.card
-
 
 
 /-- We say that a theory is satisfiable if it has a model.-/
@@ -941,14 +950,6 @@ begin
   sorry,
 end
 
-
-instance complete_theory.inhabited (t: theory L): inhabited (complete_theory t) :=
-  {default := 
-    begin
-    fconstructor,
-
-    end}
-
 -- TODO: Theorem: If two structures are isomorphic then they must satisfy the
 -- same theory.  Proof by induction on formulas.
 theorem isomorphic_struc_satisfy_same_theory (M₁ M₂ : struc L)
@@ -969,7 +970,7 @@ axiom LS_Lou (k : cardinal) (h : L.card ≤ k) (t : theory L) [has_infinite_mode
   ∃ μ : Model t, μ.card = k
 
 
-/- A theory is k-categorical if all models of cardinality k are isomorphic as
+/-- A theory is k-categorical if all models of cardinality k are isomorphic as
    structures.-/
 def theory_kcategorical (k : cardinal) (t : theory L) :=
   ∀ (M₁ M₂ : Model t), M₁.card = k ∧ M₂.card = k → nonempty (isomorphism M₁.M M₂.M)
