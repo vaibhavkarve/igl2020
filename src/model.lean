@@ -253,17 +253,22 @@ class fin_substruc {L : lang} {N : struc L} (S : substruc N) :=
 (finite : set.finite S.univ)
 
 /-- Every substruc is a struc.-/
-instance substruc.has_coe {L: lang} {M : struc L} : has_coe (substruc M) (struc L)
-:= {coe := λ (S : substruc M),
-           {univ := S.univ,
-              F := λ n f, (f^M).map (S.univ_invar_F n f),
-              R := λ _ r v, v.map coe ∈ (r̂M),
-              C := λ c, ⟨M.C c, S.univ_invar_C c⟩}}
+instance substruc.has_coe {L: lang} {M : struc L} :
+  has_coe (substruc M) (struc L)
+:= {coe := λ S, {univ := S.univ,
+                 F := λ n f, (f^M).map (S.univ_invar_F n f),
+                 R := λ _ r v, v.map coe ∈ (r̂M),
+                 C := λ c, ⟨M.C c, S.univ_invar_C c⟩,
+                 univ_inhabited := S.univ_inhabited}}
 
-/- For a given structure N on a language L, an inhabited substructure can be generated from any subset 
-   of N.univ via substruc.closure -/
-instance substruc.inhabited {L : lang} {N : struc L} {α : set N.univ}: inhabited (substruc N) :=
- {default := substruc.closure α}
+/- For a given structure N on a language L, an inhabited substructure can
+   be generated from any subset of N.univ via substruc.closure -/
+instance substruc.inhabited {L : lang} {N : struc L} {α : set N.univ} :
+  inhabited (substruc N) :=
+ {default := {univ := set.univ,
+              univ_invar_F := by simp,
+              univ_invar_C := by simp,
+              univ_inhabited := ⟨⟨@default N.univ N.univ_inhabited, by simp⟩⟩}}
 
 /-! ## Terms -/
 
