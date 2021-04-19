@@ -233,7 +233,8 @@ Note: the other conditions for `η` being an `L`-embedding follow from the
 definition of `coe`.
 -/
 structure substruc {L : lang} (N : struc L) : Type :=
-(univ : set N.univ)              -- a subset of N.univ
+(univ : set N.univ)                        -- a subset of N.univ
+[univ_inhabited : inhabited univ]          -- the subset should have a default
 (univ_invar_F :  ∀ (n : ℕ+) (f : L.F n) (v : vector univ n),
                  f^N ⊗ (v.map coe) ∈ univ)  -- univ is invariant over f
 (univ_invar_C : ∀ (c : L.C), N.C c ∈ univ) -- univ contains all constants
@@ -252,17 +253,22 @@ class fin_substruc {L : lang} {N : struc L} (S : substruc N) :=
 (finite : set.finite S.univ)
 
 /-- Every substruc is a struc.-/
-instance substruc.has_coe {L: lang} {M : struc L} : has_coe (substruc M) (struc L)
-:= {coe := λ (S : substruc M),
-           {univ := S.univ,
-              F := λ n f, (f^M).map (S.univ_invar_F n f),
-              R := λ _ r v, v.map coe ∈ (r̂M),
-              C := λ c, ⟨M.C c, S.univ_invar_C c⟩}}
+instance substruc.has_coe {L: lang} {M : struc L} :
+  has_coe (substruc M) (struc L)
+:= {coe := λ S, {univ := S.univ,
+                 F := λ n f, (f^M).map (S.univ_invar_F n f),
+                 R := λ _ r v, v.map coe ∈ (r̂M),
+                 C := λ c, ⟨M.C c, S.univ_invar_C c⟩,
+                 univ_inhabited := S.univ_inhabited}}
 
-/- For a given structure N on a language L, an inhabited substructure can be generated from any subset 
-   of N.univ via substruc.closure -/
-instance substruc.inhabited {L : lang} {N : struc L} {α : set N.univ}: inhabited (substruc N) :=
- {default := substruc.closure α}
+/- For a given structure N on a language L, an inhabited substructure can
+   be generated from any subset of N.univ via substruc.closure -/
+instance substruc.inhabited {L : lang} {N : struc L} {α : set N.univ} :
+  inhabited (substruc N) :=
+ {default := {univ := set.univ,
+              univ_invar_F := by simp,
+              univ_invar_C := by simp,
+              univ_inhabited := ⟨⟨@default N.univ N.univ_inhabited, by simp⟩⟩}}
 
 /-! ## Terms -/
 
@@ -455,7 +461,7 @@ instance coe_sentence_formula : has_coe (sentence L) (formula L) := ⟨λ σ, σ
 /- The formula ⊤ previously used to prove that formulas are inhabited is also
    vacuously a sentence -/
 instance sentence.inhabited {L : lang} : inhabited (sentence L) :=
-  {default := ⟨formula.tt, by tauto⟩}
+  {default := ⟨⊤', by tauto⟩}
 
 /-! ## Satisfiability and Models -/
 
@@ -849,18 +855,11 @@ instance theory.has_mem : has_mem (sentence L) (theory L) := set.has_mem
 instance theory.has_singleton : has_singleton (sentence L) (theory L) := set.has_singleton
 instance theory.has_union : has_union (theory L) := set.has_union
 instance theory.has_subset : has_subset (theory L) := set.has_subset
+/- There always exists an L-theory, having a single sentence given by {⊤'},
+   since ⊤' is always guaranteed to be a sentence -/
+instance theory.inhabited {L : lang} : inhabited (theory L) := set.inhabited
 
 
-/- A theory that is guaranteed to exist is the set {⊤'}, since ⊤' is guaranteed to be a sentence -/
-instance theory.inhabited {L : lang} : inhabited (theory L) :=
-  {default := 
-  begin
-    have σ := default (sentence L),
-    have g : set (sentence L),
-    exact {σ},
-
-    assumption, 
-  end}
 
 /-- We now define a model to be a structure that models a set of sentences
 and show `(ℚ, <)` models the axioms for DLO.-/
@@ -945,21 +944,6 @@ begin
   sorry,
 end
 
-
-instance complete_theory.inhabited (t: theory L): inhabited (complete_theory t) :=
-  {default := 
-    begin
-    fconstructor,
-
-    end}
-
--- TODO: Theorem: If two structures are isomorphic then they must satisfy the
--- same theory.  Proof by induction on formulas.
-theorem isomorphic_struc_satisfy_same_theory (M₁ M₂ : struc L)
-  (η : isomorphism M₁ M₂) (σ : sentence L) : M₁ ⊨ σ → M₂ ⊨ σ :=
-begin
-  sorry
-end
 
 class has_infinite_model (t : theory L) : Type 1 :=
 (μ : Model t)

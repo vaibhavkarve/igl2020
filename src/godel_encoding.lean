@@ -1,7 +1,7 @@
 import model
 
-/--This is a (currently abandoned) attempt at defining a Godel Encoding.-/
-/-- Godel Encoding/Numbering
+/--This is a (currently abandoned) attempt at defining a Godel Encoding.
+    Godel Encoding/Numbering
     =======================
 
 Section 5.5 in Lou's notes.
@@ -28,7 +28,7 @@ constant stream.primes : stream nat.primes
 #eval list.filter nat.prime (list.range 15)
 
 -- ⟨a, b⟩ → 2^{a+1}*3^{b+1} and so on
-
+#exit
 def encoding1 : Π n, vector ℕ n → ℕ
 | 0 v     := 1
 | 1 v     := (stream.primes 0)^(v.nth 0 + 1)
