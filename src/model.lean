@@ -945,21 +945,6 @@ begin
 end
 
 
-instance complete_theory.inhabited (t: theory L): inhabited (complete_theory t) :=
-  {default := 
-    begin
-    fconstructor,
-
-    end}
-
--- TODO: Theorem: If two structures are isomorphic then they must satisfy the
--- same theory.  Proof by induction on formulas.
-theorem isomorphic_struc_satisfy_same_theory (M₁ M₂ : struc L)
-  (η : isomorphism M₁ M₂) (σ : sentence L) : M₁ ⊨ σ → M₂ ⊨ σ :=
-begin
-  sorry
-end
-
 class has_infinite_model (t : theory L) : Type 1 :=
 (μ : Model t)
 (big : cardinal.omega ≤ μ.card)
