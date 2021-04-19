@@ -233,7 +233,8 @@ Note: the other conditions for `η` being an `L`-embedding follow from the
 definition of `coe`.
 -/
 structure substruc {L : lang} (N : struc L) : Type :=
-(univ : set N.univ)              -- a subset of N.univ
+(univ : set N.univ)                        -- a subset of N.univ
+[univ_inhabited : inhabited univ]          -- the subset should have a default
 (univ_invar_F :  ∀ (n : ℕ+) (f : L.F n) (v : vector univ n),
                  f^N ⊗ (v.map coe) ∈ univ)  -- univ is invariant over f
 (univ_invar_C : ∀ (c : L.C), N.C c ∈ univ) -- univ contains all constants
