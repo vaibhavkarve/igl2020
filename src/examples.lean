@@ -7,18 +7,19 @@ import model
 /-- We now define some example languages. We start with the simplest
 possible language, the language of pure sets. This language has no
 functions, relations or constants.-/
-def set_lang: lang := {F := function.const ℕ empty,
-                       R := function.const ℕ empty}
+def set_lang: lang := {F := function.const ℕ+ empty,
+                       R := function.const ℕ+ empty,
+                       C := empty}
 
 
 /-- The language of ordered sets is the language or sets with a binary
   ordering relation {<}.-/
-def ordered_set_lang: lang := {R := λ n : ℕ, if n=2 then unit else empty,
+def ordered_set_lang: lang := {R := λ n : ℕ+, if n=2 then unit else empty,
                                ..set_lang}
 
 /-- A magma is a {×}-structure. So this has 1 function, 0 relations and
 0 constants.-/
-def magma_lang : lang := {F := λ n : ℕ, if n=2 then unit else empty,
+def magma_lang : lang := {F := λ n : ℕ+, if n=2 then unit else empty,
                           ..set_lang}
 
 
@@ -30,10 +31,10 @@ def semigroup_lang : lang := magma_lang
    1. u × (v × w) = (u × v) × w
    2. u × 1 = u
    3. 1 × u = u. -/
-def monoid_lang : lang := {F := λ n : ℕ,
-                                if n=0 then unit else        -- one constant
-                                if n=2 then unit else empty, -- one binary op.
-                           ..set_lang}
+def monoid_lang : lang := {F := λ n : ℕ+,
+                                if n=2 then unit else empty, -- one binary op.,
+                           C := unit,                        -- one constant
+                           R := function.const ℕ+ empty}
 
 /-- A group is a {×, ⁻¹, 1}-structure which satisfies the identities
  1. u × (v × w) = (u × v) × w
@@ -41,10 +42,10 @@ def monoid_lang : lang := {F := λ n : ℕ,
  3. 1 × u = u
  4. u × u−1 = 1
  5. u−1 × u = 1 -/
-def group_lang : lang := {F := λ n : ℕ,
-                               if n=0 then unit else        -- one constant
+def group_lang : lang := {F := λ n : ℕ+,
                                if n=1 then unit else        -- one unary op.
                                if n=2 then unit else empty, -- one binary op.
+                          C := unit,                        -- one constant
                           ..set_lang}
 
 /-- A semiring is a {×, +, 0, 1}-structure which satisfies the identities
@@ -55,10 +56,10 @@ def group_lang : lang := {F := λ n : ℕ,
   6. u × 1 = u, 1 × u = u
   7. u × (v + w) = (u × v) + (u × w)
   8. (v + w) × u = (v × u) + (w × u)-/
-def semiring_lang : lang := {F := λ n : ℕ,
-                                  if n = 0 then fin 2 else          -- two constants
-                                  if n = 2 then fin 2 else empty,   -- two binary ops.
-                          ..magma_lang}
+def semiring_lang : lang := {F := λ n : ℕ+,
+                                  if n = 2 then fin 2 else empty, -- two binary ops.
+                             C := fin 2,                     -- two constants
+                             ..magma_lang}
 
 
 /-- A ring is a {×,+,−,0,1}-structure which satisfies the identities
@@ -70,158 +71,137 @@ def semiring_lang : lang := {F := λ n : ℕ,
    6. u × 1 = u, 1 × u = u
    7. u × (v + w) = (u × v) + (u × w)
    8. (v + w) × u = (v × u) + (w × u)-/
-def ring_lang : lang := {F := λ n : ℕ,
-                              if n = 0 then fin 2 else        -- two constants
+def ring_lang : lang := {F := λ n : ℕ+,
                               if n = 1 then fin 1 else        -- one unary op.
                               if n = 2 then fin 2 else empty, -- two binary ops.
-                        ..magma_lang}
+                         C := fin 2,                          -- two constants
+                         ..magma_lang}
 
 /-- An ordered ring is a ring along with a binary ordering relation {<}.-/
-def ordered_ring_lang : lang := {R := λ n : ℕ,
+def ordered_ring_lang : lang := {R := λ n : ℕ+,
                                 if n = 2 then unit else empty,  -- one binary rel.
                                 ..ring_lang}
 
 
-/-- Type is a structure of the set language-/
-def type_is_struc_of_set_lang {A : Type} : struc (set_lang) :=
+/-- An inhabited type is a structure of the set language-/
+def type_is_struc_of_set_lang {A : Type} [inhabited A] : struc (set_lang) :=
  {univ := A,
-  F := λ _ f, empty.elim f,
-  R := λ _ r, empty.elim r}
+  F := λ _, empty.elim,
+  R := λ _, empty.elim,
+  C := empty.elim}
 
 
 /-- Type is a structure of the ordered set language-/
-def type_is_struc_of_ordered_set_lang {A : Type} [has_lt A]:
+def type_is_struc_of_ordered_set_lang {A : Type} [has_lt A] [inhabited A]:
   struc (ordered_set_lang) :=
   {univ := A,
-   F := λ _ f, empty.elim f,
-   R := by {intros n r v,
-            iterate {cases n, cases r},
-            exact (v.nth 0 < v.nth 1),
-            cases r}}
+   F := λ _, empty.elim,
+   R := λ n r v, by {repeat {cases n <|> unfold_coes at v <|> linarith
+                             <|> cases r <|> cases n_val},
+                     exact (v.nth 0 < v.nth 1)},
+   C := empty.elim}
 
 
 
---
 /-- We need to define a magma, because it looks like it is not defined
   in Mathlib.-/
 class magma (α : Type) :=
 (mul : α → α → α)
 
 
-def free_magma_is_struc_of_magma_lang {A : Type} [magma A] :
+def free_magma_is_struc_of_magma_lang {A : Type} [magma A] [inhabited A] :
   struc (magma_lang) :=
   {univ := A,
-   F := by {intros n f,
-            iterate {cases n, cases f}, -- if n=0,1
-            exact magma.mul, -- if n=2
-            cases f},        -- if n≥3
-   R := λ _ r, empty.elim r}
+   F := λ n f, by {repeat {cases n with n_val _ <|> unfold_coes <|> cases f
+                    <|> linarith <|> cases n_val},
+                   exact magma.mul}, -- if n=2
+   R := λ _, empty.elim,
+   C := empty.elim}
 
 
-def semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] :
+def semigroup_is_struc_of_semigroup_lang {A : Type} [semigroup A] [inhabited A] :
   struc (semigroup_lang) :=
   {univ := A,
-   F := by {intros n f,
-            iterate {cases n, cases f},
-            exact semigroup.mul,
-            cases f},
-   R := λ _ r, empty.elim r}
+   F := λ n f, by {repeat {cases n <|> linarith <|> cases f <|> cases n_val},
+                   exact semigroup.mul},
+   R := λ _, empty.elim,
+   C := empty.elim}
 
 
 /-- Monoid is a structure of the language of monoids-/
 def monoid_is_struc_of_monoid_lang {A : Type} [monoid A] :
   struc (monoid_lang) :=
   {univ := A,
-   F := by {intros n f,
-            cases n, cases f,
-              {exact 1},
-            iterate {cases n, cases f},
-            exact monoid.mul,
-            cases f},
-   R := λ _ r, empty.elim r}
-
+   F := λ n f, by {repeat {cases n <|> cases f <|> linarith <|> cases n_val},
+                   exact monoid.mul},
+   R := λ _, empty.elim,
+   C := 1,
+   univ_inhabited := ⟨1⟩}
 
 /-- Group is a structure of the group language-/
 def group_is_struc_of_group_lang {A : Type} [group A] :
   struc (group_lang) :=
   {univ := A,
-   F := by {intros n f,
-            iterate {cases n, cases f},
-              exact 1,
-            iterate {cases n, cases f},
-              exact group.inv,
-            iterate {cases n, cases f},
-              exact group.mul,
-            cases f},
-    R := λ _ r, empty.elim r}
+   F := λ n f, by {repeat {cases n <|> linarith <|> cases f <|> cases n_val},
+                   exact group.inv,
+                   exact group.mul},
+   ..monoid_is_struc_of_monoid_lang}
 
 
 /-- Semiring is a structure of the language of semirings-/
 def semiring_is_struc_of_semiring_lang {A : Type} [semiring A] :
   struc (semiring_lang) :=
   {univ := A,
-   F := by {intros n f,
-            iterate {cases n, cases f},
-            cases f_val,
-              exact semiring.zero,
-              exact semiring.one,
-            iterate {cases n, cases f},
-            cases f_val,
-              exact semiring.add,
-              exact semiring.mul,
-            cases f},
-   R := λ _ r, empty.elim r}
+   F := λ n f, by {cases n, cases n_val,
+                     {linarith},
+                   cases n_val, cases f,
+                   cases n_val, cases f,
+                     {cases f_val,
+                      exact (+),
+                      exact (*)},
+                   cases f},
+   R := λ _, empty.elim,
+   C := λ c, by {cases c, cases c_val, exact 0, exact 1},
+   univ_inhabited := ⟨0⟩}
 
 
 /-- Ring is a structure of the language of rings-/
 def ring_is_struc_of_ring_lang {A : Type} [ring A] :
   struc (ring_lang) :=
   {univ := A,
-   F := by {intros n f,
-            iterate {cases n, cases f},
-            cases f_val,
-              exact ring.zero,
-              exact ring.one,
-            iterate {cases n, cases f},
-              exact ring.neg,
-            iterate {cases n, cases f},
-            cases f_val,
-              exact ring.add,
-              exact ring.mul,
-            cases f},
-   R := λ _ r, empty.elim r}
+   F := λ n f, by {cases n, cases n_val,
+                     {linarith},
+                   cases n_val,
+                     {exact ring.neg},
+                   cases n_val, cases f,
+                     {cases f_val,
+                      exact (+),
+                      exact (*)},
+                   cases f},
+   ..semiring_is_struc_of_semiring_lang}
 
 
 /-- Ordered ring is a structure of the language of ordered rings-/
 def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
   : struc(ordered_ring_lang) :=
   {univ := A,
-   F := by {intros n f,
-            iterate {cases n, cases f},
-            cases f_val,
-              exact ring.zero,
-              exact ring.one,
-            iterate {cases n, cases f},
-              exact ring.neg,
-            iterate {cases n, cases f},
-            cases f_val,
-              exact ring.add,
-              exact ring.mul,
-            cases f},
-   R := by {intros n r v,
-            iterate {cases n, cases r},
-            exact (v.nth 0 < v.nth 1),
-            cases r}}
+   R := λ n r v, by {cases n, cases n_val,
+                       {linarith},
+                     cases n_val, cases r,
+                       {unfold_coes at v,
+                        exact v.nth 0 < v.nth 1}},
+   ..ring_is_struc_of_ring_lang}
 
 
 /-- A type with linear order is a structure on dense-linear-order language.-/
-def LO_is_struc_of_DLO_lang {A : Type} [linear_order A] : struc (DLO_lang) :=
+def LO_is_struc_of_DLO_lang {A : Type} [linear_order A] [inhabited A]
+ : struc (DLO_lang) :=
   {univ := A,
-   R := by {intros n r v,
-            iterate {cases n, cases r},
-            exact (v.nth 0 < v.nth 1),
-            cases r,
-          },
+   R := λ n r v, by {cases n, cases n_val,
+                       {linarith},
+                     cases n_val, cases r,
+                       {unfold_coes at v,
+                        exact (v.nth 0 < v.nth 1)}},
    .. type_is_struc_of_set_lang}
 
 
@@ -269,11 +249,11 @@ namespace example_terms
   - one binary function g,
   - and one constant symbol c.-/
 
-  def L1 : lang := {F := λ n,
-                         if n=0 then unit else        -- one constant
+  def L1 : lang := {F := λ (n : ℕ+),
                          if n=1 then unit else        -- one unary op.
                          if n=2 then unit else empty, -- one binrary op.
-                    R := function.const ℕ empty}
+                    R := function.const ℕ+ empty,
+                    C := unit}
   /-- f is a unary operation in L1. -/
   def f : L1.F 1 := unit.star
   /-- g is a binary operation in L1. -/
@@ -284,12 +264,16 @@ namespace example_terms
   /-- M1 is a structure on L1. -/
   def M1 : struc L1 :=
   {univ := ℕ,
-   F := by {intros n f,
-            cases n, { exact 1},               -- if n=0
-            cases n, { exact λ x : ℕ, 100*x}, -- if n=1
-            cases n, { exact (+)},             -- if n=2
-            cases f},                          -- if n>2
-   R := λ _ f _, by {cases f}}
+   F := λ n f, by {cases n, cases n_val,
+                     { linarith},
+                   cases n_val,
+                     { exact λ x : ℕ, 100*x}, -- if n=1
+                   cases n_val,
+                     { exact (+)},             -- if n=2
+                   cases f},                   -- if n>2
+   R := λ _, empty.elim,
+   C := λ c, 1,
+   }
 
 
   open term
@@ -352,10 +336,15 @@ namespace DLO_Model
 
 @[reducible] def Q_struc : struc DLO_lang :=
  { univ := ℚ,
-   R := λ n f, by {iterate 2 {cases n, exact ∅},
-                   cases n, exact {v : vector ℚ 2 | v.nth 0 < v.nth 1},
-                   exact ∅},
-  F := λ _ f, by {cases f},
+   R := λ n f, by { cases n, cases n_val,
+                      {linarith},
+                    cases n_val,
+                      {exact ∅},
+                    cases n_val,
+                      {exact {v : vector ℚ 2 | v.nth 0 < v.nth 1}},
+                    exact ∅},
+  F := λ _, empty.elim,
+  C := empty.elim
  }
 notation `<'` : 110 := @formula.rel DLO_lang 2 ()
 
@@ -385,7 +374,7 @@ def DLO_axioms : set (formula DLO_lang) :=
    ∀'1 (∃'2 (φ₂)),
    ∀'1 (∀'2 (φ₁ →' ∃'3(φ₅ ∧' φ₄)))}
 
-
+-- TODO: complete this definition of DLO_theory
 def DLO_theory : set (sentence DLO_lang) :=
  { (⟨∀'1 (∀'2 (¬' φ₆)), by { simp [var_occurs_freely, φ₆, vars_in_list],
                              intros _ _ _,
@@ -399,7 +388,8 @@ def DLO_theory : set (sentence DLO_lang) :=
    }
 
 
-def Q_Model_DLO : Model (DLO_axioms) :=
+#exit
+def Q_Model_DLO : Model (DLO_theory) :=
  { M := Q_struc,
    satis :=
    begin
