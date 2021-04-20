@@ -953,18 +953,11 @@ instance infinite_model_of_theory_extended {T : theory L} {μ₁ : Model T} {σ 
 
 /-- If a theory is k-categorical and has an infinite model,
     it is complete.-/
-theorem Vaught (k : cardinal) (h : L.card ≤ k) (t : theory L)
-  (kbig : cardinal.omega ≤ k)
-  (models_infinite : Π (M : Model t), cardinal.omega ≤ M.card)
-  [has_infinite_model t] (hkc : theory_kcategorical k t) : is_complete_theory t :=
+theorem Vaught (k : cardinal) (h : L.card ≤ k) (kbig : cardinal.omega ≤ k)
+  (models_infinite : ∀ (μ : Model T), cardinal.omega ≤ μ.card)
+  (hkc : theory_kcategorical k T)
+  : is_complete_theory T :=
 begin
-  -- Proceed by contradiction.
-  -- ∃ σ, two models of T that satisfy σ and ¬σ respectively. Call them M₁ and M₂.
-  -- This means M₁ models T∪{σ} and M₂ models T∪{¬σ}.
-  -- We get two models M₃ and M₄ of same cardinality due to LS.
-  -- M₃ and M₄ both model T.
-  -- But by kcategoricity, M₃ and M₄ are isomorphic.
-  -- Achieve a contradiction using isomorphic_struc_satisfy_same_theory.
   intros A₁ A₂ σ,
   split,
   { intro h₁,
