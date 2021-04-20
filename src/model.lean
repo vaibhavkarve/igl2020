@@ -919,32 +919,30 @@ end
 /-- Lowenheim-Skolem asserts that for a theory over a language L, if that theory
     has an infinite model, then it has a model for any infinite cardinality
     greater than or equal to |L|-/
-axiom LS_Lou (k : cardinal) (kbig : cardinal.omega ≤ k) (h : L.card ≤ k) (t : theory L) [has_infinite_model t]:
-  ∃ μ : Model t, μ.card = k
+axiom LS_Lou [has_infinite_model T] {k : cardinal}
+  (kbig : cardinal.omega ≤ k) (h : L.card ≤ k) :
+  ∃ μ : Model T, μ.card = k
 
 
 /- A theory is k-categorical if all models of cardinality k are isomorphic as
    structures.-/
-def theory_kcategorical (k : cardinal) (t : theory L) :=
-  ∀ (M₁ M₂ : Model t), M₁.card = k ∧ M₂.card = k → nonempty (isomorphism M₁.M M₂.M)
+def theory_kcategorical (k : cardinal) (T : theory L) :=
+  ∀ (M₁ M₂ : Model T), M₁.card = k ∧ M₂.card = k
+  → nonempty (isomorphism M₁.M M₂.M)
 
 
 /-- A theory can always be extended by sentences modeled by its struc. Here, we
 define the singleton-version of this result.
 -/
-def model_of_extended {t : theory L} {μ : Model t} {σ : sentence L}
-  (sat_σ: μ.M ⊨ σ) : Model (t ∪ {σ}) :=
-  ⟨μ.M, λ σ' H, by {cases H, exact μ.satis σ' H, rwa [← H.symm]}⟩
+def model_of_extended {T : theory L} {μ : Model T} {σ : sentence L}
+  (sat_σ: μ.M ⊨ σ) : Model (T ∪ {σ}) :=
+  ⟨μ.M, λ σ' H, by {cases H, exact μ.satis H, rwa [← H.symm]}⟩
 
-def model_of_subset (t s : theory L) (M : Model t) (H : s ⊆ t) : Model s :=
+def model_of_subset {t s : theory L} (M : Model t) (H : s ⊆ t) : Model s :=
   {M := M.M,
-   satis := by {intros σ h,
-                apply M.satis,
-                exact set.mem_of_subset_of_mem H h}}
+   satis := λ σ h,  M.satis (set.mem_of_subset_of_mem H h)}
 
 
---def sentence_neg : sentence L → sentence L :=
---lemma models_negation_not_sentence (M : struc L) : M ⊨ ¬' σ →
 
 
 /-- If a theory is k-categorical and has an infinite model,
