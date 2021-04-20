@@ -871,10 +871,7 @@ structure proof (T : theory L) (ϕ : formula L) : Type :=
 (steps_nonempty : steps ≠ [] := by tauto)
 (conclusion : list.last steps steps_nonempty = ϕ)
 
-def proves (t : theory L) (ϕ : sentence L) : Prop := ∃ (p : proof t ϕ), sorry
-
-/-- Coercion over a set.-/
-def coeset : set(sentence L) → set(formula L) := set.image coe
+def proves : Prop := nonempty (proof T ϕ)
 
 
 -- Every inconsistent theory is complete
@@ -898,8 +895,8 @@ begin
   unfold elementarily_equivalent,
   intros σ,
   by_cases (σ ∈ full_theory M),
-  have H₁ : A₁.M ⊨ σ := A₁.satis σ h,
-  have H₂ : A₂.M ⊨ σ := A₂.satis σ h,
+  have H₁ : A₁.M ⊨ σ := A₁.satis h,
+  have H₂ : A₂.M ⊨ σ := A₂.satis h,
   tauto,
 
   have va : ℕ → A₁.M.univ := sorry,
@@ -908,12 +905,13 @@ begin
 end
 
 
-class has_infinite_model (t : theory L) : Type 1 :=
-(μ : Model t)
+class has_infinite_model (T : theory L) : Type 1 :=
+(μ : Model T)
 (big : cardinal.omega ≤ μ.card)
 
 
-lemma has_infinite_model_union_theory (t : theory L) (σ : sentence L) [has_infinite_model t] : has_infinite_model (t ∪ {σ}) :=
+lemma has_infinite_model_union_theory (t : theory L) (σ : sentence L)
+ [has_infinite_model t] : has_infinite_model (t ∪ {σ}) :=
 begin
  sorry
 end
