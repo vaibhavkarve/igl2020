@@ -864,8 +864,7 @@ def satisfiable_theory : Prop := nonempty (Model T)
 
 /-- A set of sentences models something if every model of that theory also
  models it.-/
-def logical_consequence (t : theory L) (ϕ : sentence L) : Prop :=
-  (∀ A : Model t, A.M ⊨ ϕ)
+def logical_consequence : Prop := ∀ μ : Model T, μ.M ⊨ σ
 
 def proof (t : theory L) (ϕ : sentence L) : Prop := sorry
 
