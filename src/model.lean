@@ -525,11 +525,17 @@ prefix ` ¬' ` :  60 := neg_sentence
 
 
 lemma models_sentence_or_negation (M : struc L) (σ : sentence L) :
-  models_sentence M σ ∨ models_sentence M ⟨(¬' ↑σ), by sorry⟩ :=
+  models_sentence M σ ∨ models_sentence M (¬' σ) :=
 begin
-  sorry,
-  -- by_cases (va ⊨ ϕ),
-  --repeat {tauto},
+  by_cases (M ⊨ σ),
+    {tauto},
+  right,
+  unfold models_sentence at *,
+  push_neg at h,
+  simp only [coe, subtype.val_eq_coe],
+  haveI M.univ_inhabited := M.univ_inhabited,
+  use function.const ℕ (default M.univ),
+  apply h,
 end
 
 
