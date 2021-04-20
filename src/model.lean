@@ -611,9 +611,7 @@ begin
   { fconstructor,
     { exact ηi,
     },
-    { suggest,
-
-      apply function.bijective.injective,
+    { apply function.bijective.injective,
       rw function.bijective_iff_has_inverse,
       use η.η,
       split,
@@ -639,12 +637,8 @@ begin
  unfold elementarily_equivalent,
  intro σ,
  split,
- {
-   exact isomorphic_struc_satisfy_same_theory M N η σ,
- },
- {
-   sorry,
- }
+   {exact isomorphic_struc_satisfy_same_theory η},
+   { sorry},
 end
 
 
@@ -813,11 +807,11 @@ begin
   have va := function.const ℕ (default M.univ),
   cases ϕ,
     case formula.tt
-    { simp [models_formula]},           -- every var-assignment satisfies ⊤'
+    { simp [models_formula]},         -- every var-assignment satisfies ⊤'
     case formula.ff
-    { simp [models_formula]},           -- every var-assign falsifies ⊥'
+    { simp [models_formula]},         -- every var-assign falsifies ⊥'
     case formula.eq : t₁ t₂
-    { simp [models_formula],            -- Question/TODO: Not sure how to proceed.
+    { simp [models_formula],          -- Question/TODO: Not sure how to proceed.
       sorry },
     case formula.rel : n r vec
     { admit },
