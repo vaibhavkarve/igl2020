@@ -960,58 +960,51 @@ theorem Vaught (k : cardinal) (h : L.card ≤ k) (kbig : cardinal.omega ≤ k)
 begin
   intros A₁ A₂ σ,
   split,
-  { intro h₁,
-    let A₃ : Model (t ∪ {σ}) := model_of_extended h₁,
-    have A₃big : cardinal.omega ≤ A₃.M.card,
-      { change A₃.M with A₁.M,
-        apply models_infinite},
-    by_contradiction h₂,
+  { intro A₁_sat_σ,
+    -- We extend the theory T with sentence σ. T has an infinite model. We
+    -- prove that T∪{σ} also has an infinite model.
+    haveI has_infinite_model_T_σ
+      := infinite_model_of_theory_extended models_infinite A₁_sat_σ,
 
+    -- We proceed to write a proof by contradiction.
+    by_contradiction A₂_unsat_σ,
+    have A₂_sat_neg_σ : A₂.M ⊨ ¬' σ,
+      { have A₂_sat_or_unsat_σ, from models_sentence_or_negation A₂.M σ,
+        tauto},
 
-    haveI x : has_infinite_model (t ∪ {σ}) := ⟨A₃, A₃big⟩,
-    have H := models_sentence_or_negation A₂.M σ,
-    cases H,
-      { tauto},
-    let nσ : sentence L := ⟨¬' ↑σ, λ var, neg_of_sentece_is_sentence σ var⟩,
-    let t₂ : theory L := (t ∪ {nσ}),
-    let A₄ : Model t₂ := model_of_extended H,
-    have A₄big : cardinal.omega ≤ A₄.M.card,
-      { change A₄.M with A₂.M,
-        apply models_infinite},
-    haveI x : has_infinite_model t₂ := ⟨A₄, A₄big⟩,
+    -- Show that an infinite model exists if we extend the theory T with
+    -- sentence ¬'σ.
+    haveI has_infinite_model_T_neg_σ
+      := infinite_model_of_theory_extended models_infinite A₂_sat_neg_σ,
 
-    cases (LS_Lou k kbig h (t ∪ {σ})) with A₅ h₅,
-    cases (LS_Lou k kbig h t₂) with A₆ h₆,
+    -- Invoke the Lowenheim-Skolem axiom to obtain models A₃ and A₄ of T
+    -- with σ and ¬'σ respectively. More importantly, both models have the
+    -- same cardinality.
+    obtain ⟨A₃, A₃card⟩ := LS_Lou (T ∪ {σ}) kbig h,
+    obtain ⟨A₄, A₄card⟩ := LS_Lou (T ∪ {¬'σ}) kbig h,
+    -- Construct models of T from A₃ and A₄ (restricting the theory to a
+    -- subset).
+    let A₅ : Model T := model_of_subset A₃ (by norm_num),
+    let A₆ : Model T := model_of_subset A₄ (by norm_num),
 
-    let A₇ : Model t := model_of_subset (t∪{σ}) t A₅ _,
-      rotate, norm_num,
+    -- Since A₄ does not satisfy σ, every variable assignment must evaluate
+    -- σ to false.
+    rcases models_formula_all_or_none_sentences A₄.M σ with ⟨h₁,__⟩ | ⟨h₂,__⟩,
+      { -- If all variable assignments satisfiy σ, then we get
+        -- contradiction via A₄_satis.
+        obtain ⟨va, hva⟩ : A₄.M ⊨ ¬'σ, from A₄.satis (by norm_num),
+        tauto},
 
-    let A₈ : Model t := model_of_subset t₂ t A₆ _,
-      rotate, norm_num,
-
-    replace hkc := hkc A₇ A₈,
-    replace hkc := hkc ⟨h₅, h₆⟩,
-    cases hkc with iso,
-
-    have h₅' : A₅.M ⊨ σ, { apply A₅.satis, finish},
-    have lies := isomorphic_struc_satisfy_same_theory A₅.M A₆.M iso σ h₅',
-    have h₆' : A₆.M ⊨ nσ, {apply A₆.satis, finish},
-
-    cases h₆' with va h₆',
-    unfold_coes at h₆',
-    rw models_formula at h₆',
-
-    haveI A₆_in : inhabited A₆.M.univ := A₆.M.univ_inhabited,
-
-    have x := models_formula_all_or_none_sentences A₆.M σ,
-
-    cases x,
-      {replace x_1 := x_1.1, finish},
-    replace x_1 := x_1.1,
-
-    cases lies with va'' hva'',
-    replace x_1 := x_1 va'',
-    finish},
+      { -- If all variable assignments falsify σ, then we get contradiction
+        -- via the fact the A₅ and A₆ are isomorphic, but they satisfy σ
+        -- and ¬'σ respectively.
+        have iso : isomorphism A₅.M A₆.M,
+          from nonempty.some (hkc A₅ A₆ ⟨A₃card, A₄card⟩),
+        have h₃ : A₃.M ⊨ σ, from A₃.satis (by norm_num),
+        obtain ⟨va', hva'⟩ : A₆.M ⊨ σ,
+          from isomorphic_struc_satisfy_same_theory iso h₃,
+        tauto},
+    },
   sorry, -- Symmetric. The same proof as above should work. TODO: turn it
          -- into two lemmas.
 end
