@@ -515,9 +515,8 @@ end
 lemma neg_of_sentence_is_sentence :
    ∀ var, ¬ var_occurs_freely var (¬' (↑σ : formula L)) :=
 begin
-  intros v,
-  cases σ,
-  exact σ_property v,
+  intros var,
+  exact σ.property var,
 end
 
 def neg_sentence : sentence L := ⟨¬' ↑σ, neg_of_sentence_is_sentence σ⟩
