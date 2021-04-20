@@ -542,8 +542,8 @@ end
 and write `M ≡ N` if : `M ⊨ φ` if and only if `N ⊨ φ` for all `L`-sentences
 `φ`.-/
 def elementarily_equivalent (M₁ M₂: struc L) : Prop :=
-  ∀ (ϕ : sentence L), (M₁ ⊨ ϕ) ↔ M₂ ⊨ ϕ
-infix `≡` := elementarily_equivalent
+  ∀ (σ : sentence L), (M₁ ⊨ σ) ↔ M₂ ⊨ σ
+infix ` ≡ ` := elementarily_equivalent
 
 
 /-- The full theory of `M` is the set of `L`-sentences `φ` such that `M ⊨ φ`.-/
