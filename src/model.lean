@@ -501,7 +501,8 @@ def models_formula : (ℕ → M.univ) → formula L →  Prop
 
 infix ` ⊨ ` : 100 := models_formula  -- Type this as a variant of \entails.
 
-def models_sentence (M : struc L) (σ : sentence L) : Prop := ∃ va : ℕ → M.univ, va ⊨ σ
+def models_sentence (M : struc L) (σ : sentence L) : Prop :=
+  ∃ va : ℕ → M.univ, va ⊨ σ
 notation M` ⊨ `σ : 100 := models_sentence M σ -- Type this as a variant of \entails.
 
 lemma models_formula_or_negation (va : ℕ → M.univ) :
@@ -511,22 +512,29 @@ begin
   repeat {tauto},
 end
 
-lemma neg_of_sentece_is_sentence :
+lemma neg_of_sentence_is_sentence :
    ∀ var, ¬ var_occurs_freely var (¬' (↑σ : formula L)) :=
 begin
-  intros v,
-  unfold var_occurs_freely,
-  cases σ,
-  exact σ_property v,
+  intros var,
+  exact σ.property var,
 end
+
+def neg_sentence : sentence L := ⟨¬' ↑σ, neg_of_sentence_is_sentence σ⟩
+prefix ` ¬' ` :  60 := neg_sentence
 
 
 lemma models_sentence_or_negation (M : struc L) (σ : sentence L) :
-  models_sentence M σ ∨ models_sentence M ⟨(¬' ↑σ), by sorry⟩ :=
+  models_sentence M σ ∨ models_sentence M (¬' σ) :=
 begin
-  sorry,
-  -- by_cases (va ⊨ ϕ),
-  --repeat {tauto},
+  by_cases (M ⊨ σ),
+    {tauto},
+  right,
+  unfold models_sentence at *,
+  push_neg at h,
+  simp only [coe, subtype.val_eq_coe],
+  haveI M.univ_inhabited := M.univ_inhabited,
+  use function.const ℕ (default M.univ),
+  apply h,
 end
 
 
@@ -534,8 +542,8 @@ end
 and write `M ≡ N` if : `M ⊨ φ` if and only if `N ⊨ φ` for all `L`-sentences
 `φ`.-/
 def elementarily_equivalent (M₁ M₂: struc L) : Prop :=
-  ∀ (ϕ : sentence L), (M₁ ⊨ ϕ) ↔ M₂ ⊨ ϕ
-infix `≡` := elementarily_equivalent
+  ∀ (σ : sentence L), (M₁ ⊨ σ) ↔ M₂ ⊨ σ
+infix ` ≡ ` := elementarily_equivalent
 
 
 /-- The full theory of `M` is the set of `L`-sentences `φ` such that `M ⊨ φ`.-/
@@ -546,39 +554,20 @@ def full_theory (M : struc L) : set (sentence L) := {ϕ : sentence L | M ⊨ ϕ}
 lemma eq_full_theory_iff_elementary_equivalent {M N : struc L} :
       full_theory M = full_theory N ↔ M ≡ N :=
 begin
-  unfold full_theory,
-  unfold elementarily_equivalent,
+  simp only [elementarily_equivalent, set_of, full_theory] at *,
   split,
-  {
-    intro h,
-    intro σ,
-    split,
-    {
-      intro hm,
-      have hs : σ ∈ {ϕ : sentence L | M ⊨ ϕ} := by solve_by_elim,
-      rw h at hs,
-      have hn : N ⊨ σ := by solve_by_elim,
-      exact hn,
-    },
-    {
-      intro hn,
-      have hs : σ ∈ {ϕ : sentence L | N ⊨ ϕ} := by solve_by_elim,
-      rw← h at hs,
-      have hm : M ⊨ σ := by solve_by_elim,
-      exact hm,
-    },
-  },
-  {
-    intro h,
-    finish,
-  }
+  { intros h σ,
+    rwa h},
+  { intro h,
+    ext σ,
+    finish}
 end
 
 
 -- TODO: Theorem: If two structures are isomorphic then they must satisfy the
 -- same theory.  Proof by induction on formulas.
-theorem isomorphic_struc_satisfy_same_theory (M₁ M₂ : struc L)
-  (η : isomorphism M₁ M₂) (σ : sentence L) : M₁ ⊨ σ → M₂ ⊨ σ :=
+theorem isomorphic_struc_satisfy_same_theory {M₁ M₂ : struc L}
+  (η : isomorphism M₁ M₂) {σ : sentence L} : M₁ ⊨ σ → M₂ ⊨ σ :=
 begin
   cases σ with ϕ hϕ,
   rintros ⟨va, va_models_ϕ⟩,
@@ -622,9 +611,7 @@ begin
   { fconstructor,
     { exact ηi,
     },
-    { suggest,
-
-      apply function.bijective.injective,
+    { apply function.bijective.injective,
       rw function.bijective_iff_has_inverse,
       use η.η,
       split,
@@ -650,12 +637,8 @@ begin
  unfold elementarily_equivalent,
  intro σ,
  split,
- {
-   exact isomorphic_struc_satisfy_same_theory M N η σ,
- },
- {
-   sorry,
- }
+   {exact isomorphic_struc_satisfy_same_theory η},
+   { sorry},
 end
 
 
@@ -824,11 +807,11 @@ begin
   have va := function.const ℕ (default M.univ),
   cases ϕ,
     case formula.tt
-    { simp [models_formula]},           -- every var-assignment satisfies ⊤'
+    { simp [models_formula]},         -- every var-assignment satisfies ⊤'
     case formula.ff
-    { simp [models_formula]},           -- every var-assign falsifies ⊥'
+    { simp [models_formula]},         -- every var-assign falsifies ⊥'
     case formula.eq : t₁ t₂
-    { simp [models_formula],            -- Question/TODO: Not sure how to proceed.
+    { simp [models_formula],          -- Question/TODO: Not sure how to proceed.
       sorry },
     case formula.rel : n r vec
     { admit },
@@ -849,53 +832,31 @@ end
 a model of `T` and write `M ⊨ T` if `M ⊨ φ` for all sentences `φ ∈ T`.-/
 def theory (L : lang) : Type := set (sentence L)
 
-/-- Add standard instances for theories. Each instance is derived from the
-parent type `set (sentence L).-/
-instance theory.has_mem : has_mem (sentence L) (theory L) := set.has_mem
-instance theory.has_singleton : has_singleton (sentence L) (theory L) := set.has_singleton
-instance theory.has_union : has_union (theory L) := set.has_union
-instance theory.has_subset : has_subset (theory L) := set.has_subset
-/- There always exists an L-theory, having a single sentence given by {⊤'},
-   since ⊤' is always guaranteed to be a sentence -/
-instance theory.inhabited {L : lang} : inhabited (theory L) := set.inhabited
-
-
+namespace theory
+  /-- Add standard instances for theories. Each instance is derived from the
+  parent type `set (sentence L).-/
+  instance has_mem : has_mem (sentence L) (theory L) := set.has_mem
+  instance has_singleton : has_singleton (sentence L) (theory L) :=
+    set.has_singleton
+  instance has_union : has_union (theory L) := set.has_union
+  instance has_subset : has_subset (theory L) := set.has_subset
+  /- There always exists an L-theory, having a single sentence given by {⊤'},
+     since ⊤' is always guaranteed to be a sentence -/
+  instance inhabited {L : lang} : inhabited (theory L) := set.inhabited
+end theory
+variable T : theory L
 
 /-- We now define a model to be a structure that models a set of sentences
 and show `(ℚ, <)` models the axioms for DLO.-/
-structure Model {L : lang} (T : theory L)  :=
+structure Model :=
 (M : struc L)
-(satis : ∀ σ ∈ T, M ⊨ σ)
+(satis {σ : sentence L} : σ ∈ T → M ⊨ σ)
 
-def Model.card {t : theory L} (μ : Model t) : cardinal := μ.M.card
-
+def Model.card {T : theory L} (μ : Model T) : cardinal := μ.M.card
 
 
 /-- We say that a theory is satisfiable if it has a model.-/
-def satisfiable_theory (t : theory L) : Prop := nonempty (Model t)
-
-
--- TODO: [Hard] Completeness of the DLO_theory
--- Everything that is true in ℚ can be proved from DLO_axioms.
-
--- Alternate statement: If something is true for ℚ then it is true for every
--- model for DLO_axioms.  (because they all have the same theory).
-
--- TODO: Vaught's theorem
-
--- [This is Hard as well] Alternate Branch of Work: Godel encoding?
--- Map from ℕ to the long strings enconding prime factorization.
-
--- TODO: Quantifier elimination in DLO_theory
--- TODOs: Definability, o-minimality
--- x<2 in ℝ defines (-∞, 2)
--- x=y in ℝ defines a line at 45 degrees.
--- Non-definable: (ℤ, +). ∃x, x+x=x defines {0}. Cannot define {1}.
--- Is ℤ definable?
--- Are even numbers (ℤ, +) ∃ y, x=y+y → (ℤ, +) is not o-minimal.
-
-/-! ## Definability -/
-
+def satisfiable_theory : Prop := nonempty (Model T)
 
 
 
@@ -903,15 +864,14 @@ def satisfiable_theory (t : theory L) : Prop := nonempty (Model t)
 
 /-- A set of sentences models something if every model of that theory also
  models it.-/
-def logical_consequence (t : theory L) (ϕ : sentence L) : Prop :=
-  (∀ A : Model t, A.M ⊨ ϕ)
+def logical_consequence : Prop := ∀ μ : Model T, μ.M ⊨ σ
 
-def proof (t : theory L) (ϕ : sentence L) : Prop := sorry
+structure proof (T : theory L) (ϕ : formula L) : Type :=
+(steps : list (formula L))
+(steps_nonempty : steps ≠ [] := by tauto)
+(conclusion : list.last steps steps_nonempty = ϕ)
 
-def proves (t : theory L) (ϕ : sentence L) : Prop := ∃ (p : proof t ϕ), sorry
-
-/-- Coercion over a set.-/
-def coeset : set(sentence L) → set(formula L) := set.image coe
+def proves : Prop := nonempty (proof T ϕ)
 
 
 -- Every inconsistent theory is complete
@@ -935,8 +895,8 @@ begin
   unfold elementarily_equivalent,
   intros σ,
   by_cases (σ ∈ full_theory M),
-  have H₁ : A₁.M ⊨ σ := A₁.satis σ h,
-  have H₂ : A₂.M ⊨ σ := A₂.satis σ h,
+  have H₁ : A₁.M ⊨ σ := A₁.satis h,
+  have H₂ : A₂.M ⊨ σ := A₂.satis h,
   tauto,
 
   have va : ℕ → A₁.M.univ := sorry,
@@ -945,12 +905,13 @@ begin
 end
 
 
-class has_infinite_model (t : theory L) : Type 1 :=
-(μ : Model t)
+class has_infinite_model (T : theory L) : Type 1 :=
+(μ : Model T)
 (big : cardinal.omega ≤ μ.card)
 
 
-lemma has_infinite_model_union_theory (t : theory L) (σ : sentence L) [has_infinite_model t] : has_infinite_model (t ∪ {σ}) :=
+lemma has_infinite_model_union_theory (t : theory L) (σ : sentence L)
+ [has_infinite_model t] : has_infinite_model (t ∪ {σ}) :=
 begin
  sorry
 end
@@ -958,102 +919,92 @@ end
 /-- Lowenheim-Skolem asserts that for a theory over a language L, if that theory
     has an infinite model, then it has a model for any infinite cardinality
     greater than or equal to |L|-/
-axiom LS_Lou (k : cardinal) (kbig : cardinal.omega ≤ k) (h : L.card ≤ k) (t : theory L) [has_infinite_model t]:
-  ∃ μ : Model t, μ.card = k
+axiom LS_Lou [has_infinite_model T] {k : cardinal}
+  (kbig : cardinal.omega ≤ k) (h : L.card ≤ k) :
+  ∃ μ : Model T, μ.card = k
 
 
 /- A theory is k-categorical if all models of cardinality k are isomorphic as
    structures.-/
-def theory_kcategorical (k : cardinal) (t : theory L) :=
-  ∀ (M₁ M₂ : Model t), M₁.card = k ∧ M₂.card = k → nonempty (isomorphism M₁.M M₂.M)
+def theory_kcategorical (k : cardinal) (T : theory L) :=
+  ∀ (M₁ M₂ : Model T), M₁.card = k ∧ M₂.card = k
+  → nonempty (isomorphism M₁.M M₂.M)
 
 
 /-- A theory can always be extended by sentences modeled by its struc. Here, we
 define the singleton-version of this result.
 -/
-def model_of_extended {t : theory L} {μ : Model t} {σ : sentence L}
-  (sat_σ: μ.M ⊨ σ) : Model (t ∪ {σ}) :=
-  ⟨μ.M, λ σ' H, by {cases H, exact μ.satis σ' H, rwa [← H.symm]}⟩
+def model_of_extended {T : theory L} {μ : Model T} {σ : sentence L}
+  (sat_σ: μ.M ⊨ σ) : Model (T ∪ {σ}) :=
+  ⟨μ.M, λ σ' H, by {cases H, exact μ.satis H, rwa [← H.symm]}⟩
 
-def model_of_subset (t s : theory L) (M : Model t) (H : s ⊆ t) : Model s :=
+def model_of_subset {t s : theory L} (M : Model t) (H : s ⊆ t) : Model s :=
   {M := M.M,
-   satis := by {intros σ h,
-                apply M.satis,
-                exact set.mem_of_subset_of_mem H h}}
+   satis := λ σ h,  M.satis (set.mem_of_subset_of_mem H h)}
 
 
---def sentence_neg : sentence L → sentence L :=
---lemma models_negation_not_sentence (M : struc L) : M ⊨ ¬' σ →
+instance infinite_model_of_theory_extended {T : theory L} {μ₁ : Model T} {σ : sentence L}
+  (models_infinite : ∀ (μ : Model T), cardinal.omega ≤ μ.card)
+  (h₁ : μ₁.M ⊨  σ) :
+  has_infinite_model (T ∪ {σ}) :=
+⟨model_of_extended h₁, models_infinite μ₁⟩
+
 
 
 /-- If a theory is k-categorical and has an infinite model,
     it is complete.-/
-theorem Vaught (k : cardinal) (h : L.card ≤ k) (t : theory L)
-  (kbig : cardinal.omega ≤ k)
-  (models_infinite : Π (M : Model t), cardinal.omega ≤ M.card)
-  [has_infinite_model t] (hkc : theory_kcategorical k t) : is_complete_theory t :=
+theorem Vaught (k : cardinal) (h : L.card ≤ k) (kbig : cardinal.omega ≤ k)
+  (models_infinite : ∀ (μ : Model T), cardinal.omega ≤ μ.card)
+  (hkc : theory_kcategorical k T)
+  : is_complete_theory T :=
 begin
-  -- Proceed by contradiction.
-  -- ∃ σ, two models of T that satisfy σ and ¬σ respectively. Call them M₁ and M₂.
-  -- This means M₁ models T∪{σ} and M₂ models T∪{¬σ}.
-  -- We get two models M₃ and M₄ of same cardinality due to LS.
-  -- M₃ and M₄ both model T.
-  -- But by kcategoricity, M₃ and M₄ are isomorphic.
-  -- Achieve a contradiction using isomorphic_struc_satisfy_same_theory.
   intros A₁ A₂ σ,
   split,
-  { intro h₁,
-    let A₃ : Model (t ∪ {σ}) := model_of_extended h₁,
-    have A₃big : cardinal.omega ≤ A₃.M.card,
-      { change A₃.M with A₁.M,
-        apply models_infinite},
-    by_contradiction h₂,
+  { intro A₁_sat_σ,
+    -- We extend the theory T with sentence σ. T has an infinite model. We
+    -- prove that T∪{σ} also has an infinite model.
+    haveI has_infinite_model_T_σ
+      := infinite_model_of_theory_extended models_infinite A₁_sat_σ,
 
+    -- We proceed to write a proof by contradiction.
+    by_contradiction A₂_unsat_σ,
+    have A₂_sat_neg_σ : A₂.M ⊨ ¬' σ,
+      { have A₂_sat_or_unsat_σ, from models_sentence_or_negation A₂.M σ,
+        tauto},
 
-    haveI x : has_infinite_model (t ∪ {σ}) := ⟨A₃, A₃big⟩,
-    have H := models_sentence_or_negation A₂.M σ,
-    cases H,
-      { tauto},
-    let nσ : sentence L := ⟨¬' ↑σ, λ var, neg_of_sentece_is_sentence σ var⟩,
-    let t₂ : theory L := (t ∪ {nσ}),
-    let A₄ : Model t₂ := model_of_extended H,
-    have A₄big : cardinal.omega ≤ A₄.M.card,
-      { change A₄.M with A₂.M,
-        apply models_infinite},
-    haveI x : has_infinite_model t₂ := ⟨A₄, A₄big⟩,
+    -- Show that an infinite model exists if we extend the theory T with
+    -- sentence ¬'σ.
+    haveI has_infinite_model_T_neg_σ
+      := infinite_model_of_theory_extended models_infinite A₂_sat_neg_σ,
 
-    cases (LS_Lou k kbig h (t ∪ {σ})) with A₅ h₅,
-    cases (LS_Lou k kbig h t₂) with A₆ h₆,
+    -- Invoke the Lowenheim-Skolem axiom to obtain models A₃ and A₄ of T
+    -- with σ and ¬'σ respectively. More importantly, both models have the
+    -- same cardinality.
+    obtain ⟨A₃, A₃card⟩ := LS_Lou (T ∪ {σ}) kbig h,
+    obtain ⟨A₄, A₄card⟩ := LS_Lou (T ∪ {¬'σ}) kbig h,
+    -- Construct models of T from A₃ and A₄ (restricting the theory to a
+    -- subset).
+    let A₅ : Model T := model_of_subset A₃ (by norm_num),
+    let A₆ : Model T := model_of_subset A₄ (by norm_num),
 
-    let A₇ : Model t := model_of_subset (t∪{σ}) t A₅ _,
-      rotate, norm_num,
+    -- Since A₄ does not satisfy σ, every variable assignment must evaluate
+    -- σ to false.
+    rcases models_formula_all_or_none_sentences A₄.M σ with ⟨h₁,__⟩ | ⟨h₂,__⟩,
+      { -- If all variable assignments satisfiy σ, then we get
+        -- contradiction via A₄_satis.
+        obtain ⟨va, hva⟩ : A₄.M ⊨ ¬'σ, from A₄.satis (by norm_num),
+        tauto},
 
-    let A₈ : Model t := model_of_subset t₂ t A₆ _,
-      rotate, norm_num,
-
-    replace hkc := hkc A₇ A₈,
-    replace hkc := hkc ⟨h₅, h₆⟩,
-    cases hkc with iso,
-
-    have h₅' : A₅.M ⊨ σ, { apply A₅.satis, finish},
-    have lies := isomorphic_struc_satisfy_same_theory A₅.M A₆.M iso σ h₅',
-    have h₆' : A₆.M ⊨ nσ, {apply A₆.satis, finish},
-
-    cases h₆' with va h₆',
-    unfold_coes at h₆',
-    rw models_formula at h₆',
-
-    haveI A₆_in : inhabited A₆.M.univ := A₆.M.univ_inhabited,
-
-    have x := models_formula_all_or_none_sentences A₆.M σ,
-
-    cases x,
-      {replace x_1 := x_1.1, finish},
-    replace x_1 := x_1.1,
-
-    cases lies with va'' hva'',
-    replace x_1 := x_1 va'',
-    finish},
+      { -- If all variable assignments falsify σ, then we get contradiction
+        -- via the fact the A₅ and A₆ are isomorphic, but they satisfy σ
+        -- and ¬'σ respectively.
+        have iso : isomorphism A₅.M A₆.M,
+          from nonempty.some (hkc A₅ A₆ ⟨A₃card, A₄card⟩),
+        have h₃ : A₃.M ⊨ σ, from A₃.satis (by norm_num),
+        obtain ⟨va', hva'⟩ : A₆.M ⊨ σ,
+          from isomorphic_struc_satisfy_same_theory iso h₃,
+        tauto},
+    },
   sorry, -- Symmetric. The same proof as above should work. TODO: turn it
          -- into two lemmas.
 end
