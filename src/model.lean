@@ -832,17 +832,19 @@ end
 a model of `T` and write `M ⊨ T` if `M ⊨ φ` for all sentences `φ ∈ T`.-/
 def theory (L : lang) : Type := set (sentence L)
 
-/-- Add standard instances for theories. Each instance is derived from the
-parent type `set (sentence L).-/
-instance theory.has_mem : has_mem (sentence L) (theory L) := set.has_mem
-instance theory.has_singleton : has_singleton (sentence L) (theory L) := set.has_singleton
-instance theory.has_union : has_union (theory L) := set.has_union
-instance theory.has_subset : has_subset (theory L) := set.has_subset
-/- There always exists an L-theory, having a single sentence given by {⊤'},
-   since ⊤' is always guaranteed to be a sentence -/
-instance theory.inhabited {L : lang} : inhabited (theory L) := set.inhabited
-
-
+namespace theory
+  /-- Add standard instances for theories. Each instance is derived from the
+  parent type `set (sentence L).-/
+  instance has_mem : has_mem (sentence L) (theory L) := set.has_mem
+  instance has_singleton : has_singleton (sentence L) (theory L) :=
+    set.has_singleton
+  instance has_union : has_union (theory L) := set.has_union
+  instance has_subset : has_subset (theory L) := set.has_subset
+  /- There always exists an L-theory, having a single sentence given by {⊤'},
+     since ⊤' is always guaranteed to be a sentence -/
+  instance inhabited {L : lang} : inhabited (theory L) := set.inhabited
+end theory
+variable T : theory L
 
 /-- We now define a model to be a structure that models a set of sentences
 and show `(ℚ, <)` models the axioms for DLO.-/
