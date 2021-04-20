@@ -866,7 +866,10 @@ def satisfiable_theory : Prop := nonempty (Model T)
  models it.-/
 def logical_consequence : Prop := ∀ μ : Model T, μ.M ⊨ σ
 
-def proof (t : theory L) (ϕ : sentence L) : Prop := sorry
+structure proof (T : theory L) (ϕ : formula L) : Type :=
+(steps : list (formula L))
+(steps_nonempty : steps ≠ [] := by tauto)
+(conclusion : list.last steps steps_nonempty = ϕ)
 
 def proves (t : theory L) (ϕ : sentence L) : Prop := ∃ (p : proof t ϕ), sorry
 
