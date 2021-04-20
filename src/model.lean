@@ -943,6 +943,12 @@ def model_of_subset {t s : theory L} (M : Model t) (H : s ⊆ t) : Model s :=
    satis := λ σ h,  M.satis (set.mem_of_subset_of_mem H h)}
 
 
+instance infinite_model_of_theory_extended {T : theory L} {μ₁ : Model T} {σ : sentence L}
+  (models_infinite : ∀ (μ : Model T), cardinal.omega ≤ μ.card)
+  (h₁ : μ₁.M ⊨  σ) :
+  has_infinite_model (T ∪ {σ}) :=
+⟨model_of_extended h₁, models_infinite μ₁⟩
+
 
 
 /-- If a theory is k-categorical and has an infinite model,
