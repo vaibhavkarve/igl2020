@@ -501,7 +501,8 @@ def models_formula : (ℕ → M.univ) → formula L →  Prop
 
 infix ` ⊨ ` : 100 := models_formula  -- Type this as a variant of \entails.
 
-def models_sentence (M : struc L) (σ : sentence L) : Prop := ∃ va : ℕ → M.univ, va ⊨ σ
+def models_sentence (M : struc L) (σ : sentence L) : Prop :=
+  ∃ va : ℕ → M.univ, va ⊨ σ
 notation M` ⊨ `σ : 100 := models_sentence M σ -- Type this as a variant of \entails.
 
 lemma models_formula_or_negation (va : ℕ → M.univ) :
@@ -511,14 +512,16 @@ begin
   repeat {tauto},
 end
 
-lemma neg_of_sentece_is_sentence :
+lemma neg_of_sentence_is_sentence :
    ∀ var, ¬ var_occurs_freely var (¬' (↑σ : formula L)) :=
 begin
   intros v,
-  unfold var_occurs_freely,
   cases σ,
   exact σ_property v,
 end
+
+def neg_sentence : sentence L := ⟨¬' ↑σ, neg_of_sentence_is_sentence σ⟩
+prefix ` ¬' ` :  60 := neg_sentence
 
 
 lemma models_sentence_or_negation (M : struc L) (σ : sentence L) :
