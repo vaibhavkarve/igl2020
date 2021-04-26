@@ -38,10 +38,8 @@ inductive term (L : lang) : ℕ → Type
 | var : ℕ → term 0
 | func {n : ℕ+} : L.F n → term n
 | app {n : ℕ} : term (n+1) → term 0 → term n
-open term
 
-
-
+namespace term
 variables {L : lang} {M : struc L}
 
 
@@ -49,7 +47,7 @@ variables {L : lang} {M : struc L}
     example, the depth of `f(v₁, v₂, v₃)` is 4 (one for `f` and one for
     each variable). The depth of `f(v₁, g(v₂), v₃)` is similarly 5.
 -/
-def term.depth : Π {n : ℕ}, term L n → ℕ
+def depth : Π {n : ℕ}, term L n → ℕ
 | 0 (con c)    := 1
 | 0 (var v)    := 1
 | _ (func f)   := 1
@@ -60,7 +58,7 @@ def term.depth : Π {n : ℕ}, term L n → ℕ
 variable terms can be formed without reference to L. In fact, every
 language has countably infinite terms of level 0.
 -/
-instance term.inhabited : inhabited (term L 0) :=
+instance inhabited : inhabited (term L 0) :=
   {default := var 0}
 
 
@@ -93,7 +91,7 @@ def term_interpretation (var_assign : ℕ → M.univ) :
   Π {n : ℕ}, term L n → Func M.univ n
 | 0 (con c)    := M.C c
 | 0 (var v)    := var_assign v
-| _ (func f)   := f^M
+| _ (func f)   := M.F f
 | _ (app t t₀) := (term_interpretation t) (term_interpretation t₀)
 
 
@@ -126,7 +124,7 @@ def term_sub_for_var (t' : term L 0) (k : ℕ) :
 | n (func f)   := func f
 | n (app t t₀) := app (term_sub_for_var (n+1) t) (term_sub_for_var 0 t₀)
 
-
+end term
 
 /-! ##  Formulas and Sentences -/
 
