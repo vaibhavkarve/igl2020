@@ -483,73 +483,55 @@ end
 such that va₁(v) = va₂(v) for every free variable v in the formula ϕ.
 Then M ⊨ ϕ[va₁] iff M ⊨ ϕ[va₂]. -/
 lemma iff_models_formula_of_identical_var_assign (va₁ va₂ : ℕ → M.univ)
-  (ϕ : formula L) (h : ∀ v ∈ vars_in_formula ϕ, va₁ v = va₂ v) :
+  (ϕ : formula L) (h : ∀ v ∈ ϕ.vars_in_formula, va₁ v = va₂ v) :
   (va₁ ⊨ ϕ ↔ va₂ ⊨ ϕ) :=
 begin
   induction ϕ with t₁ t₂ n r v ϕ ϕ_ih ϕ₁ ϕ₂ ϕ₁_ih ϕ₂_ih ϕ₁ ϕ₂ ϕ₁_ih ϕ₂_ih n ϕ ϕ_ih n ϕ ϕ_ih,
-  refl,
-  refl,
+  case formula.tt
+  { refl },
+  case formula.ff
+  { refl },
+  case formula.eq : t₁ t₂
+  {simp only [finset.mem_union] at h,
 
-  {simp only [models_formula, vars_in_formula, finset.mem_union] at h,
-
-   have h₁ : ∀ v ∈ vars_in_term t₁, va₁ v = va₂ v, sorry,
-   have h₂ : ∀ v ∈ vars_in_term t₂, va₁ v = va₂ v, sorry,
+   have h₁ : ∀ v ∈ t₁.vars_in_term, va₁ v = va₂ v, sorry,
+   have h₂ : ∀ v ∈ t₂.vars_in_term, va₁ v = va₂ v, sorry,
 
    have h₃ := eq_term_interpretation_of_identical_var_assign va₁ va₂ t₁ h₁,
    have h₄ := eq_term_interpretation_of_identical_var_assign va₁ va₂ t₂ h₂,
    sorry},
 
-  {apply iff_models_formula_relation_of_identical_var_assign,
-  intros v',
-  apply h},
+  case formula.rel
+  { exact iff_models_formula_relation_of_identical_var_assign h},
 
-  apply not_congr,
-  apply ϕ_ih,
-  assumption,
+  case formula.neg : ϕ ϕ_ih
+  { exact not_congr (ϕ_ih h)},
 
-  apply and_congr,
-  apply ϕ₁_ih,
-  intros v H,
-  apply h v,
-  unfold vars_in_formula,
-  simp,
-  left,
-  exact H,
+  case formula.and : ϕ₁ ϕ₂ ϕ₁_ih ϕ₂_ih
+  { apply and_congr,
+    { exact ϕ₁_ih (λ var H, h var (finset.mem_union.mpr (or.inl H)))},
+    { exact ϕ₂_ih (λ var H, h var (finset.mem_union.mpr (or.inr H)))}},
 
-  apply ϕ₂_ih,
-  intros v H,
-  apply h v,
-  unfold vars_in_formula,
-  simp,
-  right,
-  exact H,
+  case formula.or : ϕ₁ ϕ₂ ϕ₁_ih ϕ₂_ih
+  { apply or_congr,
+    { exact ϕ₁_ih (λ var H, h var (finset.mem_union.mpr (or.inl H)))},
+    { exact ϕ₂_ih (λ var H, h var (finset.mem_union.mpr (or.inr H)))}},
 
-  apply or_congr,
-  apply ϕ₁_ih,
-  intros v H,
-  apply h v,
-  unfold vars_in_formula,
-  simp,
-  left,
-  exact H,
-
-  apply ϕ₂_ih,
-  intros v H,
-  apply h v,
-  unfold vars_in_formula,
-  simp,
-  right,
-  exact H,
-
-  apply exists_congr,
-  intros x,
-  sorry,
-
-  apply forall_congr,
-  intros x,
-  fconstructor,
-
-  repeat {sorry},
+  case formula.exi : n ϕ ϕ_ih
+  { apply exists_congr,
+    intros x,
+    simp,
+    split,
+    intros h',
+    have y := function.update_apply va₂ n x,
+    simp at *,
+    sorry,
+    sorry},
+  case formula.all : n ϕ ϕ_ih
+  { apply forall_congr,
+    intros x,
+    fconstructor,
+    repeat {sorry}},
 end
 
 
