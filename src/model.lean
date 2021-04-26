@@ -10,14 +10,12 @@ import func lang struc
 # model.lean
 
 In this file, we define
-- functions of arity `(n : ℕ)` and their API.
-- languages
-- structures
-- embedding between two structures on the same language.
-- terms
+- Terms
   - we define a function for term substitution and prove a theorem.
   - we give an interpretation of terms in structures.
-- formulas.
+- Formulas
+- Models and Theories
+-
 
 ## Tags
 
