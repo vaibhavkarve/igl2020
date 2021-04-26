@@ -204,31 +204,38 @@ end formula
 /-- A formula in which no variable occurs freely is a sentence.  We create a
     subtype of `L`-formulas that we call `L`-sentences.-/
 def sentence (L : lang) : Type :=
-  {ϕ : formula L // ∀ var, ¬ var_occurs_freely var ϕ}
+  {ϕ : formula L // ∀ var, ¬ ϕ.var_occurs_freely var}
 
-variables (ϕ : formula L) (σ: sentence L)
+namespace sentence
+variables {L : lang} {M : struc L} (ϕ : formula L) (σ: sentence L)
+
+
+@[simp] lemma iff_not_var_occurs_freely_of_vars_in_formula :
+  (∀ var, ¬ ϕ.var_occurs_freely var) ↔ (∀ var ∈ ϕ.vars_in_formula, ¬ formula.var_occurs_freely var ϕ) :=
+begin
+  split,
+    {tauto},
+
+   intros hϕ var,
+   by_cases var_occurs : var ∈ ϕ.vars_in_formula,
+     { tauto },
+
+   clear' hϕ,
+   { induction ϕ;
+     finish [formula.var_occurs_freely]},
+end
+
 
 /-- Since sentences are a subtype of formula, we define a coercion map for
     conveniently casting any sentence `σ` to a formula by writing `↑σ`.-/
-instance coe_sentence_formula : has_coe (sentence L) (formula L) := ⟨λ σ, σ.val⟩
+instance coe_formula : has_coe (sentence L) (formula L) :=
+  ⟨λ σ, σ.val⟩
 
 /- The formula ⊤ previously used to prove that formulas are inhabited is also
    vacuously a sentence -/
-instance sentence.inhabited {L : lang} : inhabited (sentence L) :=
+instance inhabited {L : lang} : inhabited (sentence L) :=
   {default := ⟨⊤', by tauto⟩}
-
-/-! ## Satisfiability and Models -/
-
-/- Define an expanded language, given a struc M.
-
-Idea: For every element of M.univ, we will add a new constant to the
-language.
-
-In Lou's book (more general): we start instead with C ⊂ M.univ, and then add
-only elements of C as constants to the language. -/
-@[reducible] def expanded_lang (L : lang) (M : struc L) : lang :=
-  {C := M.univ ⊕ L.C, .. L}
-
+end sentence
 
 /-- Define expanded structures. -/
 def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
