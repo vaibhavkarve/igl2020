@@ -288,12 +288,11 @@ begin
   by_cases (M ⊨ σ),
     {tauto},
   right,
-  unfold models_sentence at *,
+  unfold models_sentence at h,
   push_neg at h,
-  simp only [coe, subtype.val_eq_coe],
-  haveI M.univ_inhabited := M.univ_inhabited,
-  use function.const ℕ (default M.univ),
-  apply h,
+  split,
+    {tauto},
+  exact function.const ℕ (@default M.univ M.univ_inhabited),
 end
 
 
