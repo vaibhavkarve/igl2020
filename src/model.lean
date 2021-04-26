@@ -238,16 +238,18 @@ instance inhabited {L : lang} : inhabited (sentence L) :=
 end sentence
 
 
+/-! ## Satisfiability and Models -/
 
+variables {L : lang} {M : struc L} {ϕ : formula L} {σ : sentence L}
 
 /-- We define what it means for a formula to be true in an `L`-structure
 `M`, or consequently, what it means for a structure `M` to model/satisfy a
 formula.-/
-def models_formula : (ℕ → M.univ) → formula L →  Prop
+@[reducible] def models_formula : (ℕ → M.univ) → formula L →  Prop
 | _ ⊤'           := true
 | _ ⊥'           := false
 | va (t₁ =' t₂)   := (t₁^^va) = (t₂^^va)
-| va (formula.rel r ts) := vector.map (^^va) ts ∈ (r̂M)
+| va (formula.rel r ts) := vector.map (^^va) ts ∈ M.R r
 | va (¬' ϕ)       :=  ¬ models_formula va ϕ
 | va (ϕ₁ ∧' ϕ₂)   := models_formula va ϕ₁ ∧ models_formula va ϕ₂
 | va (ϕ₁ ∨' ϕ₂)   := models_formula va ϕ₁ ∨ models_formula va ϕ₂
@@ -269,15 +271,15 @@ begin
   repeat {tauto},
 end
 
-lemma neg_of_sentence_is_sentence :
-   ∀ var, ¬ var_occurs_freely var (¬' (↑σ : formula L)) :=
-begin
-  intros var,
-  exact σ.property var,
-end
+namespace sentence
 
-def neg_sentence : sentence L := ⟨¬' ↑σ, neg_of_sentence_is_sentence σ⟩
-prefix ` ¬' ` :  60 := neg_sentence
+lemma neg_of_sentence (σ : sentence L) (var : ℕ) :
+  ¬ formula.var_occurs_freely var (¬' (↑σ : formula L)) :=
+  σ.property var
+
+def neg (σ : sentence L) : sentence L := ⟨¬' ↑σ, neg_of_sentence σ⟩
+prefix ` ¬' ` :  60 := neg
+end sentence
 
 
 lemma models_sentence_or_negation (M : struc L) (σ : sentence L) :
