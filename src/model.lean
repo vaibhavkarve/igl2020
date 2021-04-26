@@ -312,7 +312,7 @@ infix ` ≡ ` := elementarily_equivalent
 lemma eq_full_theory_iff_elementary_equivalent {M N : struc L} :
       full_theory M = full_theory N ↔ M ≡ N :=
 begin
-  simp only [elementarily_equivalent, set_of, full_theory] at *,
+  simp only [elementarily_equivalent, set_of, full_theory],
   split,
   { intros h σ,
     rwa h},
@@ -322,8 +322,10 @@ begin
 end
 
 
--- TODO: Theorem: If two structures are isomorphic then they must satisfy the
--- same theory.  Proof by induction on formulas.
+-- TODO: Theorem: If two structures are isomorphic then they must satisfy
+-- the same theory. Proof by induction on formulas. Idea: Perhaps we need
+-- an induction principle that works only on level=0 terms which have no
+-- variables.
 theorem isomorphic_struc_satisfy_same_theory {M₁ M₂ : struc L}
   (η : isomorphism M₁ M₂) {σ : sentence L} : M₁ ⊨ σ → M₂ ⊨ σ :=
 begin
