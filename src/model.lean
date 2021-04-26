@@ -336,15 +336,16 @@ begin
   unfold_coes at *,
   cases ϕ,
     case formula.tt
-    { unfold models_formula},      -- every variable assignment satisfies T'
+    { tauto},      -- every variable assignment satisfies T'
     case formula.ff
-    { unfold models_formula at *,  -- no variable assignment can satisfy ⊥'
-      tauto,                       -- thus the hypothesis is impossible
-    },
+    { tauto},  -- no variable assignment can satisfy ⊥'thus the hypothesis
+              -- is impossible
     case formula.eq : t₁ t₂
     { unfold models_formula at *,
       -- Question/TODO: term-interpret of t₁ under (η_map∘va) is same as
       -- term-interpret of t₂ under (η_map∘va). Why? How can we show this?
+      revert hϕ va_models_ϕ,
+
       sorry},
     case formula.rel : n r vec
     { admit },
