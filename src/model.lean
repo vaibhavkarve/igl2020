@@ -452,23 +452,22 @@ end
     iff it is also satisfied under `va₂`.
 -/
 lemma iff_models_formula_relation_of_identical_var_assign
-  (n : ℕ+) (r : L.R n) (vec : vector (term L 0) n)
-  (va₁ va₂ : ℕ → M.univ)
-  (h : ∀ var ∈ vars_in_formula (formula.rel r vec), va₁ var = va₂ var) :
+  {n : ℕ+} {r : L.R n} {vec : vector (term L 0) n}
+  {va₁ va₂ : ℕ → M.univ}
+  (h : ∀ var ∈ formula.vars_in_formula (formula.rel r vec), va₁ var = va₂ var) :
   (va₁ ⊨ (formula.rel r vec)) ↔ (va₂ ⊨ (formula.rel r vec)) :=
 begin
   set ϕ : formula L := formula.rel r vec,
-  unfold vars_in_formula models_formula at *,
 
   suffices interpretations_eq : vector.map (^^va₁) vec = vector.map (^^va₂) vec,
-  rw interpretations_eq,
+  rw [models_formula, interpretations_eq],
 
   ext1,
   rw [vector.nth_map, vector.nth_map,
        eq_term_interpretation_of_identical_var_assign],
 
   intros var h₁,
-  suffices x : var ∈ vars_in_term (vec.nth m) → var ∈ vars_in_list vec.to_list,
+  suffices x : var ∈ term.vars_in_term (vec.nth m) → var ∈ formula.vars_in_list vec.to_list,
     { apply h,
       apply x,
       exact h₁},
