@@ -305,7 +305,7 @@ infix ` ≡ ` := elementarily_equivalent
 
 
 /-- The full theory of `M` is the set of `L`-sentences `φ` such that `M ⊨ φ`.-/
-def full_theory (M : struc L) : set (sentence L) := {ϕ : sentence L | M ⊨ ϕ}
+@[reducible] def full_theory (M : struc L) : set (sentence L) := {ϕ : sentence L | M ⊨ ϕ}
 
 
 /-- `M ≡ N` iff their full theories match.-/
