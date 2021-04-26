@@ -1,4 +1,5 @@
 import model
+import data.stream data.nat.prime
 
 /--This is a (currently abandoned) attempt at defining a Godel Encoding.
     Godel Encoding/Numbering

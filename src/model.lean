@@ -1,274 +1,27 @@
 import tactic
 import data.real.basic
 import set_theory.cardinal
-import data.nat.prime data.stream
+
+-- Local imports
+import func lang struc
+
 
 /-!
 # model.lean
 
 In this file, we define
-- functions of arity `(n : ℕ)` and their API.
-- languages
-- structures
-- embedding between two structures on the same language.
-- terms
+- Terms
   - we define a function for term substitution and prove a theorem.
   - we give an interpretation of terms in structures.
-- formulas.
+- Formulas
+- Models and Theories
+-
 
 ## Tags
 
 model theory, o-minimality
 -/
 
-
-/-! ## Arity n Functions and their API -/
-
-/-- Inductively define a function on n arguments. 0-arity functions are just
-terms of type α.-/
-@[reducible] def Func (α : Type) : ℕ → Type
-| 0 := α
-| (n+1) := α → Func n
-
-
-
-/-- Create a type of all functions with finite arity. Here we use Σ to
-sum up the types. Sum for types corresponds to union for sets.-/
-def Funcs (α : Type) : Type := Σ (n : ℕ), Func α n
-
-/-- If α is inhabited (i.e. if it has at least one term), then so is Funcs α.
-This serves 2 purposes:
-1. It is good practice to follow each new type definition with an inhabited
-   instance. This is to convince us that our defintion makes actual sense and
-   that we are not making claims about the empty set.
-2. Declaring that type α has an inhabited instance lets us access that term
-   by calling it using `arbitrary α` or `default α` anywhere in later proofs
-   when an arbitrary α term is needed.
-
-We show that (Funcs α) is inhabited by constructing a 0-level Func
-that returns an arbitrary α. -/
-instance Funcs.inhabited {α : Type} [inhabited α] : inhabited (Funcs α) :=
- {default := ⟨0, default α⟩}
-
-
-/-- Define a constructor for Func. It takes in a total function `f` and turns
-it into a partial function of the same arity.
-
-1. This constructor can only make functions of arity ≥ 1.
-2. This constructor makes a recursive call to itself. -/
-def mk_Func_of_total {α : Type} : Π {n : ℕ+}, (vector α n → α) → Func α n
-| ⟨0, _⟩ f := by linarith
-| ⟨1, _⟩ f := λ a, f ⟨[a], by norm_num⟩ -- this produces a 1-ary func
-| ⟨n+2, h⟩ f := λ a, @mk_Func_of_total ⟨n+1, by linarith⟩ (λ v, f (a ::ᵥ v)) -- an (n+1)-ary function
-
-
-/-- We can apply a Func to an element. This will give us a lower-level
-function.
-
-**Deprecation warning**: this function will be removed from future iterations.-/
-def app_elem {α : Type} {n : ℕ+} (f : Func α (n+1)) (a : α) : Func α n := f a
-
-
-/-- A Func can be applied to a vector of elements of the right size.
-1. In the base case, apply a 1-ary function to a single element to yield the
-   image under said 1-ary function.
-2. In the recursive case, we can apply an (n+2)-ary function to (n+2) elements
-   by applying it to the head and then recursively calling the result on the
-   remaining (n+1)-sized tail. -/
-def app_vec {α : Type} : Π {n : ℕ+}, Func α n → vector α n → α
-| ⟨0, _⟩   f v := by linarith
-| ⟨1, _⟩   f v := f v.head
-| ⟨n+2, _⟩ f v := @app_vec ⟨n+1, by linarith⟩ (f v.head) (v.tail)
-
--- Under this notation, if `(f : Func α n)` and `(v : vector α n)`, then `(f ⊗
--- n)` denotes the value in `α` obtained by feeding the `n` elements of `v` to
--- `f`.
-local infix `⊗` : 70 := app_vec
-
-
-/-- Apply a Func to a function on `fin n`.-/
-def app_fin {α : Type} {n : ℕ+} (f : Func α n) (v : fin n → α) : α :=
-  f ⊗ (vector.of_fn v)
-
-
-def Func.map {n : ℕ+} {α : Type} {A : set α} (F : Func α n) {f : A → α} :
- (∀ v : vector A n, F ⊗ v.map f ∈ A) → Func A n :=
- λ h, mk_Func_of_total (λ v, ⟨F ⊗ (v.map f), h v⟩)
-
-/-- We can apply a Func to a vector of elements of the incorrect size as well.-/
-def app_vec_partial {α : Type} : Π (m n : ℕ), 0 < m → 0 < n →
-  m ≤ n → Func α n → vector α m → Func α (n-m)
-| 0     _     _  _  _ _ _ := by linarith
-| _     0     _  _  _ _ _ := by linarith
-| 1     1     _  _  _ f v := f v.head
-| (m+2) 1     h₁ h₂ h f v := by linarith
-| 1     (n+2) h₁ h₂ h f v := f v.head
-| (m+2) (n+2) _  _  _ f v := by
-    { simp only [nat.succ_sub_succ_eq_sub] at *,
-      have recursive_call :=
-         app_vec_partial (m+1) (n+1) (by norm_num) (by norm_num) (by linarith)
-                          (f v.head) v.tail,
-      simp only [nat.succ_sub_succ_eq_sub] at recursive_call,
-      exact recursive_call,
-    }
-
-
-/-! ## Languages -/
-
-/-- A language is given by specifying functions, relations and constants
-along with the arity of each function and each relation.-/
-structure lang : Type 1 :=
-(F : ℕ+ → Type)    -- functions. ℕ keeps track of arity.
-(R : ℕ+ → Type)    -- relations
-(C : Type)         -- constants
-
-
-
-/-- A dense linear ordering without endpoints is a language containg a
-    single binary relation symbol ≤ satisfying the following sentences:
--- 1. ∀x x ≤ x;
--- 2. ∀x ∀y ∀z (x ≤ y → (y ≤ z → x ≤ z));
--- 3. ∀x ∀y (x ≤ y ∨ x = y ∨ y ≤ x);
--- 4. ∀x ∃y x ≤ y;
--- 5. ∀x ∃y y ≤ x;
--- 6. ∀x ∀y (x ≤ y → ∃z (x ≤ z ∧ z ≤ y)).
-
-The  language contains exactly one relation: ≤, and no functions or constants-/
-def DLO_lang : lang := {R := λ n : ℕ+,
-                        if n = 2 then unit else empty,  -- one binary relation
-                        F := function.const ℕ+ empty,   -- no functions
-                        C := empty}                     -- no constants
-
-/-- Having defined a DLO_lang, we now use it to declare that lang is an
-inhabited type.-/
-instance lang.inhabited : inhabited lang := {default := DLO_lang}
-
-
-def lang.card (L : lang) : cardinal :=
-  cardinal.sum (cardinal.mk ∘ L.F) + cardinal.sum (cardinal.mk ∘ L.R)
-
-
-/-! ## Structures -/
-
-
-/-- We now define an L-structure to be mapping of functions, relations and
- constants to appropriate elements of a domain/universe type.-/
-structure struc (L : lang) : Type 1 :=
-(univ : Type)                       -- universe/domain
-[univ_inhabited: inhabited univ]    -- we assume the universe is always inhabited
-(F {n : ℕ+} (f : L.F n) : Func univ n)        -- interpretation of each function
-(R {n : ℕ+} (r : L.R n) : set (vector univ n))-- interpretation of each relation
-(C : L.C → univ)                              -- interpretation of each constant
-
-
-instance struc.inhabited {L : lang} : inhabited (struc L) :=
-  {default := {univ := unit,  -- The domain must have at least one term
-               F := λ _ _, mk_Func_of_total (function.const _ unit.star),
-               R := λ _ _, ∅,
-               C := function.const L.C unit.star}
-  }
-
-
-local notation f^M := M.F f -- f^M denotes the interpretation of f in M.
-local notation r`̂`M : 150 := M.R r -- r̂M denotes the interpretation of r in
-                                 -- M. (type as a variant of \^)
-
-
-def struc.card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
-
-/-! ## Embeddings between Structures -/
-
-
-/-- An L-embedding is a map between two L-structures that is injective
-on the domain and preserves the interpretation of all the symbols of L.-/
-structure embedding {L : lang} (M N : struc L) : Type :=
-(η : M.univ → N.univ)                        -- map of underlying domains
-(η_inj : function.injective η)               -- should be one-to-one
-(η_F : ∀ n (f : L.F n) (v : vector M.univ n),
-     η (f^M ⊗ v) = f^N ⊗ vector.map η v)    -- preserves action of each function
-(η_R : ∀ n (r : L.R n) (v : vector M.univ n),
-     v ∈ (r̂M) ↔ (vector.map η v) ∈ (r̂N))   -- preserves each relation
-(η_C : ∀ c, η (M.C c) = N.C c)               -- preserves constants
-
-
-
-/-- We argue that every structure has an embedding, namely, the embedding
-to itself via the identity map.-/
-instance embedding.inhabited {L : lang} {M : struc L} : inhabited (embedding M M) :=
-  {default := {η := id,
-               η_inj := function.injective_id,
-               η_F := by simp,
-               η_R := by simp,
-               η_C := λ _, rfl}}
-
-
-/-- A bijective embedding between two `L`-structures is called an isomorphism.-/
-structure isomorphism {L: lang} (M N : struc L) extends (embedding M N) : Type :=
-(η_bij : function.bijective η)
-
-
-/-- We argue that every structure has an isomorphism to itself via the identity
-  map.-/
-instance isomorphism.inhabited {L : lang} {M : struc L} : inhabited (isomorphism M M) :=
-  {default := {η_bij := function.bijective_id,
-               .. default (embedding M M)}}
-
-
-/-- The cardinality of a structure is the cardinality of its domain.-/
-def card {L : lang} (M : struc L) : cardinal := cardinal.mk M.univ
-
-
-
-/-- If η: M → N is an embedding, then the cardinality of N is at least the
-  cardinality of M.-/
-lemma le_card_of_embedding {L : lang} (M N : struc L) (η : embedding M N) :
-  card M ≤ card N := cardinal.mk_le_of_injective η.η_inj
-
-
-
-/-- If `M ⊆ N` and the inclusion map is an `L`-embedding, we say either
-  that `M` is a substructure of `N` or that `N` is an extension of `M`.
-
-Note: the other conditions for `η` being an `L`-embedding follow from the
-definition of `coe`.
--/
-structure substruc {L : lang} (N : struc L) : Type :=
-(univ : set N.univ)                        -- a subset of N.univ
-[univ_inhabited : inhabited univ]          -- the subset should have a default
-(univ_invar_F :  ∀ (n : ℕ+) (f : L.F n) (v : vector univ n),
-                 f^N ⊗ (v.map coe) ∈ univ)  -- univ is invariant over f
-(univ_invar_C : ∀ (c : L.C), N.C c ∈ univ) -- univ contains all constants
-
-
-/- TODO : The intersection of 2 structures (on the same language) is a structure.-
-
-Problem: How would we even define the intersection of M.univ and N.univ?
-Intersection only makes sense for sets, not types.
--/
-
-
-
-/-- A substructure is finite if it has only finitely many domain elements.-/
-class fin_substruc {L : lang} {N : struc L} (S : substruc N) :=
-(finite : set.finite S.univ)
-
-/-- Every substruc is a struc.-/
-instance substruc.has_coe {L: lang} {M : struc L} :
-  has_coe (substruc M) (struc L)
-:= {coe := λ S, {univ := S.univ,
-                 F := λ n f, (f^M).map (S.univ_invar_F n f),
-                 R := λ _ r v, v.map coe ∈ (r̂M),
-                 C := λ c, ⟨M.C c, S.univ_invar_C c⟩,
-                 univ_inhabited := S.univ_inhabited}}
-
-/- For a given structure N on a language L, an inhabited substructure can
-   be generated from any subset of N.univ via substruc.closure -/
-instance substruc.inhabited {L : lang} {N : struc L} {α : set N.univ} :
-  inhabited (substruc N) :=
- {default := {univ := set.univ,
-              univ_invar_F := by simp,
-              univ_invar_C := by simp,
-              univ_inhabited := ⟨⟨@default N.univ N.univ_inhabited, by simp⟩⟩}}
 
 /-! ## Terms -/
 
@@ -285,10 +38,8 @@ inductive term (L : lang) : ℕ → Type
 | var : ℕ → term 0
 | func {n : ℕ+} : L.F n → term n
 | app {n : ℕ} : term (n+1) → term 0 → term n
-open term
 
-
-
+namespace term
 variables {L : lang} {M : struc L}
 
 
@@ -296,7 +47,7 @@ variables {L : lang} {M : struc L}
     example, the depth of `f(v₁, v₂, v₃)` is 4 (one for `f` and one for
     each variable). The depth of `f(v₁, g(v₂), v₃)` is similarly 5.
 -/
-def term.depth : Π {n : ℕ}, term L n → ℕ
+def depth : Π {n : ℕ}, term L n → ℕ
 | 0 (con c)    := 1
 | 0 (var v)    := 1
 | _ (func f)   := 1
@@ -307,7 +58,7 @@ def term.depth : Π {n : ℕ}, term L n → ℕ
 variable terms can be formed without reference to L. In fact, every
 language has countably infinite terms of level 0.
 -/
-instance term.inhabited : inhabited (term L 0) :=
+instance inhabited : inhabited (term L 0) :=
   {default := var 0}
 
 
@@ -340,7 +91,7 @@ def term_interpretation (var_assign : ℕ → M.univ) :
   Π {n : ℕ}, term L n → Func M.univ n
 | 0 (con c)    := M.C c
 | 0 (var v)    := var_assign v
-| _ (func f)   := f^M
+| _ (func f)   := M.F f
 | _ (app t t₀) := (term_interpretation t) (term_interpretation t₀)
 
 
@@ -373,7 +124,7 @@ def term_sub_for_var (t' : term L 0) (k : ℕ) :
 | n (func f)   := func f
 | n (app t t₀) := app (term_sub_for_var (n+1) t) (term_sub_for_var 0 t₀)
 
-
+end term
 
 /-! ##  Formulas and Sentences -/
 
@@ -388,15 +139,17 @@ inductive formula (L : lang)
 | exi : ℕ → formula → formula    -- ℕ gives us a variable
 | all : ℕ → formula → formula    -- ℕ gives us a variable
 
+namespace formula
+variables {L : lang} {M : struc L}
 
-infix    ` =' ` :  80 := formula.eq
-prefix   ` ¬' ` :  60 := formula.neg
-infix    ` ∧' ` :  70 := formula.and
-infix    ` ∨' ` :  70 := formula.or
-notation ` ∃' ` : 110 := formula.exi
-notation ` ∀' ` : 110 := formula.all
-notation ` ⊤' ` : 110 := formula.tt
-notation ` ⊥' ` : 110 := formula.ff
+infix    ` =' ` :  80 := eq
+prefix   ` ¬' ` :  60 := neg
+infix    ` ∧' ` :  70 := and
+infix    ` ∨' ` :  70 := or
+notation ` ∃' ` : 110 := exi
+notation ` ∀' ` : 110 := all
+notation ` ⊤' ` : 110 := tt
+notation ` ⊥' ` : 110 := ff
 
 def impl (φ₁ : formula L) (φ₂ : formula L) := ¬'φ₁ ∨' φ₂
 infix ` →' ` : 80 := impl
@@ -406,16 +159,16 @@ infix ` ↔' ` : 80 := bicond
 
 
 /-- Helper function for variables from list of terms-/
-def vars_in_list : list (term L 0) → finset ℕ
+@[reducible] def vars_in_list : list (term L 0) → finset ℕ
 | [] := ∅
-| (t :: ts) := vars_in_term t ∪ vars_in_list ts
+| (t :: ts) := t.vars_in_term ∪ vars_in_list ts
 
 
 /-- Extracts set of variables from the formula-/
-def vars_in_formula : formula L → finset ℕ
+@[reducible] def vars_in_formula : formula L → finset ℕ
 | ⊤'                 := ∅
 | ⊥'                 := ∅
-| (t₁='t₂)           := vars_in_term t₁ ∪ vars_in_term t₂
+| (t₁='t₂)           := t₁.vars_in_term ∪ t₂.vars_in_term
 | (formula.rel _ ts) := vars_in_list (ts.to_list)
 | (¬' ϕ)             := vars_in_formula ϕ
 | (ϕ₁ ∧' ϕ₂)         := vars_in_formula ϕ₁ ∪ vars_in_formula ϕ₂
@@ -424,7 +177,7 @@ def vars_in_formula : formula L → finset ℕ
 | (∀' v ϕ)           := vars_in_formula ϕ ∪ {v}
 
 /- The set of L-formulas for any language L must have ⊤ as a formula -/
-instance formula.inhabited {L : lang} : inhabited (formula L) :=
+instance inhabited {L : lang} : inhabited (formula L) :=
   {default := formula.tt}
 
 /-- A variable occurs freely in a formula
@@ -435,10 +188,10 @@ instance formula.inhabited {L : lang} : inhabited (formula L) :=
     the following scenarios --
     - `var` does not occur in `ϕ` at all.
     - `var` occurs in `ϕ` but only after a quantifier.-/
-def var_occurs_freely (var : ℕ) : formula L → Prop
+@[reducible] def var_occurs_freely (var : ℕ) : formula L → Prop
 | ⊤'                 := false  -- doesn't occur
 | ⊥'                 := false  -- doesn't occur
-| (t₁='t₂)           := var ∈ vars_in_term t₁ ∪ vars_in_term t₂ -- check occur
+| (t₁='t₂)           := var ∈ t₁.vars_in_term ∪ t₂.vars_in_term -- check occur
 | (formula.rel _ ts) := var ∈ vars_in_list (ts.to_list)         -- check occur
 | (¬' ϕ)             := var_occurs_freely ϕ
 | (ϕ₁ ∧' ϕ₂)         := var_occurs_freely ϕ₁ ∨ var_occurs_freely ϕ₂
@@ -446,51 +199,57 @@ def var_occurs_freely (var : ℕ) : formula L → Prop
 | (∃' v ϕ)           := (var ≠ v) ∧ var_occurs_freely ϕ -- check not quantified
 | (∀' v ϕ)           := (var ≠ v) ∧ var_occurs_freely ϕ -- check not quantified
 
+end formula
 
 /-- A formula in which no variable occurs freely is a sentence.  We create a
     subtype of `L`-formulas that we call `L`-sentences.-/
 def sentence (L : lang) : Type :=
-  {ϕ : formula L // ∀ var, ¬ var_occurs_freely var ϕ}
+  {ϕ : formula L // ∀ var, ¬ ϕ.var_occurs_freely var}
 
-variables (ϕ : formula L) (σ: sentence L)
+namespace sentence
+variables {L : lang} {M : struc L} (ϕ : formula L) (σ: sentence L)
+
+
+@[simp] lemma iff_not_var_occurs_freely_of_vars_in_formula :
+  (∀ var, ¬ ϕ.var_occurs_freely var) ↔ (∀ var ∈ ϕ.vars_in_formula, ¬ formula.var_occurs_freely var ϕ) :=
+begin
+  split,
+    {tauto},
+
+   intros hϕ var,
+   by_cases var_occurs : var ∈ ϕ.vars_in_formula,
+     { tauto },
+
+   clear' hϕ,
+   { induction ϕ;
+     finish [formula.var_occurs_freely]},
+end
+
 
 /-- Since sentences are a subtype of formula, we define a coercion map for
     conveniently casting any sentence `σ` to a formula by writing `↑σ`.-/
-instance coe_sentence_formula : has_coe (sentence L) (formula L) := ⟨λ σ, σ.val⟩
+instance coe_formula : has_coe (sentence L) (formula L) :=
+  ⟨λ σ, σ.val⟩
 
 /- The formula ⊤ previously used to prove that formulas are inhabited is also
    vacuously a sentence -/
-instance sentence.inhabited {L : lang} : inhabited (sentence L) :=
+instance inhabited {L : lang} : inhabited (sentence L) :=
   {default := ⟨⊤', by tauto⟩}
+end sentence
+
 
 /-! ## Satisfiability and Models -/
 
-/- Define an expanded language, given a struc M.
-
-Idea: For every element of M.univ, we will add a new constant to the
-language.
-
-In Lou's book (more general): we start instead with C ⊂ M.univ, and then add
-only elements of C as constants to the language. -/
-@[reducible] def expanded_lang (L : lang) (M : struc L) : lang :=
-  {C := M.univ ⊕ L.C, .. L}
-
-
-/-- Define expanded structures. -/
-def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
-  {C := λ c, sum.cases_on c id M.C,
-   .. M}
-
-
+variables {L : lang} {M : struc L} {ϕ : formula L} {σ : sentence L}
 
 /-- We define what it means for a formula to be true in an `L`-structure
 `M`, or consequently, what it means for a structure `M` to model/satisfy a
 formula.-/
-def models_formula : (ℕ → M.univ) → formula L →  Prop
+@[reducible] def models_formula : (ℕ → M.univ) → formula L →  Prop
 | _ ⊤'           := true
 | _ ⊥'           := false
 | va (t₁ =' t₂)   := (t₁^^va) = (t₂^^va)
-| va (formula.rel r ts) := vector.map (^^va) ts ∈ (r̂M)
+| va (formula.rel r ts) := vector.map (^^va) ts ∈ M.R r
 | va (¬' ϕ)       :=  ¬ models_formula va ϕ
 | va (ϕ₁ ∧' ϕ₂)   := models_formula va ϕ₁ ∧ models_formula va ϕ₂
 | va (ϕ₁ ∨' ϕ₂)   := models_formula va ϕ₁ ∨ models_formula va ϕ₂
@@ -512,15 +271,15 @@ begin
   repeat {tauto},
 end
 
-lemma neg_of_sentence_is_sentence :
-   ∀ var, ¬ var_occurs_freely var (¬' (↑σ : formula L)) :=
-begin
-  intros var,
-  exact σ.property var,
-end
+namespace sentence
 
-def neg_sentence : sentence L := ⟨¬' ↑σ, neg_of_sentence_is_sentence σ⟩
-prefix ` ¬' ` :  60 := neg_sentence
+lemma neg_of_sentence (σ : sentence L) (var : ℕ) :
+  ¬ formula.var_occurs_freely var (¬' (↑σ : formula L)) :=
+  σ.property var
+
+def neg (σ : sentence L) : sentence L := ⟨¬' ↑σ, neg_of_sentence σ⟩
+prefix ` ¬' ` :  60 := neg
+end sentence
 
 
 lemma models_sentence_or_negation (M : struc L) (σ : sentence L) :
@@ -529,12 +288,11 @@ begin
   by_cases (M ⊨ σ),
     {tauto},
   right,
-  unfold models_sentence at *,
+  unfold models_sentence at h,
   push_neg at h,
-  simp only [coe, subtype.val_eq_coe],
-  haveI M.univ_inhabited := M.univ_inhabited,
-  use function.const ℕ (default M.univ),
-  apply h,
+  split,
+    {tauto},
+  exact function.const ℕ (@default M.univ M.univ_inhabited),
 end
 
 
@@ -547,14 +305,14 @@ infix ` ≡ ` := elementarily_equivalent
 
 
 /-- The full theory of `M` is the set of `L`-sentences `φ` such that `M ⊨ φ`.-/
-def full_theory (M : struc L) : set (sentence L) := {ϕ : sentence L | M ⊨ ϕ}
+@[reducible] def full_theory (M : struc L) : set (sentence L) := {ϕ : sentence L | M ⊨ ϕ}
 
 
 /-- `M ≡ N` iff their full theories match.-/
 lemma eq_full_theory_iff_elementary_equivalent {M N : struc L} :
       full_theory M = full_theory N ↔ M ≡ N :=
 begin
-  simp only [elementarily_equivalent, set_of, full_theory] at *,
+  simp only [elementarily_equivalent, set_of, full_theory],
   split,
   { intros h σ,
     rwa h},
@@ -564,8 +322,10 @@ begin
 end
 
 
--- TODO: Theorem: If two structures are isomorphic then they must satisfy the
--- same theory.  Proof by induction on formulas.
+-- TODO: Theorem: If two structures are isomorphic then they must satisfy
+-- the same theory. Proof by induction on formulas. Idea: Perhaps we need
+-- an induction principle that works only on level=0 terms which have no
+-- variables.
 theorem isomorphic_struc_satisfy_same_theory {M₁ M₂ : struc L}
   (η : isomorphism M₁ M₂) {σ : sentence L} : M₁ ⊨ σ → M₂ ⊨ σ :=
 begin
@@ -576,15 +336,16 @@ begin
   unfold_coes at *,
   cases ϕ,
     case formula.tt
-    { unfold models_formula},      -- every variable assignment satisfies T'
+    { tauto},      -- every variable assignment satisfies T'
     case formula.ff
-    { unfold models_formula at *,  -- no variable assignment can satisfy ⊥'
-      tauto,                       -- thus the hypothesis is impossible
-    },
+    { tauto},  -- no variable assignment can satisfy ⊥'thus the hypothesis
+              -- is impossible
     case formula.eq : t₁ t₂
     { unfold models_formula at *,
       -- Question/TODO: term-interpret of t₁ under (η_map∘va) is same as
       -- term-interpret of t₂ under (η_map∘va). Why? How can we show this?
+      revert hϕ va_models_ϕ,
+
       sorry},
     case formula.rel : n r vec
     { admit },
@@ -603,9 +364,10 @@ end
 
 -- TODO: But put this on hold till we figure out how to prove that the
 -- inverse of bijective function is bijective.
-noncomputable def isomorphism_inverse (M N : struc L) [nonempty M.univ] [nonempty N.univ]
+noncomputable def isomorphism_inverse (M N : struc L)
   (η : isomorphism M N) : isomorphism N M :=
 begin
+  haveI M_univ_inhabited := M.univ_inhabited,
   let ηi := function.inv_fun η.η,
   fconstructor,
   { fconstructor,
@@ -646,7 +408,7 @@ end
 such that s₁(v) = s₂(v) for every free variable v in the term t.
 Then t is interpreted to the same element under both s₁ and s₂. -/
 lemma eq_term_interpretation_of_identical_var_assign {L : lang} {M : struc L}
-  (s₁ s₂ : ℕ → M.univ) (t : term L 0) (h : ∀ v ∈ vars_in_term t, s₁ v = s₂ v) :
+  (s₁ s₂ : ℕ → M.univ) (t : term L 0) (h : ∀ v ∈ t.vars_in_term, s₁ v = s₂ v) :
   (t^^s₁) = (t^^s₂) :=
 begin
   -- We will proceed with induction on the term t.
@@ -659,10 +421,10 @@ begin
   { -- In the case when t is a constant, the result holds definitionally.
     refl},
 
-  { -- In the case when t is a variable v', the result is straigtforward once
+  { -- In the case when t is a variable v', the result is straightforward once
     -- we use the hypothesis h.
     apply h,
-    simp only [vars_in_term, finset.mem_singleton]},
+    simp only [term.vars_in_term, finset.mem_singleton]},
 
   { -- In the case when t is a function of arity n, the result is definitionally
     -- true for n zero and nonzero.
@@ -672,10 +434,9 @@ begin
     -- zero and nonzero.
     cases n;
       -- unfold definitions and use the induction hypotheses.
-      unfold term_interpretation;
+      unfold term.term_interpretation;
       rw [t_ih, t₀_ih];
       -- The rest follows from hypothesis h.
-      unfold vars_in_term at h;
       intros v hv;
       apply h;
       simp only [finset.mem_union];
@@ -691,23 +452,22 @@ end
     iff it is also satisfied under `va₂`.
 -/
 lemma iff_models_formula_relation_of_identical_var_assign
-  (n : ℕ+) (r : L.R n) (vec : vector (term L 0) n)
-  (va₁ va₂ : ℕ → M.univ)
-  (h : ∀ var ∈ vars_in_formula (formula.rel r vec), va₁ var = va₂ var) :
+  {n : ℕ+} {r : L.R n} {vec : vector (term L 0) n}
+  {va₁ va₂ : ℕ → M.univ}
+  (h : ∀ var ∈ formula.vars_in_formula (formula.rel r vec), va₁ var = va₂ var) :
   (va₁ ⊨ (formula.rel r vec)) ↔ (va₂ ⊨ (formula.rel r vec)) :=
 begin
   set ϕ : formula L := formula.rel r vec,
-  unfold vars_in_formula models_formula at *,
 
   suffices interpretations_eq : vector.map (^^va₁) vec = vector.map (^^va₂) vec,
-  rw interpretations_eq,
+  rw [models_formula, interpretations_eq],
 
   ext1,
   rw [vector.nth_map, vector.nth_map,
        eq_term_interpretation_of_identical_var_assign],
 
   intros var h₁,
-  suffices x : var ∈ vars_in_term (vec.nth m) → var ∈ vars_in_list vec.to_list,
+  suffices x : var ∈ term.vars_in_term (vec.nth m) → var ∈ formula.vars_in_list vec.to_list,
     { apply h,
       apply x,
       exact h₁},
@@ -723,73 +483,55 @@ end
 such that va₁(v) = va₂(v) for every free variable v in the formula ϕ.
 Then M ⊨ ϕ[va₁] iff M ⊨ ϕ[va₂]. -/
 lemma iff_models_formula_of_identical_var_assign (va₁ va₂ : ℕ → M.univ)
-  (ϕ : formula L) (h : ∀ v ∈ vars_in_formula ϕ, va₁ v = va₂ v) :
+  (ϕ : formula L) (h : ∀ v ∈ ϕ.vars_in_formula, va₁ v = va₂ v) :
   (va₁ ⊨ ϕ ↔ va₂ ⊨ ϕ) :=
 begin
   induction ϕ with t₁ t₂ n r v ϕ ϕ_ih ϕ₁ ϕ₂ ϕ₁_ih ϕ₂_ih ϕ₁ ϕ₂ ϕ₁_ih ϕ₂_ih n ϕ ϕ_ih n ϕ ϕ_ih,
-  refl,
-  refl,
+  case formula.tt
+  { refl },
+  case formula.ff
+  { refl },
+  case formula.eq : t₁ t₂
+  {simp only [finset.mem_union] at h,
 
-  {simp only [models_formula, vars_in_formula, finset.mem_union] at h,
-
-   have h₁ : ∀ v ∈ vars_in_term t₁, va₁ v = va₂ v, sorry,
-   have h₂ : ∀ v ∈ vars_in_term t₂, va₁ v = va₂ v, sorry,
+   have h₁ : ∀ v ∈ t₁.vars_in_term, va₁ v = va₂ v, sorry,
+   have h₂ : ∀ v ∈ t₂.vars_in_term, va₁ v = va₂ v, sorry,
 
    have h₃ := eq_term_interpretation_of_identical_var_assign va₁ va₂ t₁ h₁,
    have h₄ := eq_term_interpretation_of_identical_var_assign va₁ va₂ t₂ h₂,
    sorry},
 
-  {apply iff_models_formula_relation_of_identical_var_assign,
-  intros v',
-  apply h},
+  case formula.rel
+  { exact iff_models_formula_relation_of_identical_var_assign h},
 
-  apply not_congr,
-  apply ϕ_ih,
-  assumption,
+  case formula.neg : ϕ ϕ_ih
+  { exact not_congr (ϕ_ih h)},
 
-  apply and_congr,
-  apply ϕ₁_ih,
-  intros v H,
-  apply h v,
-  unfold vars_in_formula,
-  simp,
-  left,
-  exact H,
+  case formula.and : ϕ₁ ϕ₂ ϕ₁_ih ϕ₂_ih
+  { apply and_congr,
+    { exact ϕ₁_ih (λ var H, h var (finset.mem_union.mpr (or.inl H)))},
+    { exact ϕ₂_ih (λ var H, h var (finset.mem_union.mpr (or.inr H)))}},
 
-  apply ϕ₂_ih,
-  intros v H,
-  apply h v,
-  unfold vars_in_formula,
-  simp,
-  right,
-  exact H,
+  case formula.or : ϕ₁ ϕ₂ ϕ₁_ih ϕ₂_ih
+  { apply or_congr,
+    { exact ϕ₁_ih (λ var H, h var (finset.mem_union.mpr (or.inl H)))},
+    { exact ϕ₂_ih (λ var H, h var (finset.mem_union.mpr (or.inr H)))}},
 
-  apply or_congr,
-  apply ϕ₁_ih,
-  intros v H,
-  apply h v,
-  unfold vars_in_formula,
-  simp,
-  left,
-  exact H,
-
-  apply ϕ₂_ih,
-  intros v H,
-  apply h v,
-  unfold vars_in_formula,
-  simp,
-  right,
-  exact H,
-
-  apply exists_congr,
-  intros x,
-  sorry,
-
-  apply forall_congr,
-  intros x,
-  fconstructor,
-
-  repeat {sorry},
+  case formula.exi : n ϕ ϕ_ih
+  { apply exists_congr,
+    intros x,
+    simp,
+    split,
+    intros h',
+    have y := function.update_apply va₂ n x,
+    simp at *,
+    sorry,
+    sorry},
+  case formula.all : n ϕ ϕ_ih
+  { apply forall_congr,
+    intros x,
+    fconstructor,
+    repeat {sorry}},
 end
 
 
@@ -890,10 +632,7 @@ lemma is_consistent_theory_full_theory (M : struc L) :
 lemma is_complete_theory_full_theory (M : struc L) :
   is_complete_theory (full_theory M) :=
 begin
-  unfold is_complete_theory,
-  intros A₁ A₂,
-  unfold elementarily_equivalent,
-  intros σ,
+  intros A₁ A₂ σ,
   by_cases (σ ∈ full_theory M),
   have H₁ : A₁.M ⊨ σ := A₁.satis h,
   have H₂ : A₂.M ⊨ σ := A₂.satis h,
@@ -909,12 +648,6 @@ class has_infinite_model (T : theory L) : Type 1 :=
 (μ : Model T)
 (big : cardinal.omega ≤ μ.card)
 
-
-lemma has_infinite_model_union_theory (t : theory L) (σ : sentence L)
- [has_infinite_model t] : has_infinite_model (t ∪ {σ}) :=
-begin
- sorry
-end
 
 /-- Lowenheim-Skolem asserts that for a theory over a language L, if that theory
     has an infinite model, then it has a model for any infinite cardinality
