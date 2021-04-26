@@ -632,10 +632,7 @@ lemma is_consistent_theory_full_theory (M : struc L) :
 lemma is_complete_theory_full_theory (M : struc L) :
   is_complete_theory (full_theory M) :=
 begin
-  unfold is_complete_theory,
-  intros A₁ A₂,
-  unfold elementarily_equivalent,
-  intros σ,
+  intros A₁ A₂ σ,
   by_cases (σ ∈ full_theory M),
   have H₁ : A₁.M ⊨ σ := A₁.satis h,
   have H₂ : A₂.M ⊨ σ := A₂.satis h,
@@ -651,12 +648,6 @@ class has_infinite_model (T : theory L) : Type 1 :=
 (μ : Model T)
 (big : cardinal.omega ≤ μ.card)
 
-
-lemma has_infinite_model_union_theory (t : theory L) (σ : sentence L)
- [has_infinite_model t] : has_infinite_model (t ∪ {σ}) :=
-begin
- sorry
-end
 
 /-- Lowenheim-Skolem asserts that for a theory over a language L, if that theory
     has an infinite model, then it has a model for any infinite cardinality
