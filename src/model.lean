@@ -237,10 +237,6 @@ instance inhabited {L : lang} : inhabited (sentence L) :=
   {default := ⟨⊤', by tauto⟩}
 end sentence
 
-/-- Define expanded structures. -/
-def expanded_struc (L: lang) (M : struc L) : struc (expanded_lang L M) :=
-  {C := λ c, sum.cases_on c id M.C,
-   .. M}
 
 
 
