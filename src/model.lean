@@ -139,15 +139,17 @@ inductive formula (L : lang)
 | exi : ℕ → formula → formula    -- ℕ gives us a variable
 | all : ℕ → formula → formula    -- ℕ gives us a variable
 
+namespace formula
+variables {L : lang} {M : struc L}
 
-infix    ` =' ` :  80 := formula.eq
-prefix   ` ¬' ` :  60 := formula.neg
-infix    ` ∧' ` :  70 := formula.and
-infix    ` ∨' ` :  70 := formula.or
-notation ` ∃' ` : 110 := formula.exi
-notation ` ∀' ` : 110 := formula.all
-notation ` ⊤' ` : 110 := formula.tt
-notation ` ⊥' ` : 110 := formula.ff
+infix    ` =' ` :  80 := eq
+prefix   ` ¬' ` :  60 := neg
+infix    ` ∧' ` :  70 := and
+infix    ` ∨' ` :  70 := or
+notation ` ∃' ` : 110 := exi
+notation ` ∀' ` : 110 := all
+notation ` ⊤' ` : 110 := tt
+notation ` ⊥' ` : 110 := ff
 
 def impl (φ₁ : formula L) (φ₂ : formula L) := ¬'φ₁ ∨' φ₂
 infix ` →' ` : 80 := impl
@@ -157,16 +159,16 @@ infix ` ↔' ` : 80 := bicond
 
 
 /-- Helper function for variables from list of terms-/
-def vars_in_list : list (term L 0) → finset ℕ
+@[reducible] def vars_in_list : list (term L 0) → finset ℕ
 | [] := ∅
-| (t :: ts) := vars_in_term t ∪ vars_in_list ts
+| (t :: ts) := t.vars_in_term ∪ vars_in_list ts
 
 
 /-- Extracts set of variables from the formula-/
-def vars_in_formula : formula L → finset ℕ
+@[reducible] def vars_in_formula : formula L → finset ℕ
 | ⊤'                 := ∅
 | ⊥'                 := ∅
-| (t₁='t₂)           := vars_in_term t₁ ∪ vars_in_term t₂
+| (t₁='t₂)           := t₁.vars_in_term ∪ t₂.vars_in_term
 | (formula.rel _ ts) := vars_in_list (ts.to_list)
 | (¬' ϕ)             := vars_in_formula ϕ
 | (ϕ₁ ∧' ϕ₂)         := vars_in_formula ϕ₁ ∪ vars_in_formula ϕ₂
@@ -175,7 +177,7 @@ def vars_in_formula : formula L → finset ℕ
 | (∀' v ϕ)           := vars_in_formula ϕ ∪ {v}
 
 /- The set of L-formulas for any language L must have ⊤ as a formula -/
-instance formula.inhabited {L : lang} : inhabited (formula L) :=
+instance inhabited {L : lang} : inhabited (formula L) :=
   {default := formula.tt}
 
 /-- A variable occurs freely in a formula
@@ -186,10 +188,10 @@ instance formula.inhabited {L : lang} : inhabited (formula L) :=
     the following scenarios --
     - `var` does not occur in `ϕ` at all.
     - `var` occurs in `ϕ` but only after a quantifier.-/
-def var_occurs_freely (var : ℕ) : formula L → Prop
+@[reducible] def var_occurs_freely (var : ℕ) : formula L → Prop
 | ⊤'                 := false  -- doesn't occur
 | ⊥'                 := false  -- doesn't occur
-| (t₁='t₂)           := var ∈ vars_in_term t₁ ∪ vars_in_term t₂ -- check occur
+| (t₁='t₂)           := var ∈ t₁.vars_in_term ∪ t₂.vars_in_term -- check occur
 | (formula.rel _ ts) := var ∈ vars_in_list (ts.to_list)         -- check occur
 | (¬' ϕ)             := var_occurs_freely ϕ
 | (ϕ₁ ∧' ϕ₂)         := var_occurs_freely ϕ₁ ∨ var_occurs_freely ϕ₂
@@ -197,6 +199,7 @@ def var_occurs_freely (var : ℕ) : formula L → Prop
 | (∃' v ϕ)           := (var ≠ v) ∧ var_occurs_freely ϕ -- check not quantified
 | (∀' v ϕ)           := (var ≠ v) ∧ var_occurs_freely ϕ -- check not quantified
 
+end formula
 
 /-- A formula in which no variable occurs freely is a sentence.  We create a
     subtype of `L`-formulas that we call `L`-sentences.-/
