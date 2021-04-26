@@ -17,6 +17,7 @@ theory).
 - we need to state the completeness of DLO theory as a theorem.
 
 🚀 /Next TODO:/ Define =DLO_theory= in =examples.lean=.
+After that, we can use Vaught's theorem to prove completeness.
 
 ** Vaught's theorem
 We are close to finishing the proof (assuming Lownheim-Skolem as an
@@ -49,3 +50,6 @@ This uses something called [[https://en.wikipedia.org/wiki/Ultraproduct][ultrapr
 Los' theorem implies compactness and Loewenheim-Skolem.
 
 🚀 /Next TODO/: Define ultraproducts.
+** Compactness theorem
+Follows from Vaught's theorem.
+We would definition of a filter.
