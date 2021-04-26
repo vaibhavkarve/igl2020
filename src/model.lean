@@ -364,9 +364,10 @@ end
 
 -- TODO: But put this on hold till we figure out how to prove that the
 -- inverse of bijective function is bijective.
-noncomputable def isomorphism_inverse (M N : struc L) [nonempty M.univ] [nonempty N.univ]
+noncomputable def isomorphism_inverse (M N : struc L)
   (η : isomorphism M N) : isomorphism N M :=
 begin
+  haveI M_univ_inhabited := M.univ_inhabited,
   let ηi := function.inv_fun η.η,
   fconstructor,
   { fconstructor,
@@ -407,7 +408,7 @@ end
 such that s₁(v) = s₂(v) for every free variable v in the term t.
 Then t is interpreted to the same element under both s₁ and s₂. -/
 lemma eq_term_interpretation_of_identical_var_assign {L : lang} {M : struc L}
-  (s₁ s₂ : ℕ → M.univ) (t : term L 0) (h : ∀ v ∈ vars_in_term t, s₁ v = s₂ v) :
+  (s₁ s₂ : ℕ → M.univ) (t : term L 0) (h : ∀ v ∈ t.vars_in_term, s₁ v = s₂ v) :
   (t^^s₁) = (t^^s₂) :=
 begin
   -- We will proceed with induction on the term t.
@@ -420,10 +421,10 @@ begin
   { -- In the case when t is a constant, the result holds definitionally.
     refl},
 
-  { -- In the case when t is a variable v', the result is straigtforward once
+  { -- In the case when t is a variable v', the result is straightforward once
     -- we use the hypothesis h.
     apply h,
-    simp only [vars_in_term, finset.mem_singleton]},
+    simp only [term.vars_in_term, finset.mem_singleton]},
 
   { -- In the case when t is a function of arity n, the result is definitionally
     -- true for n zero and nonzero.
@@ -433,10 +434,9 @@ begin
     -- zero and nonzero.
     cases n;
       -- unfold definitions and use the induction hypotheses.
-      unfold term_interpretation;
+      unfold term.term_interpretation;
       rw [t_ih, t₀_ih];
       -- The rest follows from hypothesis h.
-      unfold vars_in_term at h;
       intros v hv;
       apply h;
       simp only [finset.mem_union];
