@@ -1,7 +1,10 @@
 import tactic
 import data.real.basic
 import set_theory.cardinal
-import data.nat.prime data.stream
+
+-- Local imports
+import func lang struc
+
 
 /-!
 # model.lean
