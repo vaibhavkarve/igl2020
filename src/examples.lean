@@ -195,7 +195,7 @@ def ordered_ring_is_struc_of_ordered_ring_lang {A : Type} [ordered_ring A]
 
 /-- A type with linear order is a structure on dense-linear-order language.-/
 def LO_is_struc_of_DLO_lang {A : Type} [linear_order A] [inhabited A]
- : struc (DLO_lang) :=
+ : struc (lang.DLO_lang) :=
   {univ := A,
    R := λ n r v, by {cases n, cases n_val,
                        {linarith},
@@ -310,22 +310,27 @@ namespace example_terms
   def ψ₃ : formula L1 := ∃' 3 ψ₁ -- ∃v₃  f(v₅) = v₅
   def ψ₄ : formula L1 := ∀' 4 (∀' 5 ψ₂) -- ∀v₄∀v₅ g(c, f(v₄)) =/= v₅
 
-  example : ¬ (var_occurs_freely 5 ψ₄) :=
+  example : ¬ (formula.var_occurs_freely 5 ψ₄) :=
   begin
     rw ψ₄,
-    unfold var_occurs_freely,
+    unfold formula.var_occurs_freely,
     rw ψ₂,
     simp,
   end
 
-  def phi : formula (DLO_lang) :=
+  def phi : formula (lang.DLO_lang) :=
   ¬'(∀' 2 ⊤') ∧' ((var 1) =' (var 4)) ∧' (∃' 3 (var 2 =' var 3))
 
-  example :   var_occurs_freely 1 phi := by norm_num [phi, var_occurs_freely]
-  example :   var_occurs_freely 2 phi := by norm_num [phi, var_occurs_freely]
-  example : ¬ var_occurs_freely 3 phi := by norm_num [phi, var_occurs_freely]
-  example :   var_occurs_freely 4 phi := by norm_num [phi, var_occurs_freely]
-  example : ¬ var_occurs_freely 5 phi := by norm_num [phi, var_occurs_freely]
+  example :   formula.var_occurs_freely 1 phi :=
+    by norm_num [phi, formula.var_occurs_freely]
+  example :   formula.var_occurs_freely 2 phi :=
+    by norm_num [phi, formula.var_occurs_freely]
+  example : ¬ formula.var_occurs_freely 3 phi :=
+    by norm_num [phi, formula.var_occurs_freely]
+  example :   formula.var_occurs_freely 4 phi :=
+    by norm_num [phi, formula.var_occurs_freely]
+  example : ¬ formula.var_occurs_freely 5 phi :=
+    by norm_num [phi, formula.var_occurs_freely]
 
 
 end example_terms
@@ -334,7 +339,7 @@ end example_terms
 
 namespace DLO_Model
 
-@[reducible] def Q_struc : struc DLO_lang :=
+@[reducible] def Q_struc : struc lang.DLO_lang :=
  { univ := ℚ,
    R := λ n f, by { cases n, cases n_val,
                       {linarith},
@@ -346,7 +351,7 @@ namespace DLO_Model
   F := λ _, empty.elim,
   C := empty.elim
  }
-notation `<'` : 110 := @formula.rel DLO_lang 2 ()
+notation `<'` : 110 := @formula.rel lang.DLO_lang 2 ()
 
 /- A dense linear ordering without endpoints is a language containg a
     single binary relation symbol < satisfying the following sentences:
@@ -358,15 +363,15 @@ notation `<'` : 110 := @formula.rel DLO_lang 2 ()
 -- 6. ∀x ∀y (x < y → ∃z (x < z ∧ z < y)). -/
 
 open term
-def mk_vec (v₁ v₂ : ℕ) : vector (term DLO_lang 0) 2 := ⟨[var v₁, var v₂], rfl⟩
-def φ₁ : formula DLO_lang := <' $ mk_vec 1 2 -- x < y
-def φ₂ : formula DLO_lang := <' $ mk_vec 2 1 -- y < x
-def φ₃ : formula DLO_lang := <' $ mk_vec 2 3 -- y < z
-def φ₄ : formula DLO_lang := <' $ mk_vec 3 2 -- z < y
-def φ₅ : formula DLO_lang := <' $ mk_vec 1 3 -- x < z
-def φ₆ : formula DLO_lang := <' $ mk_vec 1 1 -- x < x
+@[reducible] def mk_vec (v₁ v₂ : ℕ) : vector (term lang.DLO_lang 0) 2 := ⟨[var v₁, var v₂], rfl⟩
+@[reducible] def φ₁ : formula lang.DLO_lang := <' $ mk_vec 1 2 -- x < y
+@[reducible] def φ₂ : formula lang.DLO_lang := <' $ mk_vec 2 1 -- y < x
+@[reducible] def φ₃ : formula lang.DLO_lang := <' $ mk_vec 2 3 -- y < z
+@[reducible] def φ₄ : formula lang.DLO_lang := <' $ mk_vec 3 2 -- z < y
+@[reducible] def φ₅ : formula lang.DLO_lang := <' $ mk_vec 1 3 -- x < z
+@[reducible] def φ₆ : formula lang.DLO_lang := <' $ mk_vec 1 1 -- x < x
 
-def DLO_axioms : set (formula DLO_lang) :=
+def DLO_axioms : set (formula lang.DLO_lang) :=
  { ∀'1 (∀'2 (¬' φ₆)),
    ∀'1 (∀'2 (∀'3 (φ₁ →' (φ₃ →' φ₅)))),
    ∀'1 (∀'2 (∀' 3 ((φ₁ ∨' φ₂) ∨' (var 1 =' var 2)))),
@@ -374,18 +379,31 @@ def DLO_axioms : set (formula DLO_lang) :=
    ∀'1 (∃'2 (φ₂)),
    ∀'1 (∀'2 (φ₁ →' ∃'3(φ₅ ∧' φ₄)))}
 
+
 -- TODO: complete this definition of DLO_theory
-def DLO_theory : set (sentence DLO_lang) :=
- { (⟨∀'1 (∀'2 (¬' φ₆)), by { simp [var_occurs_freely, φ₆, vars_in_list],
-                             intros _ _ _,
-                             apply finset.not_mem_singleton.mpr,
-                             assumption}⟩),
-   --∀'1 (∀'2 (∀'3 (φ₁ →' (φ₃ →' φ₅)))),
-   --∀'1 (∀'2 (∀' 3 ((φ₁ ∨' φ₂) ∨' (var 1 =' var 2)))),
-   --∀'1 (∃'2 (φ₁)),
-   --∀'1 (∃'2 (φ₂)),
-   --∀'1 (∀'2 (φ₁ →' ∃'3(φ₅ ∧' φ₄)))
-   }
+def DLO_theory : set (sentence lang.DLO_lang) :=
+ { ⟨∀'1 (∀'2 (¬' φ₆)), by {finish [formula.var_occurs_freely]}⟩,
+   ⟨∀'1 (∀'2 (∀'3 (φ₁ →' (φ₃ →' φ₅)))),
+     by {push_neg,
+         rintros _ _ _ _ (⟨_ | _ | _⟩ | ⟨_ | _ | _⟩ | _ | _ | _);
+         tauto}⟩,
+   ⟨∀'1 (∀'2 (∀' 3 ((φ₁ ∨' φ₂) ∨' (var 1 =' var 2)))),
+     by {push_neg,
+         rintro (_ | _ | _ | _ | _ | _) _ _ _;
+         exact dec_trivial <|> tauto}⟩,
+   ⟨∀'1 (∃'2 (φ₁)),
+     by {push_neg,
+         rintros _ _ _ (_ | _ | _);
+         tauto}⟩,
+   ⟨∀'1 (∃'2 (φ₂)),
+        by {push_neg,
+            rintros _ _ _ (_ | _ | _);
+            tauto}⟩,
+   ⟨∀'1 (∀'2 (φ₁ →' ∃'3(φ₅ ∧' φ₄))),
+        by {push_neg,
+            rintros _ _ _ (⟨_ | _ | _⟩ | ⟨_, ⟨_ | _ | _⟩ | _ | _ | _⟩);
+            tauto}⟩,
+  }
 
 
 #exit
