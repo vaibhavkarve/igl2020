@@ -121,14 +121,23 @@ structure substruc {L : lang} (N : struc L) : Type :=
 (univ_invar_C : ∀ (c : L.C), N.C c ∈ univ) -- univ contains all constants
 
 
+variables (L : lang) (M : struc L) (S₁ S₂ : substruc M)
+
+
 namespace substruc
 /- We can show that the intersection of 2 substructures is
 a substructure. -/
 def intersection {L : lang} {M : struc L}
- (S₁ S₂ : substruc M) [inhabited ↥(S₁.univ ∩ S₂.univ)]: substruc M :=
+ (S₁ S₂ : substruc M) [inhabited ↥(S₁.univ ∩ S₂.univ)] : substruc M :=
  {univ := S₁.univ ∩ S₂.univ,
-  univ_invar_F := λ n f v', by {norm_num, split, sorry, sorry},
-  univ_invar_C := sorry}
+  univ_invar_F := λ n f v', by {norm_num, split,
+  have v : vector S₁.univ n,
+  fconstructor,
+  have v'' := v'.val,
+  have x := S₁.univ_invar_F n f,
+  unfold_coes,
+  repeat {sorry}},
+  univ_invar_C := λ c, ⟨S₁.univ_invar_C c, S₂.univ_invar_C c⟩}
 
 
 /-- A substructure is finite if it has only finitely many domain elements.-/
