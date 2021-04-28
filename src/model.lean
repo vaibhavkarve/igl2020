@@ -87,7 +87,7 @@ the finset given by vars_in_term. -/
 
 /-- Given a variable assignment map, we can define an interpretation of an
 `L`-term of level `n` as a function on `M.univ` of arity `n`.-/
-def term_interpretation (var_assign : ℕ → M.univ) :
+@[reducible] def term_interpretation (var_assign : ℕ → M.univ) :
   Π {n : ℕ}, term L n → Func M.univ n
 | 0 (con c)    := M.C c
 | 0 (var v)    := var_assign v
