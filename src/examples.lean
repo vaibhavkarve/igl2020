@@ -405,55 +405,40 @@ def DLO_theory : set (sentence lang.DLO_lang) :=
   }
 
 
-#exit
 def Q_Model_DLO : Model (DLO_theory) :=
  { M := Q_struc,
    satis :=
    begin
-   intros σ,
-   rintro (rfl | rfl | rfl | rfl | rfl | H);
-   iterate {unfold models},
- {intros x x₁ h,
-  cases h,
-  solve_by_elim},
- { rintros x x₁ x₂ h,
-   simp at *,
-   unfold models at h,
-   cases h,
-   unfold φ₁ at h,
-   unfold models at h,
-   simp at h,
-   cases h,
-   simp at *,
-   dsimp at *,
- sorry,
- sorry},
- sorry,
- intros,
-  {
-    use x+1,
-    fconstructor,
-    suffices h : x ≤ x+1,
-    exact h,
-    norm_num,
-    suffices h : ¬(x+1≤x),
-    exact h,
-    linarith,
-  },
- intros,
-  {
-    use x-1,
-    fconstructor,
-    suffices h : x-1 ≤ x,
-    exact h,
-    linarith,
-    suffices h : ¬(x≤x-1),
-    exact h,
-    linarith,
-  },
- sorry,
- end
-}
+     rintros σ (⟨_, _⟩ | x | _ | ⟨_, _⟩ | ⟨_, _⟩ | H);
+     use function.const ℕ (42 : ℚ), -- 42 is just an arbitrary value
+     { rintros _ _ ⟨_, _⟩, tauto},
+     { sorry },
+     { sorry },
+     { intros x,
+       use x+1,
+       split;
+         simp only [vector.map, list.map, vector.nth, vector.head,
+                    fin.val_one, term_interpretation, rat.le,
+                    function.update_same, list.nth_le];
+         norm_num;
+         try {ring};
+         dec_trivial},
+     { intros x,
+       use x-1,
+       split;
+         simp only [vector.map, list.map, vector.nth, vector.head,
+                    fin.val_one, term_interpretation, rat.le,
+                    function.update_same, list.nth_le];
+         norm_num;
+         try {ring};
+         dec_trivial},
+     repeat {sorry},
+end
+
+
+
+#exit
+
 
 
 /-- DLO is complete by using Vaught's test. This will include the
