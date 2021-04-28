@@ -372,17 +372,16 @@ open term
 @[reducible] def φ₆ : formula lang.DLO_lang := <' $ mk_vec 1 1 -- x < x
 
 def DLO_axioms : set (formula lang.DLO_lang) :=
- { ∀'1 (∀'2 (¬' φ₆)),
+ { ∀'1 (¬' φ₆),
    ∀'1 (∀'2 (∀'3 (φ₁ →' (φ₃ →' φ₅)))),
-   ∀'1 (∀'2 (∀' 3 ((φ₁ ∨' φ₂) ∨' (var 1 =' var 2)))),
+   ∀'1 (∀'2 ((φ₁ ∨' φ₂) ∨' (var 1 =' var 2))),
    ∀'1 (∃'2 (φ₁)),
    ∀'1 (∃'2 (φ₂)),
    ∀'1 (∀'2 (φ₁ →' ∃'3(φ₅ ∧' φ₄)))}
 
 
--- TODO: complete this definition of DLO_theory
 def DLO_theory : set (sentence lang.DLO_lang) :=
- { ⟨∀'1 (∀'2 (¬' φ₆)), by {finish [formula.var_occurs_freely]}⟩,
+ { ⟨∀'1 (¬' φ₆), by {finish [formula.var_occurs_freely]}⟩,
    ⟨∀'1 (∀'2 (∀'3 (φ₁ →' (φ₃ →' φ₅)))),
      by {push_neg,
          rintros _ _ _ _ (⟨_ | _ | _⟩ | ⟨_ | _ | _⟩ | _ | _ | _);
