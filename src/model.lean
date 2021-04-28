@@ -87,7 +87,7 @@ the finset given by vars_in_term. -/
 
 /-- Given a variable assignment map, we can define an interpretation of an
 `L`-term of level `n` as a function on `M.univ` of arity `n`.-/
-def term_interpretation (var_assign : ℕ → M.univ) :
+@[reducible] def term_interpretation (var_assign : ℕ → M.univ) :
   Π {n : ℕ}, term L n → Func M.univ n
 | 0 (con c)    := M.C c
 | 0 (var v)    := var_assign v
@@ -407,8 +407,8 @@ end
 /-- Suppose that s₁ and s₂ are variable assignment functions into a structure M
 such that s₁(v) = s₂(v) for every free variable v in the term t.
 Then t is interpreted to the same element under both s₁ and s₂. -/
-lemma eq_term_interpretation_of_identical_var_assign {L : lang} {M : struc L}
-  (s₁ s₂ : ℕ → M.univ) (t : term L 0) (h : ∀ v ∈ t.vars_in_term, s₁ v = s₂ v) :
+lemma eq_interpretation_of_identical_var_assign {s₁ s₂ : ℕ → M.univ}
+  {t : term L 0} (h : ∀ v ∈ t.vars_in_term, s₁ v = s₂ v) :
   (t^^s₁) = (t^^s₂) :=
 begin
   -- We will proceed with induction on the term t.
@@ -433,9 +433,8 @@ begin
   { -- In the case when t is an application, we break it into cases when n is
     -- zero and nonzero.
     cases n;
-      -- unfold definitions and use the induction hypotheses.
-      unfold term.term_interpretation;
-      rw [t_ih, t₀_ih];
+      -- rewrite definitions and use the induction hypotheses.
+      rw [term.term_interpretation, t_ih, t₀_ih];
       -- The rest follows from hypothesis h.
       intros v hv;
       apply h;
@@ -459,12 +458,11 @@ lemma iff_models_formula_relation_of_identical_var_assign
 begin
   set ϕ : formula L := formula.rel r vec,
 
-  suffices interpretations_eq : vector.map (^^va₁) vec = vector.map (^^va₂) vec,
-  rw [models_formula, interpretations_eq],
+  suffices eq_interpretations : vector.map (^^va₁) vec = vector.map (^^va₂) vec,
+  simp only [models_formula, eq_interpretations],
 
   ext1,
-  rw [vector.nth_map, vector.nth_map,
-       eq_term_interpretation_of_identical_var_assign],
+  rw [vector.nth_map, vector.nth_map, eq_interpretation_of_identical_var_assign],
 
   intros var h₁,
   suffices x : var ∈ term.vars_in_term (vec.nth m) → var ∈ formula.vars_in_list vec.to_list,
@@ -492,14 +490,19 @@ begin
   case formula.ff
   { refl },
   case formula.eq : t₁ t₂
-  {simp only [finset.mem_union] at h,
+  { simp only [finset.mem_union] at h,
 
-   have h₁ : ∀ v ∈ t₁.vars_in_term, va₁ v = va₂ v, sorry,
-   have h₂ : ∀ v ∈ t₂.vars_in_term, va₁ v = va₂ v, sorry,
+    have h₁ : ∀ v ∈ t₁.vars_in_term, va₁ v = va₂ v,
+      from λ v H, h v (or.inl H),
+    have h₂ : ∀ v ∈ t₂.vars_in_term, va₁ v = va₂ v,
+      from λ v H, h v (or.inr H),
 
-   have h₃ := eq_term_interpretation_of_identical_var_assign va₁ va₂ t₁ h₁,
-   have h₄ := eq_term_interpretation_of_identical_var_assign va₁ va₂ t₂ h₂,
-   sorry},
+    replace h₁ := eq_interpretation_of_identical_var_assign h₁,
+    replace h₂ := eq_interpretation_of_identical_var_assign h₂,
+
+    split,
+      exact λ H, (h₁.symm.trans H).trans h₂,
+      exact λ H, (h₁.trans H).trans h₂.symm},
 
   case formula.rel
   { exact iff_models_formula_relation_of_identical_var_assign h},
