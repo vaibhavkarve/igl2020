@@ -262,7 +262,8 @@ infix ` ⊨ ` : 100 := models_formula  -- Type this as a variant of \entails.
 
 def models_sentence (M : struc L) (σ : sentence L) : Prop :=
   ∃ va : ℕ → M.univ, va ⊨ σ
-notation M` ⊨ `σ : 100 := models_sentence M σ -- Type this as a variant of \entails.
+notation M` ⊨ `σ : 100 := models_sentence M σ -- Type this as a variant of
+                                              -- \entails.
 
 lemma models_formula_or_negation (va : ℕ → M.univ) :
   models_formula va ϕ ∨ models_formula va (¬' ϕ) :=
@@ -305,7 +306,8 @@ infix ` ≡ ` := elementarily_equivalent
 
 
 /-- The full theory of `M` is the set of `L`-sentences `φ` such that `M ⊨ φ`.-/
-@[reducible] def full_theory (M : struc L) : set (sentence L) := {ϕ : sentence L | M ⊨ ϕ}
+@[reducible] def full_theory (M : struc L) : set (sentence L) :=
+  {ϕ : sentence L | M ⊨ ϕ}
 
 
 /-- `M ≡ N` iff their full theories match.-/
