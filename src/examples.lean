@@ -421,7 +421,7 @@ def Q_Model_DLO : Model (DLO_theory) :=
                     fin.val_one, term_interpretation, rat.le,
                     function.update_same, list.nth_le];
          norm_num;
-         try {ring};
+         try {ring_nf};
          dec_trivial},
      { intros x,
        use x-1,
@@ -430,11 +430,11 @@ def Q_Model_DLO : Model (DLO_theory) :=
                     fin.val_one, term_interpretation, rat.le,
                     function.update_same, list.nth_le];
          norm_num;
-         try {ring};
+         try {ring_nf};
          dec_trivial},
      repeat {sorry},
 end
-
+}
 
 
 #exit

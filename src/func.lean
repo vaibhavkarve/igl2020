@@ -48,7 +48,7 @@ it into a partial function of the same arity.
 def mk_of_total {α : Type} : Π {n : ℕ+}, (vector α n → α) → Func α n
 | ⟨0, _⟩ f := by linarith
 | ⟨1, _⟩ f := λ a, f ⟨[a], by norm_num⟩ -- this produces a 1-ary func
-| ⟨n+2, h⟩ f := λ a, @mk_of_total ⟨n+1, by linarith⟩ (λ v, f (a ::ᵥ v)) -- an (n+1)-ary function
+| ⟨n+2, _⟩ f := λ a, @mk_of_total ⟨n+1, by linarith⟩ (λ v, f (a ::ᵥ v)) -- an (n+1)-ary function
 
 
 /-- We can apply a Func to an element. This will give us a lower-level
@@ -81,9 +81,24 @@ def app_fin {α : Type} {n : ℕ+} (f : Func α n) (v : fin n → α) : α :=
   f ⊗ (vector.of_fn v)
 
 
-def map {n : ℕ+} {α : Type} {A : set α} (F : Func α n) {f : A → α} :
+def vec_map {n : ℕ+} {α : Type} {A : set α} (F : Func α n) {f : A → α} :
  (∀ v : vector A n, F ⊗ v.map f ∈ A) → Func A n :=
  λ h, mk_of_total (λ v, ⟨F ⊗ (v.map f), h v⟩)
+
+
+def map0 {α β : Type} (g : α → β) : (Func α 0) → Func β 0 := g
+
+
+def mapn {α β : Type} (g : β → α) : Π (n : ℕ+), (Func α n) → Func β n
+| ⟨0, _⟩ f := by linarith
+| ⟨1, _⟩ f := id
+| ⟨n + 2, _⟩ f := λ b, mapn ⟨n + 1, by norm_num⟩ ((f∘g) b)
+
+
+def map {α β : Type} (g : equiv α β) : Π {n : ℕ}, Func α n → Func β n
+| 0     := map0 g.to_fun
+| (n+1) := mapn g.inv_fun ⟨_, by norm_num⟩
+
 
 /-- We can apply a Func to a vector of elements of the incorrect size as well.-/
 def app_vec_partial {α : Type} : Π (m n : ℕ), 0 < m → 0 < n →

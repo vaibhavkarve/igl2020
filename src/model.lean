@@ -42,6 +42,30 @@ inductive term (L : lang) : ℕ → Type
 namespace term
 variables {L : lang} {M : struc L}
 
+--#print prefix term
+--#check @term.rec
+-- term.binduction_on : ∀ {L : lang} {C : Π (ᾰ : ℕ), term L ᾰ → Prop} {ᾰ : ℕ}
+-- (n : term L ᾰ),
+-- (∀ (ᾰ : ℕ) (n : term L ᾰ), term.ibelow L n → C ᾰ n) → C ᾰ n
+
+-- term.brec_on :
+--  Π {L : lang} {C : Π (ᾰ : ℕ), term L ᾰ → Sort u_1} {ᾰ : ℕ} (n : term L ᾰ),
+--    (Π (ᾰ : ℕ) (n : term L ᾰ), term.below L n → C ᾰ n) → C ᾰ n
+-- term.rec_on :
+--   Π {L : lang} {C : Π (ᾰ : ℕ), term L ᾰ → Sort u_1} {ᾰ : ℕ} (n : term L ᾰ),
+--     (Π (ᾰ : L.C), C 0 (con ᾰ)) →
+--     (Π (ᾰ : ℕ), C 0 (var ᾰ)) →
+--     (Π {n : ℕ+} (ᾰ : L.F n), C ↑n (func ᾰ)) →
+--     (Π {n : ℕ} (ᾰ : term L (n + 1)) (ᾰ_1 : term L 0), C (n + 1) ᾰ → C 0 ᾰ_1 → C n (ᾰ.app ᾰ_1)) →
+--     C ᾰ n
+-- term.rec :
+--   Π {L : lang} {C : Π (ᾰ : ℕ), term L ᾰ → Sort u_1},
+--     (Π (ᾰ : L.C), C 0 (con ᾰ)) →
+--     (Π (ᾰ : ℕ), C 0 (var ᾰ)) →
+--     (Π {n : ℕ+} (ᾰ : L.F n), C ↑n (func ᾰ)) →
+--     (Π {n : ℕ} (ᾰ : term L (n + 1)) (ᾰ_1 : term L 0), C (n + 1) ᾰ → C 0 ᾰ_1 → C n (ᾰ.app ᾰ_1)) →
+--     Π {ᾰ : ℕ} (n : term L ᾰ), C ᾰ n
+
 
 /-- This function computes the depth of a term as seen by a parser. For
     example, the depth of `f(v₁, v₂, v₃)` is 4 (one for `f` and one for
@@ -114,9 +138,9 @@ def term_sub (t' : term L 0) : Π n, term L n → term L n
 | n (func f)   := func f
 | n (app t t₀) := app (term_sub (n+1) t) (term_sub 0 t₀)
 
+
 /--Alternative definition where we only allow the substitution to
 occur over only one variable.-/
-
 def term_sub_for_var (t' : term L 0) (k : ℕ) :
   Π n, term L n → term L n
 | 0 (con c)    := con c
@@ -329,12 +353,12 @@ end
 -- an induction principle that works only on level=0 terms which have no
 -- variables.
 theorem isomorphic_struc_satisfy_same_theory {M₁ M₂ : struc L}
-  (η : isomorphism M₁ M₂) {σ : sentence L} : M₁ ⊨ σ → M₂ ⊨ σ :=
+  (i : isomorphism M₁ M₂) {σ : sentence L} : M₁ ⊨ σ → M₂ ⊨ σ :=
 begin
   cases σ with ϕ hϕ,
   rintros ⟨va, va_models_ϕ⟩,
-  have η_map := η.η,
-  use η_map ∘ va,
+  let η := i.η,
+  use η ∘ va,
   unfold_coes at *,
   cases ϕ,
     case formula.tt
@@ -344,11 +368,12 @@ begin
               -- is impossible
     case formula.eq : t₁ t₂
     { unfold models_formula at *,
-      -- Question/TODO: term-interpret of t₁ under (η_map∘va) is same as
-      -- term-interpret of t₂ under (η_map∘va). Why? How can we show this?
-      revert hϕ va_models_ϕ,
-
-      sorry},
+      -- Question/TODO: term-interpret of t₁ under (η∘va) is same as
+      -- term-interpret of t₂ under (η∘va). Why? How can we show this?
+      simp at *,
+      have x : (t₁^^η ∘ va) = η (t₁^^va), sorry,
+      have y : (t₂^^η ∘ va) = η (t₂^^va), sorry,
+      cc},
     case formula.rel : n r vec
     { admit },
     case formula.neg : ϕ
@@ -364,33 +389,52 @@ begin
 end
 
 
+
 -- TODO: But put this on hold till we figure out how to prove that the
 -- inverse of bijective function is bijective.
-noncomputable def isomorphism_inverse (M N : struc L)
+def isomorphism_inverse {M N : struc L}
   (η : isomorphism M N) : isomorphism N M :=
 begin
-  haveI M_univ_inhabited := M.univ_inhabited,
-  let ηi := function.inv_fun η.η,
   fconstructor,
-  { fconstructor,
-    { exact ηi,
-    },
+  fconstructor,
+    { exact η.equiv.inv_fun},
     { apply function.bijective.injective,
       rw function.bijective_iff_has_inverse,
-      use η.η,
-      split,
-      have z := function.left_inverse.comp_eq_id,
-      unfold function.left_inverse,
-      intro x,
+      use η.equiv.to_fun,
+      exact ⟨η.equiv.apply_symm_apply, η.equiv.symm_apply_apply⟩},
+  { intros n f v,
+    rcases η with ⟨⟨func, inj, F, __, __⟩,             -- η.to_embedding
+                   ⟨to_fun, inv_func, __, right_inv⟩,  -- η.equiv
+                   η_eq_equiv_η⟩,                     -- η.eq_equiv_η
+    unfold_projs at *,
+    unfold function.right_inverse function.left_inverse at right_inv,
+    refine inj _,
+    rw [η_eq_equiv_η, right_inv, ← η_eq_equiv_η, F],
+    refine congr rfl _,
+    refine vector.ext _,
+    finish,
+    },
 
-      apply @function.inv_fun_eq,
-      use ηi x,
-      --refine function.right_inverse.left_inverse _,
-    repeat{sorry}},
-  repeat {sorry},
-  },
-
-{sorry},
+  { intros n r v,
+    rcases η with ⟨⟨func, inj, __, R, __⟩,           -- η.to_embedding
+                   ⟨to_fun, inv_fun, __, right_inv⟩, -- η.equiv
+                   η_eq_equiv_η⟩,                   -- η.eq_equiv_η
+    unfold_projs at *,
+    rw R n r (vector.map inv_fun v),
+    have y : vector.map to_fun (vector.map inv_fun v) = v,
+      { apply vector.eq,
+        simp [vector.to_list_map, function.right_inverse.id, right_inv]},
+    finish},
+  { intros c,
+    rcases η with ⟨⟨func, inj, __, __, C⟩,           -- η.to_embedding
+                   ⟨to_fun, inv_fun, __, right_inv⟩, -- η.equiv
+                   η_eq_equiv_η⟩,                   -- η.eq_equiv_η
+    unfold_projs at *,
+    apply_fun func,
+    rw [C, η_eq_equiv_η],
+    exact right_inv (N.C c)},
+  { exact η.equiv.symm},
+  { unfold_projs, refl},
 end
 
 
@@ -398,11 +442,10 @@ end
 theorem full_theory_is_isomorphism_invariant {M N : struc L}
  (η : isomorphism M N) : M ≡ N :=
 begin
- unfold elementarily_equivalent,
  intro σ,
  split,
-   {exact isomorphic_struc_satisfy_same_theory η},
-   { sorry},
+   { exact isomorphic_struc_satisfy_same_theory η},
+   { exact isomorphic_struc_satisfy_same_theory (isomorphism_inverse η)},
 end
 
 

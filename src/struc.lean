@@ -93,15 +93,22 @@ lemma le_card {L : lang} (M N : struc L) (η : embedding M N) :
 
 end embedding
 
-/-- A bijective embedding between two `L`-structures is called an isomorphism.-/
-structure isomorphism {L: lang} (M N : struc L) extends (embedding M N) : Type :=
-(η_bij : function.bijective η)
+/-- A bijective embedding between two `L`-structures is called an isomorphism.
+We use the `equiv` type, denoted `M.univ ≃ N.univ` to capture the type of
+bijective maps bundled with inverse maps.
+-/
+structure isomorphism {L: lang} (M N : struc L) extends (embedding M N) : Type
+:=
+(equiv : M.univ ≃ N.univ)
+(eq_equiv_η : η = equiv.to_fun)
 
 
 /-- We argue that every structure has an isomorphism to itself via the identity
   map.-/
-instance isomorphism.inhabited {L : lang} {M : struc L} : inhabited (isomorphism M M) :=
-  {default := {η_bij := function.bijective_id,
+instance isomorphism.inhabited {L : lang} {M : struc L} :
+inhabited (isomorphism M M) :=
+  {default := {equiv := equiv.refl _,
+               eq_equiv_η := rfl,
                .. default (embedding M M)}}
 
 
@@ -139,16 +146,16 @@ def intersection {L : lang} {M : struc L}
                                 repeat {sorry}},
   univ_invar_C := λ c, ⟨S₁.univ_invar_C c, S₂.univ_invar_C c⟩}
 
-
 /-- A substructure is finite if it has only finitely many domain elements.-/
 class fin_substruc {L : lang} {N : struc L} (S : substruc N) :=
 (finite : set.finite S.univ)
+
 
 /-- Every substruc is a struc.-/
 instance has_coe {L: lang} {M : struc L} :
   has_coe (substruc M) (struc L)
 := {coe := λ S, {univ := S.univ,
-                 F := λ n f, (f^M).map (S.univ_invar_F n f),
+                 F := λ n f, (f^M).mapn coe n,
                  R := λ _ r v, v.map coe ∈ (r̂M),
                  C := λ c, ⟨M.C c, S.univ_invar_C c⟩,
                  univ_inhabited := S.univ_inhabited}}
