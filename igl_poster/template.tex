@@ -1,0 +1,358 @@
+\documentclass[landscape]{sciposter}
+
+% edit pointsize, width, height, and fontsize parameters as needed
+% DO ensure that values in the \special commands match!
+\renewcommand{\papertype}{custom}
+\renewcommand{\sectionsize}{\large}
+\renewcommand{\fontpointsize}{25pt}
+\setlength{\paperwidth}{36in}
+\setlength{\paperheight}{24in}
+\renewcommand{\setpspagesize}{
+\ifthenelse{\equal{\orientation}{landscape}}{
+\special{papersize=36in, 24in}
+}{\special{papersize=24in, 36in}
+}
+}
+
+% editing comment commands
+\newcommand{\eion}[1]{{\color{cyan}\bfseries [#1]}}
+\newcommand{\scott}[2]{{\color{orange}\bfseries [#2]}}
+\newcommand{\vaibhav}[3]{{\color{green}\bfseries [#3]}}
+
+% Setting correct textlenghts that are compatible with paper size.
+\setmargins[1.5cm]
+
+
+%\renewcommand{\subsectionsize}{\large \textcolor{\SectionCol}}
+%\usepackage[spanish]{babel}
+% or whatever
+
+%% Define Lean to be the default language for Listing
+%\usepackage[utf8]{inputenc}
+\usepackage{color}
+\definecolor{keywordcolor}{rgb}{0.7, 0.1, 0.1}   % red
+\definecolor{commentcolor}{rgb}{0.4, 0.4, 0.4}   % grey
+\definecolor{symbolcolor}{rgb}{0.0, 0.1, 0.6}    % blue
+\definecolor{sortcolor}{rgb}{0.1, 0.5, 0.1}      % green
+\usepackage{listings}
+\def\lstlanguagefiles{lstlean.tex}
+\lstset{language=lean}
+
+% Change to a font that has all the glyphs. This option necessitates
+% XeLaTeX or LuaLaTeX as the compiler engine.
+\usepackage{fontspec}
+\setmonofont{DejaVu Sans Mono}[Scale=MatchLowercase]
+
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{multicol}
+\usepackage{listings}
+\usepackage{enumerate, wrapfig}
+\usepackage{colortbl}
+\usepackage[export]{adjustbox}
+\usepackage{enumitem}
+\setlist[enumerate]{
+  leftmargin=2cm,
+  before=\setlength{\listparindent}{-\leftmargin},
+}
+\usepackage{parskip}
+
+
+
+
+\newtheorem{thm}{Theorem}%[section] % uncomment [section] to number within section
+\newtheorem*{thm*}{Theorem}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{rem}[thm]{Remark}
+\newtheorem{cond}[thm]{Condition}
+\newtheorem*{namedtheorem}{Theorem}
+\newtheorem{ex}{Example}
+\newtheorem*{definition}{Definition}
+\newtheorem{env}[thm]{Variation}
+\renewcommand {\theequation}{\arabic{section}.\arabic{equation}}
+\newcommand{\R}{\ensuremath{{\Bbb R}}}
+
+%Lines 54-73 define box theorem. You can do similar things to put boxes around conjectures, corollaries, ect, or use the mdframe to just create a box
+\usepackage[framemethod=TikZ]{mdframed}
+
+\mdfdefinestyle{MyFrame}{linecolor=orange,
+    outerlinewidth=2pt,
+    roundcorner=50pt,
+    innertopmargin=\baselineskip,
+    innerbottommargin=\baselineskip,
+    innerrightmargin=15pt,
+    innerleftmargin=15pt,
+    backgroundcolor=white}
+
+
+\mdtheorem[style=MyFrame]{MDtheorem}{Theorem}
+\newcommand*{\Title}{}
+\newenvironment{boxthm}[1][]{%
+\refstepcounter{thm}
+    \ifstrempty{#1}{\begin{MDtheorem}}%
+    {\begin{MDtheorem}[(#1)]}
+}{%
+    \end{MDtheorem}%
+}%
+
+%\definecolor{BoxCol}{rgb}{0.9,0.9,0.9}
+% uncomment for grey background to \section boxes
+% for use with default option boxedsections
+
+\definecolor{BoxCol}{rgb}{.06,.16,.28}
+
+
+\definecolor{SectionCol}{rgb}{1,1,1}
+
+\definecolor{blue}{rgb}{0,0,1}
+\definecolor{orange}{rgb}{.93,.29,0.1}
+\definecolor{white}{rgb}{1,1,1}
+
+\newtheorem{Features}{Features}
+
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%title
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{\hspace{-5cm}Theorem Proving In Lean}
+% \author[Faculty Advisor: ]{Dr. Philipp Hieronymi}
+\author{Faculty Advisor: Dr. Philipp Hieronymi\\Graduate Mentors: Vaibhav Karve, Scott Harman, Eion Blanchard\\
+Nikil Ravi, Kyle Thompson, Fenglong Zhao, Tianfan Xu, Joel Schargorodsky, Noble Wulffraat}
+
+% insert correct institute name
+%\institute{University of Illinois at Urbana-Champaign}
+%\email{}  shows author email address below institute
+
+%\date is unused by the current \maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%
+% Logo for Poster
+%%%%%%%%%%%%%%%%%%%%%
+
+\leftlogo[.7]{igl-logo-small.png} % defines logo to left of title (with scale factor)
+\rightlogo[.6]{imark.png} % same but on right
+
+%%%%%%%%%%%%%%%%%%%
+% Start of document
+%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%
+%% Poster Set up
+%%%%%%%%%%%%%%%%%%%%%%%
+\conference{IGL Poster Session Fall 2020}% you can change this for other conferences
+
+\maketitle
+\vspace{-3ex}
+\begin{multicols}{3}  % sets up 3 column poster
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+%% Start of First Column
+%%%%%%%%%%%%%%%%%%%%%%%
+%Sections have a color box around them. Remove the * if you want to number your sections
+\section*{Introduction}
+
+A theorem prover is a program that takes a statement and verifies or decides (i.e.\ proves or disproves) it. Given that most proof methods can be reduced to a set of axioms and associated rules, we can use theorem provers to either prove that a statement is correct, or verify the correctness of a given proof. Because of their reliability and efficiency, theorem provers can be useful in many contexts in mathematics and beyond.
+
+The aim of this project is to use Lean to formalize ideas in first-order logic and model theory. We focus on aspects including but not limited to -- languages, structures, embeddings between structures, variables, terms, sentences, models, and o-minimality.
+
+\section*{The Lean Theorem Prover}
+
+Lean is a software used for theorem proving and formal verification. It aims to bridge the gap between interactive theorem proving, which focuses more on verifying proofs down to the axioms, and automated theorem proving, which attempts to find a proof for a given statement.
+
+As a very basic example of some Lean code, consider the following definition of an even number in Lean --
+\vspace{4mm}
+\begin{lstlisting}
+def even (n : ℕ) : Prop := ∃ d, n = 2 * d
+\end{lstlisting}
+
+In order to now prove that a given number, say \(6\), is even, we would have to convince Lean that \(6\) satisfies the definition of an even number.
+\vspace{4mm}
+\begin{lstlisting}
+lemma even_six : even 6 :=
+  by {unfold even, use 3, norm_num}
+\end{lstlisting}
+
+The code inside \texttt{by \{...\}} consists of tactics: these are similar to proof statements written by a human mathematician. Informally, \texttt{unfold even} tells Lean to read the definition of an even number, \texttt{use 3} asks Lean to use \(3\) as \(d\) in the definition, and \texttt{norm\_num} is a tactic in Lean that can be used here to verify that \(2\times3 = 6\).
+
+\begin{lstlisting}
+def models {L : lang} {M : struc L} : (ℕ → M.univ) → formula L → Prop
+| va ⊤'           := true
+| va (t1 =' t2)   := (term_interpretation M va t1) = (term_interpretation M va t2)
+| va (formula.rel _ r t) := vector.map (term_interpretation M va) t ∈ M.R t.length r
+| va ¬' ϕ       :=  ¬ models va ϕ
+| va (ϕ1 ∧' ϕ2) := models va ϕ1 ∧ models va ϕ2
+| va (ϕ1 ∨' ϕ2) := models va ϕ1 ∨ models va ϕ2
+| va (∃' v ϕ)   := ∃ (x : M.univ), models (λ n, if n=v then x else va n) ϕ
+| va (∀' v ϕ)        := ∀ (x : M.univ), models (λ n, if n=v then x else va n) ϕ
+\end{lstlisting}
+
+% \section*{Project Description}
+% The aim of this project is to use Lean to formalize ideas in first-order logic and model theory. We focus on aspects including but not limited to: languages, structures, embeddings between structures,
+% variables, terms, sentences, models, and o-minimality.\\
+% \\Definitions for each of the above notions were written using Lean, and then relevant theorems and lemmas were stated with a formal proof in Lean. We have also included many examples for most of our definitions.
+
+\section*{Languages and Structures}
+
+\textbf{Definition:} A \textbf{language} $L$ is a set of constant, function, and relation symbols with associated arities.
+
+
+Each function or relation symbol has an {\sl arity}, which is a natural number counting how many arguments a symbol requires. Constant symbols are \(0\)-ary function symbols.
+
+
+%\eion{Formatting here needs reworking so that the code indentations line up more efficiently}
+%\textbf{Examples for language}: \\
+\textbf{A simple example of language using Lean}
+\begin{lstlisting}
+/-- The language of ordered sets is the language of sets with binary relation {$\textless$}.-/
+def ordered_set_lang : lang :=
+  {R := λ n : ℕ, if n=2 then unit else empty,
+   F := function.const ℕ empty}
+\end{lstlisting}
+
+This is the Lean definition of a language $L = \{<\}$, where $<$ is a binary relation.
+Syntactically, this language is characterized by having a single binary relation symbol. The function ``R'' returns a singleton type for input arity 2 and the empty type otherwise. Similarly, ``F'' always returns the empty type.
+
+%\eion{code formatting needs tweaking}
+%\textbf{Another Example of language in Lean}\\
+% \begin{lstlisting}
+% /-- A monoid is a {x,1}-structure which satisfies the identities
+%   1. u x (v x w) = (u x v) x w
+%   2. u x 1 = u
+%   3. 1 x u = u. -/
+
+% def monoid_lang : lang := {F := $\lambda$ n : $\mathbb{N}$,
+%     if n = 0 then unit else
+%     if n = 2 then unit else empty
+%     R := function.const $\mathbb{N}$ empty}
+% \end{lstlisting}
+% Above is the language of monoids.
+%For the function symbol, if n = 0, then just return a constant number in the unit set. And if n = 2, the 'x' operator works, which is a binary function symbol and it will also return a number, which we know is actually the result of the multiplication. In other cases, it will return empty. \\
+
+Languages rely on {\sl interpretation} in structures to bear semantic meaning, so we now define structures.
+
+%\eion{Even if Marker uses \frak, I think \mathcal is easier to read for structure names}
+\textbf{Definition:} For language $L$, an \textbf{L-structure} $\mathcal{M}$ is a domain $M$ paired with interpretations of each symbol in $L$.
+%\textbf{Notation:} \begin{enumerate}
+%    \item    A is a non-empty set, the domain of $\mathfrak{A}$.
+%    \item    $Z^\mathfrak{A}\in A$ if Z is a constant.
+%    \item    $Z^\mathfrak{A} : A^n \longrightarrow A$ if Z is an n-ary function symbol.
+%    \item    $Z^\mathfrak{A} \subseteq A^n$ if Z is an n-ary relation symbol.\\
+%    We call $Z^\mathfrak{A}$ the $\mathfrak{A}$-interpretation of Z.
+%\end{enumerate}
+
+\begin{lstlisting}
+structure struc (L : lang) : Type 1 :=
+(univ : Type)                -- universe/domain
+(F (n : ℕ) (f : L.F n) : Func univ n)
+                     -- function interpretation
+(R (n : ℕ) (r : L.R n) : set(vector univ n))
+                     -- relation interpretation
+(C : L.C → univ)     -- constant interpretation
+\end{lstlisting}
+
+%Here we used \section instead of \section*, so it has a number
+\section*{Terms}
+
+\textbf{Definition:} For a language $L = (C, F, R)$, the set of $L$-\textit{terms} is the smallest set $T$ such that:
+\begin{enumerate}[label*=\roman*)]
+    \item for each constant symbol $c \in C$, we have $c \in T$;
+    \item for each variable symbol $v_i$ (for $i=1,2,\ldots$), $v_i \in T$;
+    %\item if $t_1,\dots,t_{n_f}\in T$ and $f\in F$, then $f(t_1,...,t_{n_f})\in T$.
+    \item for each $n$-ary function symbol $f \in F$ and terms $t_1,\dots,t_{n} \in T$, we have $f(t_1,\dots,t_{n}) \in T$.
+\end{enumerate}
+
+\vspace{7mm}
+
+\begin{lstlisting}
+inductive term : ℕ → Type
+| con : L.C → term 0
+| var : ℕ → term 0
+| func {n : ℕ} : L.F n → term n
+| app {n : ℕ} : term (n + 1) → term 0 → term n
+\end{lstlisting}
+
+
+%\eion{This paragraph is a bit unclear; emphasize how this notion of 'level' is a relaxation of L-terms, allowing for function applications which need more arguments to 'fill' up the arity.}
+We introduced a notion of {\sl level} in our definition of terms to account for functions with various arities and to make recursion in Lean easier. For a language $L$, \texttt{term L n} represents all terms of $L$ with level $n$.
+Level \(0\) terms are constants, variables, and terms of form \texttt{L.F 0}.
+Thus, only level \(0\) terms correspond to the usual notion of terms in a language while all other higher level terms are a relaxation of \(L\)-terms and need more arguments to ``fill" up the arity.
+
+\section*{Sentences and Formulae}
+
+\textbf{Definition}: \textbf{Formulas} are finite strings made from the symbols of \(L\), the equality relation, variables, the logical connectives, quantifiers, and parentheses.
+
+\textbf{Definition}: A \textbf{variable} is free in a formula if it is not quantified. Otherwise, this variable is bound. A \textbf{sentence} is a formula with no free variables.
+\begin{lstlisting}
+inductive formula (L : lang)
+| tt : formula
+| ff : formula
+| eq  : term L 0 → term L 0 → formula
+| rel : Π (n : ℕ), L.R n → vector (term L 0) n
+        → formula
+| neg : formula → formula
+| and : formula → formula → formula
+| or  : formula → formula → formula
+| exi : ℕ → formula → formula
+| all : ℕ → formula → formula
+\end{lstlisting}
+We construct formulas inductively to give syntactic counterparts of equality $(=)$, negation $(\neg)$, conjunction $(\wedge)$, disjunction $(\vee)$, and the existential $(\exists)$ and universal $(\forall)$ quantifiers.
+
+\section*{Models}
+
+\textbf{Definition}:Let $L$ be a language. An \textbf{L-theory} \(T\) is simply a set of $L$-sentences.
+We say that \(M\) is a \textbf{model} of \(T\) and write $\mathcal{M} \models T$ if $\mathcal{M} \models \phi$ for all sentences \(\phi \in T\).
+
+Below we show an implementation of $\mathcal{M} \models \phi$ (read: \(M\) models \(\phi\)) in Lean.
+
+\begin{lstlisting}
+def models {L : lang} {M : struc L} : (ℕ → M.univ) → formula L →  Prop
+| va ⊤'           := true
+| va (t1 =' t2)   := (term_interpretation M va t1) = (term_interpretation M va t2)
+| va (formula.rel _ r t) := vector.map (term_interpretation M va) t ∈ M.R t.length r
+| va ¬' ϕ       :=  ¬ models va ϕ
+| va (ϕ1 ∧' ϕ2) := models va ϕ1 ∧ models va ϕ2
+| va (ϕ1 ∨' ϕ2) := models va ϕ1 ∨ models va ϕ2
+| va (∃' v ϕ)   := ∃ (x : M.univ), models (λ n, if n=v then x else va n) ϕ
+| va (∀' v ϕ)        := ∀ (x : M.univ), models (λ n, if n=v then x else va n) ϕ
+\end{lstlisting}
+
+Proceeding toward structural induction, we first introduce symbols for true/false and define the cases for equality and relations in the language.
+
+Using $\varphi_i$ as an arbitrary sentence, we specify the cases for the logical connectives and finally for the quantification cases.
+
+\section*{Future Work And References}
+
+The next steps would be to formalize the notions of definable sets and o-minimality using Lean.
+Throughout this project, we used David Marker's \emph{Introduction to Model Theory} as a reference.
+
+\end{multicols}
+
+
+%%%%%%  Here is where the acknowledgements go. If you are in a project which requires additional acknowledgements, add them here
+\vfill
+\centering
+\emph{
+Support for this project was provided by the Illinois Geometry Lab and the Department of Mathematics at the University of Illinois at Urbana-Champaign.\\ We would also like to thank our faculty mentor and our graduate mentors for their support, mentorship, and guidance throughout this project.}
+
+
+\end{document}
+
+% Local Variables:
+% TeX-engine: xetex
+% End:
